@@ -1,0 +1,129 @@
+.combobox-input,.combobox-suggest {
+	margin: 0px;
+}
+
+.combobox-input { 
+	/* empty */	
+}
+
+.combobox-wrapper {
+	position: relative;
+}
+
+.combobox-suggest {
+	position: absolute;
+	width: 100%;
+	z-index: 1;
+}
+
+.element-input {
+	min-width: 60px;
+	display: inline-block;
+	padding-right: 20px;
+}
+
+.rating-input {
+	width: 60px;
+	height: 12px;
+	background-image: url(../resources/stars_active.png),
+		url(../resources/stars_inactive.png);
+	background-position: -60px 0px, -0px 0px;
+	background-repeat: no-repeat, no-repeat;
+	display: inline-block;
+	position: relative;
+	top: 2px;
+	cursor: pointer;
+}
+
+.rating-input.rating-value-100 {
+	background-position: -48px 0px, -0px 0px;
+}
+
+.rating-input.rating-value-200 {
+	background-position: -36px 0px, -0px 0px;
+}
+
+.rating-input.rating-value-300 {
+	background-position: -24px 0px, -0px 0px;
+}
+
+.rating-input.rating-value-400 {
+	background-position: -12px 0px, -0px 0px;
+}
+
+.rating-input.rating-value-500 {
+	background-position: 0px 0px, -0px 0px;
+}
+
+.keywords-input-plus-button {
+	position: relative;
+	top: 2px;
+	cursor: pointer;
+	margin-left: 5px;
+}
+
+.keywords-input-delete-button {
+	position: relative;
+	top: 2px;
+	left: -7px;
+	cursor: pointer;
+	margin-left: 2px;
+}
+
+.keywords-input-newkeyword { /* empty */
+	
+}
+
+.keywords-input-keyword {
+	margin-right: 5px;
+}
+
+.title-input {
+	display: inline-block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	padding-right: 0px;
+}
+
+.title-input-edit-button,.title-input-delete-button {
+	margin-left: 5px;
+	cursor: pointer;
+}
+
+.sortby-link {
+	padding-right: 13px;
+	background-repeat: no-repeat;
+	background-position: 100% 50%;
+}
+
+.sortby-link.asc {
+	background-image: url(../resources/arrow_up.gif);
+}
+
+.sortby-link.desc {
+	background-image: url(../resources/arrow_down.gif);
+}
+
+.collapser-button {
+	cursor: pointer;
+	background-image: url(../resources/arrow_expand.gif);
+	width: 16px;
+	height: 16px;
+}
+
+.collapser-button.expanded {
+	background-image: url(../resources/arrow_collapse.gif);
+}
+
+.collapser-content {
+	display: none;
+}
+
+.collapser-content.expanded {
+	display: block;
+}
+
+datalist {
+	display: none;
+}

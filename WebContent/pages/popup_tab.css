@@ -1,0 +1,62 @@
+html.newtab body {
+	margin-left: auto;
+	margin-right: auto;
+	width: 600px;
+	background-color: #EEE;
+	border-radius: 8px;
+	border-style: solid;
+	border-width: 1px;
+}
+
+html.newtab {
+	height: 100%;
+}
+
+html.newtab body>div {
+	background-color: white;
+	-webkit-box-shadow: #888 2px 2px 2px;
+	border-radius: 6px;
+	padding: 10px;
+	overflow: hidden;
+	position: relative;
+}
+
+html.newtab input[type="search"] {
+	width: 470px;
+}
+
+html.newtab #tab-pages.selected,#tab-tabs.selected,#tab-tags.selected,#tab-options.selected
+	{
+	max-height: 100%;
+}
+
+html.newtab .title-input {
+	width: 485px;
+}
+
+html.newtab .tabs-tab-title {
+	width: 490px;
+}
+
+html.newtab .tabs-tab-title.saving {
+	width: 400px;
+}
+
+html.newtab .pages-row-link-input {
+	width: 456px;
+}
+
+html.newtab .tags-row-link {
+	width: 510px;
+}
+
+html.newtab #options-newtab {
+	display: none;	
+}
+
+html.newtab .screen-mask {
+	position: absolute;
+	display: block;
+	width: 580px;
+	top: 0px;
+}

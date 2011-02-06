@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Scrapbook for Single</title>
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="popup.css">
+<link rel="stylesheet" href="popup_tab.css">
+<script type="text/javascript" src="../scripts/components.js"></script>
+<script type="text/javascript" src="../scripts/popup_pages.js"></script>
+<script type="text/javascript" src="../scripts/popup_tabs.js"></script>
+<script type="text/javascript" src="../scripts/popup_tags.js"></script>
+<script type="text/javascript" src="../scripts/popup_options.js"></script>
+<script type="text/javascript" src="../scripts/popup.js"></script>
+</head>
+<body>
+<div id="error">
+	<p>SingleFile Core extension has not been detected. You must install it in order to use this extension.</p>
+	<p>Download it from <a target="_blank" href="https://chrome.google.com/extensions/detail/jemlklgaibiijojffihnhieihhagocma">here</a>.</p>
+</div>
+<div id="loader">
+	<div id="loader-content"></div>
+</div>
+<div id="main">
+	<h4>
+		<a href="#" id="pages-link" title="archived pages">Archives</a>
+		<a href="#" id="tabs-link" title="current opened tabs">Tabs</a>
+		<a href="#" id="tags-link" title="tags">Tags</a>
+		<span id="options-container">
+			<a href="#" id="options-link" title="options">Options</a>
+			<span id="options-newtab" title="open the popup in a new tab"></span>
+		</span>
+	</h4>
+	<div class="screen-mask" id="pages-tag-mask">
+		<div id="pages-tag-input-container">
+			Add tags: <input id="pages-tag-input" list="pages-tag-data" type="search">
+			<datalist id="pages-tag-data"></datalist>
+			<div id="pages-tag-buttons-container">
+				<input type="button" id="pages-tag-ok-button" value="OK" title="add tags to selected pages">
+				<input type="button" id="pages-tag-cancel-button" value="Cancel" title="cancel action">
+			</div>	
+		</div>
+	</div>
+	<div id="firstuse">
+		<p>Scrapbook for Singlefile has been successfully installed !</p>		
+		<ul>
+			<li>click on <a href="#" id="firstuse-tabs-link" >Tabs</a> to archive tabs</li>
+			<li>click on <a href="#" id="firstuse-pages-link" >Archives</a> to manage archives</li>
+		</ul>
+		<p>
+			Note: you must refresh current tabs before archiving them.
+		</p>
+	</div>	
+	<div id="tab-pages">
+		<form id="pages-form">
+			<div id="pages-search">
+				<input title="type words to find into page content" type="search" autofocus id="pages-search-input" autocomplete="on">
+				<div id="pages-search-expand-button" class="clickable"></div>
+				<input type="submit" value="Search..." title="search into archives">
+			</div>
+			<div id="pages-options-container">
+				<div id="pages-options">
+					<div>
+						<div id="pages-tags-expand-button" class="clickable"></div>
+						<span class="pages-filter" id="pages-tags-filter-link">Filter by tag</span>
+						<div id="pages-tags-container">
+							<span id="pages-tags-label" class="label">tags: </span>
+							<input type="search" id="pages-tags-filter" list="pages-tags-filter-data" title="type tags separated by a comma">
+							<datalist id="pages-tags-filter-data"></datalist>
+						</div>
+					</div>
+					<div>
+						<div id="pages-url-expand-button" class="clickable"></div>
+						<span class="pages-filter" id="pages-url-filter-link">Filter by original URL</span>
+						<div id="pages-url-container">						
+							<span id="pages-url-label" class="label">URL: </span>
+							<input type="search" id="pages-url-filter" title="type part of original URL">							
+						</div>
+					</div>
+					<div>
+						<div id="pages-saveddate-expand-button" class="clickable"></div>
+						<span class="pages-filter" id="pages-saveddate-filter-link">Filter by saved date</span>
+						<div id="pages-saveddate-container">
+							<span id="pages-saveddate-period-input" title="saved date period"></span>
+						</div>
+					</div>
+					<div>
+						<div id="pages-readdate-expand-button" class="clickable"></div>
+						<span class="pages-filter" id="pages-readdate-filter-link">Filter by last read date</span>
+						<div id="pages-readdate-container">						
+							<span id="pages-readdate-period-input" title="last read date period"></span>						
+						</div>
+					</div>					
+					<div>
+						<div id="pages-misc-expand-button" class="clickable"></div>
+						<span class="pages-filter" id="pages-misc-filter-link">Misc filters</span>
+						<div id="pages-misc-container">
+							<div id="pages-misc-filters">
+								<span id="pages-misc-rating">
+									<select title="minimum rating" id="pages-misc-rating-from-input">
+										<option value="0">0</option>
+										<option value="100">1</option>
+										<option value="200">2</option>
+										<option value="300">3</option>
+										<option value="400">4</option>
+										<option value="500">5</option>				
+									</select>
+									<span class="label">to</span>
+									<select title="maximum rating" id="pages-misc-rating-to-input">
+										<option value="0">0</option>
+										<option value="100">1</option>
+										<option value="200">2</option>
+										<option value="300">3</option>
+										<option value="400">4</option>
+										<option value="500">5</option>				
+									</select>
+									<span class="label">stars</span>
+								</span>
+								<span id="pages-misc-size">
+									<input title="minimum size" id="pages-misc-size-from-input">
+									<span class="label">MB to</span>
+									<input title="maximum size" id="pages-misc-size-to-input">
+									<span class="label">MB</span>
+								</span>
+								<span id="pages-misc-other">
+									<span class="label">other: </span>
+									<select title="other" id="pages-misc-other-input">
+										<option value="">none</option>
+										<option value="dupTitle">duplicated title</option>
+										<option value="dupURL">duplicated URL</option>
+										<option value="emptyTitle">empty title</option>														
+									</select>
+								</span>
+							</div>
+						</div>				
+					</div>
+					<div>
+						<div id="pages-expand">
+							<span id="pages-expand-container">
+								<span id ="pages-limit">
+									<select title="displayed results limit" id="pages-limit-input">
+										<option value="10">10</option>
+										<option value="20" selected="selected">20</option>
+										<option value="50">50</option>
+										<option value="100">100</option>
+										<option value="1000">1000</option>
+									</select>
+									<span class="label">results</span>
+								</span>
+								<span class="label">more info:</span>
+								<select id="pages-expand-button">
+									<option value="yes">yes</option>
+									<option value="" selected="selected">no</option>							
+								</select>
+							</span>
+						</div>
+					</div>		
+				</div>
+				<div>
+					<span id="pages-sortby-label">Sort by: </span>
+					<a id="pages-sortby-saveddate-link" class="clickable" href="#" title="sort by saved date">saved date</a>
+					<a id="pages-sortby-readdate-link" class="clickable" href="#" title="sort by last read date">last read date</a>
+					<a id="pages-sortby-title-link" class="clickable" href="#" title="sort by title">title</a>
+					<a id="pages-sortby-rating-link" class="clickable" href="#" title="sort by rating">rating</a>
+					<a id="pages-sortby-url-link" class="clickable" href="#" title="sort by URL">URL</a>
+					<a id="pages-sortby-size-link" class="clickable" href="#" title="sort by size">size</a>
+				</div>
+			</div>
+		</form>
+		
+		<ul id="pages-list">		
+		</ul>
+		<div id="pages-navigation">
+			<div id="pages-navigation-container">
+				<a href="#" id="pages-previous" class="clickable" title="previous page">previous</a>
+				<div id="pages-links"></div>
+				<a href="#" id="pages-next" class="clickable" title="next page">next</a>				
+			</div>
+		</div>
+		<div class="buttons-container">
+			<input type="button" value="Select All" id="pages-select-button" title="select all archives">
+			<span class="buttons-action">			
+				<input id="pages-open-button" type="button" value="Open" title="open all selected archives">
+				<input id="pages-delete-button" type="button" value="Delete" title="delete all selected archives">
+				<span id="pages-tag-container">
+					<input id="pages-tag-button" type="button" value="Tag" title="tag all selected archives">					
+				</span>			
+			</span>
+		</div>
+	</div>	
+	<div id="tab-tabs">
+		<form id="tabs-form">
+			<div id="tabs-search">
+				<input title="type words to find into tabs title" type="search" autofocus id="tabs-search-input" autocomplete="on">
+				<input type="submit" value="Search..." title="search into tabs title">
+			</div>
+		</form>
+		<ul id="tabs-list">		
+		</ul>
+		<div class="buttons-container">
+			<input type="button" value="Select All" id="tabs-select-button" title="select all tabs">
+			<span class="buttons-action">
+				<input id="tabs-save-button" type="button" value="Save selected" title="save all selected tabs">
+			</span>
+		</div>
+	</div>
+	<div id="tab-tags">
+		<form id="tags-form">
+			<div id="tags-search">
+				<input title="type words to find into tags" type="search" autofocus id="tags-search-input" autocomplete="on">
+				<input type="submit" value="Search..." title="search into tags">
+			</div>
+		</form>
+		<ul id="tags-list">		
+		</ul>
+		<div class="buttons-container">
+			<input type="button" value="Select all used" id="tags-used-select-button" title="select all used tags">
+			<input type="button" value="Select all unused" id="tags-unused-select-button" title="select all unused tags">
+			<span class="buttons-action">
+				<input id="tags-delete-button" type="button" value="Delete selected" title="delete all selected tags">
+			</span>
+		</div>
+	</div>
+	<div id="tab-options">
+		<div>
+			<div id="options-set-container">
+				<span class="label">Set current filters as default filters</span>
+				<input id="options-set-button" type="button" value="OK">
+			</div>
+		</div>
+		<div>
+			<div id="options-reset-container">
+				<span class="label">Reset filters to default filters</span>
+				<input id="options-reset-button" type="button" value="OK">
+			</div>
+		</div>		
+		<div>
+			<div id="options-ask-confirm-container">
+				<span class="label">Ask confirmation for multiple deletion</span>
+				<select id="options-ask-confirm-button">
+					<option value="yes">yes</option>
+					<option value="">no</option>							
+				</select>
+			</div>
+		</div>
+		<div>
+			<div id="options-expand-archives-container">
+				<span class="label">Expand automatically new archives info</span>
+				<select id="options-expand-archives-button">
+					<option value="yes">yes</option>
+					<option value="">no</option>							
+				</select>
+			</div>
+		</div>
+		<div>
+			<div id="options-save-archives-container">
+				<span class="label">Save archives on disk</span>
+				<select id="options-save-archives-button">
+					<option value="yes">yes</option>
+					<option value="">no</option>							
+				</select>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>
