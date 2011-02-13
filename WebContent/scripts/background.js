@@ -18,7 +18,7 @@
  *   along with Scrapbook for SingleFile.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var dev = true;
+var dev = false;
 
 var DEFAULT_ARGS = {
 	sortBy : {

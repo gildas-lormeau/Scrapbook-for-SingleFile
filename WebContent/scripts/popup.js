@@ -56,7 +56,7 @@
 			break;
 		}
 	};
-	
+
 	this.onload = function() {
 		pagesLink = document.getElementById("pages-link");
 		tabsLink = document.getElementById("tabs-link");
@@ -66,7 +66,7 @@
 		tabPages = document.getElementById("tab-pages");
 		tabTabs = document.getElementById("tab-tabs");
 		tabTags = document.getElementById("tab-tags");
-		tabOptions = document.getElementById("tab-options");		
+		tabOptions = document.getElementById("tab-options");
 		bgPage.detectSingleFile(function(detected) {
 			if (!detected) {
 				document.getElementById("loader").style.display = "none";
@@ -118,7 +118,4 @@
 		});
 	};
 
-	// if (location.search.indexOf("newtab") != -1)
-	//	document.documentElement.className = "newtab";
-	
 })();

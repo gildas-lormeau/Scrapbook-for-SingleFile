@@ -208,7 +208,7 @@
 		if (selectedIds.length) {
 			tagInput.value = "";
 			tagMask.style.display = "block";
-			tagInput.focus();			
+			tagInput.focus();
 		}
 	}
 
@@ -584,7 +584,7 @@
 		new ComboBox(tagsInput, args.tags && args.tags.values ? args.tags.values.join(",") : "");
 		tagsInput.oninput = tagsInputOninput;
 		if (document.documentElement.className == "newtab")
-			args.limit = Math.max(args.limit, 20);		
+			args.limit = Math.max(args.limit, 20);
 		if (args.savedPeriod && args.savedPeriod.period)
 			new PeriodInput(savedPeriodInput, args.savedPeriod.period, args.savedPeriod.from, args.savedPeriod.to, "from: ", "to: ", "all", "", "today",
 					"this week", "this month", "user defined");

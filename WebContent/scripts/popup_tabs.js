@@ -111,7 +111,7 @@
 		saveButton.onclick = saveButtonOnclick;
 		searchInput.onchange = showTabs;
 		document.getElementById("tabs-form").onsubmit = showTabs;
-		searchInput.value = bgPage.searchedTabs ? bgPage.searchedTabs.join(" ") : "";		
+		searchInput.value = bgPage.searchedTabs ? bgPage.searchedTabs.join(" ") : "";
 	};
 
 	this.notifyTabProgress = function(tabId, state, index, max) {
@@ -133,7 +133,7 @@
 			} else {
 				checkboxElement.disabled = false;
 				titleElement.className = "tabs-tab-title";
-				progressElement.style.display = "";				
+				progressElement.style.display = "";
 			}
 		}
 	};

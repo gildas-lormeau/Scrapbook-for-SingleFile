@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), /*disableButton, */askConfirmButton, expandArchivesButton, saveOnDiskButton;
+	var bgPage = chrome.extension.getBackgroundPage(), /* disableButton, */askConfirmButton, expandArchivesButton, saveOnDiskButton;
 
 	function setButtonOnclick() {
 		bgPage.setDefaultFilters();
