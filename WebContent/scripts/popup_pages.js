@@ -190,7 +190,7 @@
 	function deleteButtonOnclick() {
 		var selectedIds = getSelectedIds();
 		if (selectedIds.length) {
-			if (!bgPage.getAskConfirm() || confirm("Do you really want to delete selected archives ?"))
+			if (bgPage.getAskConfirm() == "yes" || confirm("Do you really want to delete selected archives ?"))
 				bgPage.deletePages(selectedIds, function() {
 					showPagesTab();
 				});

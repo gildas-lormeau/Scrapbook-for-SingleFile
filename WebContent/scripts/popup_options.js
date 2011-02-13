@@ -30,10 +30,6 @@
 		bgPage.resetDefaultFilters();
 	}
 
-	// function disableButtonOnclick() {
-	//	bgPage.disableSingleFile(disableButton.value);
-	// }
-
 	function askConfirmButtonOnclick() {
 		bgPage.askConfirm(askConfirmButton.value);
 	}
@@ -47,21 +43,18 @@
 	}
 
 	this.initOptionsTab = function() {
-		// disableButton = document.getElementById("options-disable-sf-button");
 		askConfirmButton = document.getElementById("options-ask-confirm-button");
 		expandArchivesButton = document.getElementById("options-expand-archives-button");
 		saveOnDiskButton = document.getElementById("options-save-archives-button");
 		document.getElementById("options-set-button").onclick = setButtonOnclick;
 		document.getElementById("options-reset-button").onclick = resetButtonOnclick;
 		expandArchivesButton.onclick = resetButtonOnclick;
-		// disableButton.onchange = disableButtonOnclick;
-		// disableButton.value = bgPage.getDisableSingleFile();
 		askConfirmButton.onchange = askConfirmButtonOnclick;
 		askConfirmButton.value = bgPage.getAskConfirm();
 		expandArchivesButton.onchange = expandArchivesButtonOnclick;
 		expandArchivesButton.value = bgPage.getExpandArchives();
 		saveOnDiskButton.onchange = saveOnDiskButtonOnclick;
-		saveOnDiskButton.value = bgPage.isFilesystemEnabled() || "";
+		saveOnDiskButton.value = bgPage.isFilesystemEnabled();
 		if (typeof requestFileSystem == "undefined")
 			document.getElementById("options-save-archives-container").style.display = "none";
 	};

@@ -86,7 +86,10 @@
 				showTab("options");
 			};
 			newTabLink.onclick = function() {
-				window.open(location.href + "?newtab", "scrapbook");
+				bgPage.chrome.tabs.create({
+					url : location.href.split("#")[0] + "?newtab",
+					selected : true
+				});
 			};
 			document.getElementById("firstuse-tabs-link").onclick = function() {
 				showTab("tabs");
@@ -115,7 +118,7 @@
 		});
 	};
 
-	if (location.search.indexOf("newtab") != -1)
-		document.documentElement.className = "newtab";
+	// if (location.search.indexOf("newtab") != -1)
+	//	document.documentElement.className = "newtab";
 	
 })();

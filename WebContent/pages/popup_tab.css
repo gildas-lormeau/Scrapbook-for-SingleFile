@@ -1,4 +1,4 @@
-html.newtab body {
+html body {
 	margin-left: auto;
 	margin-right: auto;
 	width: 600px;
@@ -8,11 +8,11 @@ html.newtab body {
 	border-width: 1px;
 }
 
-html.newtab {
+html {
 	height: 100%;
 }
 
-html.newtab body>div {
+html body>div {
 	background-color: white;
 	-webkit-box-shadow: #888 2px 2px 2px;
 	border-radius: 6px;
@@ -21,42 +21,46 @@ html.newtab body>div {
 	position: relative;
 }
 
-html.newtab input[type="search"] {
+html input[type="search"] {
 	width: 470px;
 }
 
-html.newtab #tab-pages.selected,#tab-tabs.selected,#tab-tags.selected,#tab-options.selected
+html #tab-pages.selected, html #tab-tabs.selected, html #tab-tags.selected, html #tab-options.selected
 	{
 	max-height: 100%;
 }
 
-html.newtab .title-input {
+html .title-input {
 	width: 485px;
 }
 
-html.newtab .tabs-tab-title {
+html .tabs-tab-title {
 	width: 490px;
 }
 
-html.newtab .tabs-tab-title.saving {
+html .tabs-tab-title.saving {
 	width: 400px;
 }
 
-html.newtab .pages-row-link-input {
+html .pages-row-link-input {
 	width: 456px;
 }
 
-html.newtab .tags-row-link {
+html .tags-row-link {
 	width: 510px;
 }
 
-html.newtab #options-newtab {
+html #options-newtab {
 	display: none;	
 }
 
-html.newtab .screen-mask {
+html .screen-mask {
 	position: absolute;
 	display: block;
 	width: 580px;
 	top: 0px;
+}
+
+html #pages-tags-filter, html #pages-url-filter {
+	width: 500px;
 }

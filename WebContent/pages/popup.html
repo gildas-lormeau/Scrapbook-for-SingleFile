@@ -4,7 +4,10 @@
 <title>Scrapbook for Single</title>
 <link rel="stylesheet" href="components.css">
 <link rel="stylesheet" href="popup.css">
-<link rel="stylesheet" href="popup_tab.css">
+<script>
+	if (location.search.indexOf("newtab") != -1)
+		document.write('<link rel="stylesheet" href="popup_tab.css">');
+</script>
 <script type="text/javascript" src="../scripts/components.js"></script>
 <script type="text/javascript" src="../scripts/popup_pages.js"></script>
 <script type="text/javascript" src="../scripts/popup_tabs.js"></script>

@@ -18,7 +18,7 @@
  *   along with Scrapbook for SingleFile.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var dev = false;
+var dev = true;
 
 var DEFAULT_ARGS = {
 	sortBy : {
@@ -175,7 +175,7 @@ function detectExtension(extensionId, callback) {
 }
 
 function detectSingleFile(callback) {
-	var SINGLE_FILE_BETA_ID = dev ? "lahnlenpfacpagpbnphdeemfnlakfppi" : "ocjhfplakacigfckfgfejpbjpbcjodmk";
+	var SINGLE_FILE_BETA_ID = dev ? "gdeieoedpffolbofhgfoecpocddeajda" : "ocjhfplakacigfckfgfejpbjpbcjodmk";
 	if (singleFileID)
 		callback(singleFileID);
 	else
@@ -281,11 +281,11 @@ function expandArchives(value) {
 }
 
 function getAskConfirm() {
-	return localStorage.askConfirm;
+	return localStorage.askConfirm != null ? localStorage.askConfirm : "yes";
 }
 
 function getExpandArchives() {
-	return localStorage.expandArchives;
+	return localStorage.expandArchives != null ? localStorage.expandArchives : "yes";
 }
 
 function setFilesystemEnabled(value) {
@@ -294,23 +294,24 @@ function setFilesystemEnabled(value) {
 		storage.openFileSytem();
 }
 
-function isFilesystemEnabled(value) {
-	return localStorage.filesystemEnabled;
+function isFilesystemEnabled() {
+	return localStorage.filesystemEnabled != null ? localStorage.filesystemEnabled : "";
 }
 
 function notifyTabProgress(tabId, state, index, max) {
-	var extensionPage, views = chrome.extension.getViews(), popups = chrome.extension.getViews({
+	var views = chrome.extension.getViews(), popups = chrome.extension.getViews({
 		type : "popup"
-	});
+	}), extensionPages = [];
 	if (popups.length)
-		extensionPage = popups[0];
-	else
-		views.forEach(function(view) {
-			if (view.location.href.indexOf("chrome-extension://" + location.host + "/pages/popup.html" == 0))
-				extensionPage = view;
-		});
-	if (extensionPage && extensionPage != this)
-		extensionPage.notifyTabProgress(tabId, state, index, max);
+		extensionPages = popups;
+	views.forEach(function(view) {
+		if (view.location.href.indexOf("chrome-extension://" + location.host + "/pages/popup.html" == 0))
+			extensionPages.push(view);
+	});
+	extensionPages.forEach(function(extensionPage) {
+		if (extensionPage != this)
+			extensionPage.notifyTabProgress(tabId, state, index, max);
+	});
 	if (state == 2) {
 		if (tabs[tabId])
 			tabs.length--;
@@ -348,7 +349,7 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 		favico = newDoc.querySelector('link[href][rel="shortcut icon"], link[href][rel="icon"], link[href][rel="apple-touch-icon"]');
 		storage.addContent(request.favicoData ? request.favicoData : favico ? favico.href : EMPTY_IMAGE_DATA, request.url, request.title, request.content,
 				newDoc.body.innerText.replace(/\s+/g, " "), function(id) {
-					if (localStorage.expandArchives)
+					if (getExpandArchives() == "yes")
 						newPages[id] = true;
 				});
 		sendResponse({});
