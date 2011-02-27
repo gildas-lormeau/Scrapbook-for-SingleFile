@@ -80,6 +80,10 @@ select option {
 	background-color: white;
 }
 
+ul a:visited, #pages-links a {
+	color: #00C;	
+}
+
 .clickable {
 	opacity: 0.3;
 	-webkit-transition: opacity .3s ease-out;

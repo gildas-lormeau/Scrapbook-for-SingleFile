@@ -190,7 +190,7 @@
 	function deleteButtonOnclick() {
 		var selectedIds = getSelectedIds();
 		if (selectedIds.length) {
-			if (bgPage.getAskConfirm() == "yes" || confirm("Do you really want to delete selected archives ?"))
+			if (bgPage.getAskConfirm() != "yes" || confirm("Do you really want to delete selected archives ?"))
 				bgPage.deletePages(selectedIds, function() {
 					showPagesTab();
 				});
@@ -338,6 +338,7 @@
 				linkElement.href = "#";
 				linkElement.onclick = function() {
 					bgPage.openLink(row.url);
+					return false;
 				};
 				linkElement.className = "pages-row-link-input";
 				linkElement.title = "open the original URL";
@@ -357,6 +358,7 @@
 						savedPeriodInput.fromDate = date;
 						savedPeriodInput.toDate = date;
 						search();
+						return false;
 					};
 					readDateLinkElement.href = "#";
 					readDateLinkElement.className = "pages-date-link-input";
@@ -371,6 +373,7 @@
 							readPeriodInput.fromDate = date;
 							readPeriodInput.toDate = date;
 							search();
+							return false;
 						};
 					} else {
 						readDateLinkElement.textContent = "unread";
@@ -380,6 +383,7 @@
 							expandReadDateButton.value = "expanded";
 							readPeriodInput.period = "empty";
 							search();
+							return false;
 						};
 					}
 				}
@@ -401,6 +405,7 @@
 						window.close();
 					} else
 						bgPage.open(row.id, false);
+					return false;
 				};
 				moreElement.onenter = function(value) {
 					bgPage.newPages[row.id] = false;
@@ -505,6 +510,8 @@
 		updateFilterButtonState();
 		allSelected = false;
 		selectAllButton.value = "Select All";
+		location.hash = encodeURIComponent(JSON.stringify(args));
+
 		bgPage.search(function(rows, tags, count) {
 			var i, link, start;
 			pageCount = count;
@@ -524,6 +531,7 @@
 					link.onclick = function() {
 						args.currentPage = parseInt(this.textContent, 10) - 1;
 						search(null, true);
+						return false;
 					};
 					links.appendChild(link);
 				}
@@ -580,6 +588,13 @@
 	this.initPagesTab = function() {
 		var group;
 		getElements();
+
+		var hash = location.hash.substring(1);
+		if (hash) {
+			bgPage.args = args = JSON.parse(decodeURIComponent(hash));
+			location.hash = "";
+		}
+
 		group = [ sortByTitleLink, sortByDateLink, sortByRatingLink, sortBySizeLink, sortByReadDateLink, sortByUrlLink ];
 		new ComboBox(tagsInput, args.tags && args.tags.values ? args.tags.values.join(",") : "");
 		tagsInput.oninput = tagsInputOninput;
