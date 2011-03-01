@@ -27,15 +27,15 @@ var storage = {};
 	var db, fs;
 
 	function useFilesystem() {
-		return localStorage.filesystemEnabled != "false" && typeof requestFileSystem != "undefined";
+		return isFilesystemEnabled() == "yes" && typeof requestFileSystem != "undefined";
 	}
 
-	function openFileSytem() {
+	function openFileSystem() {
 		if (!fs)
 			requestFileSystem(true, DATA_SIZE, function(filesystem) {
 				fs = filesystem;
 			}, function() {
-				localStorage.filesystemEnabled = "false";
+				setFilesystemEnabled("");
 			});
 	}
 
@@ -55,8 +55,7 @@ var storage = {};
 			tx.executeSql(reqPagesTexts);
 		});
 
-		if (useFilesystem())
-			openFileSytem();
+		openFileSystem();
 	}
 
 	function updateIndexFile() {
@@ -109,6 +108,7 @@ var storage = {};
 					doc.body.appendChild(ul);
 					fs.root.getFile("index.html", null, function(fileEntry) {
 						fileEntry.remove(function() {
+
 							createIndex();
 						});
 					}, function() {
@@ -119,8 +119,110 @@ var storage = {};
 		});
 	}
 
-	storage.openFileSytem = function() {
-		openFileSytem();
+	storage.importDB = function(callback) {
+		function importContent(rows, index) {
+			console.log("importContent", index, rows.length);
+			var id, content;
+			if (index == rows.length) {
+				if (index)
+					updateIndexFile();
+				callback();
+			} else {
+				id = rows.item(index).id;
+				fs.root.getFile(id + ".html", null, function(fileEntry) {
+					var fileReader = new FileReader();
+					fileReader.onload = function(evt) {
+						content = evt.target.result;
+						db.transaction(function(tx) {
+							tx.executeSql("insert into pages_contents (id, content) values (?,?)", [ id, content ], function() {
+								fileEntry.remove(function() {
+									importContent(rows, index + 1);
+								}, function() {
+									importContent(rows, index + 1);
+								});
+							}, function() {
+								importContent(rows, index + 1);
+							});
+						}, function() {
+							importContent(rows, index + 1);
+						});
+					};
+					fileReader.onerror = function(e) {
+						importContent(rows, index + 1);
+					};
+					fileEntry.file(function(file) {
+						fileReader.readAsText(file, "UTF-8");
+					});
+				}, function() {
+					importContent(rows, index + 1);
+				});
+			}
+		}
+		db.transaction(function(tx) {
+			tx.executeSql("select id from pages where id not in (select id from pages_contents)", [], function(cbTx, result) {
+				importContent(result.rows, 0);
+			}, function() {
+				callback();
+			});
+		});
+	};
+
+	storage.exportDB = function(callback) {
+		function exportContent(rows, index) {
+			console.log("exportContent", index, rows.length);
+			var id, content;
+			if (index == rows.length) {
+				if (index)
+					updateIndexFile();
+				callback();
+			} else {
+				id = rows.item(index).id;
+				db.transaction(function(tx) {
+					tx.executeSql("select content from pages_contents where id = ?", [ id ], function(cbTx, result) {
+						content = result.rows.item(0).content;
+						fs.root.getFile(id + ".html", {
+							create : true,
+							exclusive : true
+						}, function(fileEntry) {
+							fileEntry.createWriter(function(fileWriter) {
+								var blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
+								v.set([ 0xEF, 0xBB, 0xBF ]);
+								blobBuilder.append(BOM);
+								blobBuilder.append(content || "");
+								fileWriter.onwrite = function(e) {
+									db.transaction(function(tx) {
+										tx.executeSql("delete from pages_contents where id = ?", [ id ], function() {
+											exportContent(rows, index + 1);
+										}, function() {
+											exportContent(rows, index + 1);
+										});
+									}, function() {
+										exportContent(rows, index + 1);
+									});
+								};
+								fileWriter.write(blobBuilder.getBlob());
+							}, function() {
+								exportContent(rows, index + 1);
+							});
+						}, function() {
+							exportContent(rows, index + 1);
+						});
+					}, function() {
+						exportContent(rows, index + 1);
+					});
+				}, function() {
+					exportContent(rows, index + 1);
+				});
+			}
+		}
+
+		db.transaction(function(tx) {
+			tx.executeSql("select id from pages_contents", [], function(cbTx, result) {
+				exportContent(result.rows, 0);
+			}, function() {
+				callback();
+			});
+		});
 	};
 
 	storage.getContent = function(id, callback, forceUseDatabase) {

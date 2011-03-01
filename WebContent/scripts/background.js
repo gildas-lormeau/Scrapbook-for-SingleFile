@@ -290,8 +290,6 @@ function getExpandArchives() {
 
 function setFilesystemEnabled(value) {
 	localStorage.filesystemEnabled = value;
-	if (value)
-		storage.openFileSytem();
 }
 
 function isFilesystemEnabled() {
