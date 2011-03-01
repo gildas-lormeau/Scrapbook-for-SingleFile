@@ -31,7 +31,7 @@ var storage = {};
 	}
 
 	function openFileSystem() {
-		if (!fs)
+		if (typeof requestFileSystem != "undefined")
 			requestFileSystem(true, DATA_SIZE, function(filesystem) {
 				fs = filesystem;
 			}, function() {
@@ -229,24 +229,26 @@ var storage = {};
 		db.transaction(function(tx) {
 			var date = new Date();
 			tx.executeSql("update pages set read_date = ?, read_timestamp = ? where id = ?", [ date.toString(), date.getTime(), id ], function() {
-				if (useFilesystem() && !forceUseDatabase)
-					tx.executeSql("select title from pages where pages.id = ?", [ id ], function(cbTx, result) {
-						fs.root.getFile(id + ".html", null, function(fileEntry) {
-							var fileReader = new FileReader();
-							fileReader.onload = function(evt) {
-								if (callback)
-									callback(evt.target.result, result.rows.item(0).title);
-							};
-							fileReader.onerror = function(e) {
-								if (callback)
-									callback("Error while reading the file archive", "error");
-							};
-							fileEntry.file(function(file) {
-								fileReader.readAsText(file, "UTF-8");
+				if (fs && !forceUseDatabase)
+					fs.root.getFile(id + ".html", null, function(fileEntry) {
+						var fileReader = new FileReader();
+						fileReader.onload = function(evt) {
+							db.transaction(function(tx) {
+								tx.executeSql("select title from pages where pages.id = ?", [ id ], function(cbTx, result) {
+									if (callback)
+										callback(evt.target.result, result.rows.item(0).title);
+								});
 							});
-						}, function() {
-							storage.getContent(id, callback, true);
+						};
+						fileReader.onerror = function(e) {
+							if (callback)
+								callback("Error while reading the file archive", "error");
+						};
+						fileEntry.file(function(file) {
+							fileReader.readAsText(file, "UTF-8");
 						});
+					}, function() {
+						storage.getContent(id, callback, true);
 					});
 				else
 					tx.executeSql("select pages_contents.content, title from pages, pages_contents where pages_contents.id = pages.id and pages.id = ?",
@@ -317,7 +319,7 @@ var storage = {};
 			});
 		}
 
-		if (useFilesystem() && !forceUseDatabase) {
+		if (fs && !forceUseDatabase) {
 			fs.root.getFile(id + ".html", null, function(fileEntry) {
 				fileEntry.remove(function() {
 					updateFile();
@@ -325,7 +327,7 @@ var storage = {};
 					storage.updatePage(id, content, true);
 				});
 			}, function() {
-				updateFile();
+				storage.updatePage(id, content, true);
 			});
 		} else {
 			db.transaction(function(tx) {
@@ -793,14 +795,15 @@ var storage = {};
 									query += " or";
 							}
 							tx.executeSql(query, params, function(cbTx, result) {
-								if (useFilesystem()) {
+								if (fs) {
 									var i, rootReader;
 									for (i = 0; i < pageIds.length; i++) {
 										fs.root.getFile(pageIds[i] + ".html", null, function(fileEntry) {
-											fileEntry.remove();
+											fileEntry.remove(function() {
+												updateIndexFile();
+											});
 										});
 									}
-									updateIndexFile();
 								}
 								if (callback)
 									callback();
