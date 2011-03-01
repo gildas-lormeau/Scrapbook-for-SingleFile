@@ -296,19 +296,19 @@ function isFilesystemEnabled() {
 	return localStorage.filesystemEnabled != null ? localStorage.filesystemEnabled : "";
 }
 
-function notifyViews(command) {
+function notifyViews(notifyHandler) {
 	var views = chrome.extension.getViews(), popups = chrome.extension.getViews({
 		type : "popup"
 	}), extensionPages = [];
 	if (popups.length)
 		extensionPages = popups;
 	views.forEach(function(view) {
-		if (view.location.href.indexOf("chrome-extension://" + location.host + "/pages/popup.html" == 0))
+		if (view.location.href.indexOf("chrome-extension://" + location.host + "/pages/popup.html")  == 0)
 			extensionPages.push(view);
 	});
 	extensionPages.forEach(function(extensionPage) {
 		if (extensionPage != this)
-			command(extensionPage);
+			notifyHandler(extensionPage);
 	});
 }
 
@@ -328,7 +328,8 @@ function importDB() {
 	}, function() {
 		importingState = null;
 		notifyViews(function(extensionPage) {
-			extensionPage.notifyImportProgress();
+			if (extensionPage.notifyImportProgress)
+				extensionPage.notifyImportProgress();
 		});
 	});
 }
