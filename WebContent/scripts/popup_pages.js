@@ -592,6 +592,14 @@
 		var hash = location.hash.substring(1);
 		if (hash) {
 			bgPage.args = args = JSON.parse(decodeURIComponent(hash));
+			if (args.readPeriod) {
+				args.readPeriod.from = args.readPeriod.from ? new Date(args.readPeriod.from) : null;
+				args.readPeriod.to = args.readPeriod.to ? new Date(args.readPeriod.to) : null;
+			}
+			if (args.savedPeriod) {
+				args.savedPeriod.from = args.readPeriod.from ? new Date(args.savedPeriod.from) : null;
+				args.savedPeriod.to = args.readPeriod.to ? new Date(args.savedPeriod.to) : null;
+			}
 			location.hash = "";
 		}
 
