@@ -119,15 +119,16 @@ var storage = {};
 		});
 	}
 
-	storage.importDB = function(callback) {
+	storage.importDB = function(onprogress, onfinish) {
 		function importContent(rows, index) {
 			console.log("importContent", index, rows.length);
 			var id, content;
-			if (index == rows.length) {
+			if (index == rows.length || !importingState) {
 				if (index)
 					updateIndexFile();
-				callback();
+				onfinish();
 			} else {
+				onprogress(index, rows.length);
 				id = rows.item(index).id;
 				fs.root.getFile(id + ".html", null, function(fileEntry) {
 					var fileReader = new FileReader();
@@ -162,20 +163,21 @@ var storage = {};
 			tx.executeSql("select id from pages where id not in (select id from pages_contents)", [], function(cbTx, result) {
 				importContent(result.rows, 0);
 			}, function() {
-				callback();
+				onfinish();
 			});
 		});
 	};
 
-	storage.exportDB = function(callback) {
+	storage.exportDB = function(onprogress, onfinish) {
 		function exportContent(rows, index) {
 			console.log("exportContent", index, rows.length);
 			var id, content;
-			if (index == rows.length) {
+			if (index == rows.length || !exportingState) {
 				if (index)
 					updateIndexFile();
-				callback();
+				onfinish();
 			} else {
+				onprogress(index, rows.length);
 				id = rows.item(index).id;
 				db.transaction(function(tx) {
 					tx.executeSql("select content from pages_contents where id = ?", [ id ], function(cbTx, result) {
@@ -220,7 +222,7 @@ var storage = {};
 			tx.executeSql("select id from pages_contents", [], function(cbTx, result) {
 				exportContent(result.rows, 0);
 			}, function() {
-				callback();
+				onfinish();
 			});
 		});
 	};

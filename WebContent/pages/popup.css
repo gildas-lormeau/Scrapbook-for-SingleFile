@@ -80,8 +80,8 @@ select option {
 	background-color: white;
 }
 
-ul a:visited, #pages-links a {
-	color: #00C;	
+ul a:visited,#pages-links a {
+	color: #00C;
 }
 
 .clickable {
@@ -576,7 +576,7 @@ ul a:visited, #pages-links a {
 .screen-mask {
 	width: 100%;
 	height: 100%;
-	position: fixed;	
+	position: fixed;
 	background-color: rgba(255, 255, 255, .85);
 	z-index: 2;
 	height: 100%;
@@ -584,7 +584,7 @@ ul a:visited, #pages-links a {
 }
 
 #pages-tag-mask {
-	display: none;	
+	display: none;
 }
 
 #tab-pages .buttons-action input {
@@ -618,14 +618,10 @@ ul a:visited, #pages-links a {
 .tabs-tab-progress {
 	position: absolute;
 	right: 0px;
-	top : 3px;
+	top: 3px;
 	height: 15px;
 	width: 100px;
 	display: none;
-}
-
-#tags-list,#tabs-list {
-	/*max-height: 456px;*/
 }
 
 .tags-row-link {
@@ -656,7 +652,7 @@ ul a:visited, #pages-links a {
 	visibility: hidden;
 }
 
-#options-disable-sf-container,#options-ask-confirm-container,#options-expand-archives-container,#options-set-container,#options-reset-container,#options-save-archives-container
+#options-disable-sf-container,#options-ask-confirm-container,#options-expand-archives-container,#options-set-container,#options-reset-container,#options-save-archives-container,#options-import-container,#options-export-container
 	{
 	display: block;
 	position: relative;
@@ -674,16 +670,28 @@ ul a:visited, #pages-links a {
 	position: absolute;
 	right: 0px;
 	top: -2px;
-	width: 50px;
+	width: 60px;
 	border: 0px;
 	background-color: #F3F3F3;
 }
 
-#options-set-button,#options-reset-button {
+#options-import-container .label,#options-export-container .label {
+	display: inline-block;
+	width: 170px;
+}
+
+#options-import-progress,#options-export-progress {
+	height: 15px;
+	width: 100px;
+	display: none;
+}
+
+#options-set-button,#options-reset-button,#options-import-button,#options-export-button
+	{
 	position: absolute;
 	right: -1px;
 	top: -2px;
-	width: 50px;
+	width: 60px;
 	margin: 2px;
 }
 

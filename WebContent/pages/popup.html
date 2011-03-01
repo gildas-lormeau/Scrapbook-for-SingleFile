@@ -25,11 +25,11 @@
 </div>
 <div id="main">
 	<h4>
-		<a href="#" id="pages-link" title="archived pages">Archives</a>
-		<a href="#" id="tabs-link" title="current opened tabs">Tabs</a>
-		<a href="#" id="tags-link" title="tags">Tags</a>
+		<a href="#" id="pages-link" title="show archives">Archives</a>
+		<a href="#" id="tabs-link" title="show current opened tabs">Tabs</a>
+		<a href="#" id="tags-link" title="show tags">Tags</a>
 		<span id="options-container">
-			<a href="#" id="options-link" title="options">Options</a>
+			<a href="#" id="options-link" title="show options">Options</a>
 			<span id="options-newtab" title="open the popup in a new tab"></span>
 		</span>
 	</h4>
@@ -261,6 +261,20 @@
 					<option value="yes">yes</option>
 					<option value="">no</option>							
 				</select>
+			</div>
+		</div>
+		<div>
+			<div id="options-import-container">
+				<span class="label">Import archives from disk</span>
+				<progress id="options-import-progress"></progress>
+				<input id="options-import-button" type="button" value="OK">
+			</div>
+		</div>
+		<div>
+			<div id="options-export-container">
+				<span class="label">Export archives to disk</span>
+				<progress id="options-export-progress"></progress>
+				<input id="options-export-button" type="button" value="OK">
 			</div>
 		</div>
 	</div>

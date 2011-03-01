@@ -33,7 +33,7 @@ var notificationArchiving, timeoutNoResponse, firstUse = localStorage.defaultArg
 
 var tabs = {
 	length : 0
-};
+}, importingState, exportingState;
 
 function deletePages(ids, callback) {
 	storage.deletePages(ids, callback);
@@ -296,7 +296,7 @@ function isFilesystemEnabled() {
 	return localStorage.filesystemEnabled != null ? localStorage.filesystemEnabled : "";
 }
 
-function notifyTabProgress(tabId, state, index, max) {
+function notifyViews(command) {
 	var views = chrome.extension.getViews(), popups = chrome.extension.getViews({
 		type : "popup"
 	}), extensionPages = [];
@@ -308,7 +308,63 @@ function notifyTabProgress(tabId, state, index, max) {
 	});
 	extensionPages.forEach(function(extensionPage) {
 		if (extensionPage != this)
-			extensionPage.notifyTabProgress(tabId, state, index, max);
+			command(extensionPage);
+	});
+}
+
+function importDB() {
+	importingState = {
+		index : 0,
+		max : 0
+	};
+	storage.importDB(function(index, max) {
+		importingState = {
+			index : index,
+			max : max
+		};
+		notifyViews(function(extensionPage) {
+			extensionPage.notifyImportProgress();
+		});
+	}, function() {
+		importingState = null;
+		notifyViews(function(extensionPage) {
+			extensionPage.notifyImportProgress();
+		});
+	});
+}
+
+function exportDB() {
+	exportingState = {
+		index : 0,
+		max : 0
+	};
+	storage.exportDB(function(index, max) {
+		exportingState = {
+			index : index,
+			max : max
+		};
+		notifyViews(function(extensionPage) {
+			extensionPage.notifyExportProgress();
+		});
+	}, function() {
+		exportingState = null;
+		notifyViews(function(extensionPage) {
+			extensionPage.notifyExportProgress();
+		});
+	});
+}
+
+function cancelImportDB() {
+	importingState = null;
+}
+
+function cancelExportDB() {
+	exportingState = null;
+}
+
+function notifyTabProgress(tabId, state, index, max) {
+	notifyViews(function(extensionPage) {
+		extensionPage.notifyTabProgress(tabId, state, index, max);
 	});
 	if (state == 2) {
 		if (tabs[tabId])
