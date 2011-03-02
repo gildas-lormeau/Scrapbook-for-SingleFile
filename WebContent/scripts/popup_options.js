@@ -98,7 +98,7 @@
 		expandArchivesButton.onchange = expandArchivesButtonOnclick;
 		expandArchivesButton.value = bgPage.getExpandArchives();
 		saveOnDiskButton.onchange = saveOnDiskButtonOnclick;
-		saveOnDiskButton.value = bgPage.isFilesystemEnabled();
+		saveOnDiskButton.value = bgPage.getFilesystemEnabled();
 		if (typeof requestFileSystem == "undefined") {
 			document.getElementById("options-save-archives-container").style.display = "none";
 			document.getElementById("options-import-container").style.display = "none";

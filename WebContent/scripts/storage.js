@@ -27,7 +27,7 @@ var storage = {};
 	var db, fs;
 
 	function useFilesystem() {
-		return isFilesystemEnabled() == "yes" && typeof requestFileSystem != "undefined";
+		return getFilesystemEnabled() == "yes" && typeof requestFileSystem != "undefined";
 	}
 
 	function openFileSystem() {
@@ -63,8 +63,7 @@ var storage = {};
 
 		function createIndex() {
 			fs.root.getFile("index.html", {
-				create : true,
-				exclusive : true
+				create : true
 			}, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
 					var blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
@@ -106,14 +105,7 @@ var storage = {};
 					title.textContent = "Saved archives :";
 					doc.body.appendChild(title);
 					doc.body.appendChild(ul);
-					fs.root.getFile("index.html", null, function(fileEntry) {
-						fileEntry.remove(function() {
-
-							createIndex();
-						});
-					}, function() {
-						createIndex();
-					});
+					createIndex();
 				});
 			});
 		});
@@ -183,8 +175,7 @@ var storage = {};
 					tx.executeSql("select content from pages_contents where id = ?", [ id ], function(cbTx, result) {
 						content = result.rows.item(0).content;
 						fs.root.getFile(id + ".html", {
-							create : true,
-							exclusive : true
+							create : true
 						}, function(fileEntry) {
 							fileEntry.createWriter(function(fileWriter) {
 								var blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
@@ -301,11 +292,8 @@ var storage = {};
 	};
 
 	storage.updatePage = function(id, content, forceUseDatabase) {
-		function updateFile() {
-			fs.root.getFile(id + ".html", {
-				create : true,
-				exclusive : true
-			}, function(fileEntry) {
+		if (fs && !forceUseDatabase) {
+			fs.root.getFile(id + ".html", null, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
 					var blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
 					v.set([ 0xEF, 0xBB, 0xBF ]);
@@ -315,18 +303,6 @@ var storage = {};
 						storage.updatePage(id, content, true);
 					};
 					fileWriter.write(blobBuilder.getBlob());
-				});
-			}, function() {
-				storage.updatePage(id, content, true);
-			});
-		}
-
-		if (fs && !forceUseDatabase) {
-			fs.root.getFile(id + ".html", null, function(fileEntry) {
-				fileEntry.remove(function() {
-					updateFile();
-				}, function() {
-					storage.updatePage(id, content, true);
 				});
 			}, function() {
 				storage.updatePage(id, content, true);
@@ -802,7 +778,8 @@ var storage = {};
 									for (i = 0; i < pageIds.length; i++) {
 										fs.root.getFile(pageIds[i] + ".html", null, function(fileEntry) {
 											fileEntry.remove(function() {
-												updateIndexFile();
+												if (i == pageIds.length -1)
+													updateIndexFile();
 											});
 										});
 									}
@@ -826,8 +803,7 @@ var storage = {};
 				var id = result.insertId;
 				if (useFilesystem() && !forceUseDatabase) {
 					fs.root.getFile(id + ".html", {
-						create : true,
-						exclusive : true
+						create : true
 					}, function(fileEntry) {
 						fileEntry.createWriter(function(fileWriter) {
 							var blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);

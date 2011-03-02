@@ -292,7 +292,7 @@ function setFilesystemEnabled(value) {
 	localStorage.filesystemEnabled = value;
 }
 
-function isFilesystemEnabled() {
+function getFilesystemEnabled() {
 	return localStorage.filesystemEnabled != null ? localStorage.filesystemEnabled : "";
 }
 
