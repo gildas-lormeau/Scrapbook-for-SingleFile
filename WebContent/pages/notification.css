@@ -1,0 +1,14 @@
+.label {
+	font-family: sans-serif;
+	font-size: 10pt;
+	font-weight: bold;
+	display: inline-block;
+	position: absolute;
+	left : 40px;
+	top: 8px;
+}
+
+img {
+	height: 16pt;
+	margin-right: 2pt;
+}
