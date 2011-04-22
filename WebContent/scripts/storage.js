@@ -24,15 +24,15 @@ var storage = {};
 
 	var DATA_SIZE = 1073741824;
 
-	var db, fs;
+	var db, fs, BBuilder = window.BlobBuilder || window.WebKitBlobBuilder, requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
 	function useFilesystem() {
-		return getFilesystemEnabled() == "yes" && typeof requestFileSystem != "undefined";
+		return getFilesystemEnabled() == "yes" && typeof requestFS != "undefined";
 	}
 
 	function openFileSystem() {
-		if (typeof requestFileSystem != "undefined")
-			requestFileSystem(true, DATA_SIZE, function(filesystem) {
+		if (typeof requestFS != "undefined")
+			requestFS(true, DATA_SIZE, function(filesystem) {
 				fs = filesystem;
 			}, function() {
 				setFilesystemEnabled("");
@@ -66,7 +66,7 @@ var storage = {};
 				create : true
 			}, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
-					var blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
+					var blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
 					v.set([ 0xEF, 0xBB, 0xBF ]);
 					blobBuilder.append(BOM);
 					blobBuilder.append("<!DOCTYPE html>\n" + doc.documentElement.outerHTML);
@@ -178,7 +178,7 @@ var storage = {};
 							create : true
 						}, function(fileEntry) {
 							fileEntry.createWriter(function(fileWriter) {
-								var blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
+								var blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
 								v.set([ 0xEF, 0xBB, 0xBF ]);
 								blobBuilder.append(BOM);
 								blobBuilder.append(content || "");
@@ -295,7 +295,7 @@ var storage = {};
 		if (fs && !forceUseDatabase) {
 			fs.root.getFile(id + ".html", null, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
-					var blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
+					var blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
 					v.set([ 0xEF, 0xBB, 0xBF ]);
 					blobBuilder.append(BOM);
 					blobBuilder.append(content);
@@ -778,7 +778,7 @@ var storage = {};
 									for (i = 0; i < pageIds.length; i++) {
 										fs.root.getFile(pageIds[i] + ".html", null, function(fileEntry) {
 											fileEntry.remove(function() {
-												if (i == pageIds.length -1)
+												if (i == pageIds.length - 1)
 													updateIndexFile();
 											});
 										});
@@ -806,7 +806,7 @@ var storage = {};
 						create : true
 					}, function(fileEntry) {
 						fileEntry.createWriter(function(fileWriter) {
-							var blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
+							var blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
 							v.set([ 0xEF, 0xBB, 0xBF ]);
 							blobBuilder.append(BOM);
 							blobBuilder.append(content);
