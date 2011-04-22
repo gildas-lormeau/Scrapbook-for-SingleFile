@@ -65,7 +65,7 @@
 			progressElement.style.display = "inline-block";
 			progressElement.value = state.index;
 			progressElement.max = state.max;
-			progressElement.title = "progress: " + Math.floor((state.index * 100) / state.max) + "%";
+			progressElement.title = "progress: " + Math.floor((state.index * 100) / state.max) + "%";			
 		} else {
 			progressElement.style.display = "";
 			progressElement.title = "";

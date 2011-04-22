@@ -209,7 +209,7 @@ function getTabsInfo(callback) {
 }
 
 function onProcessEnd() {
-	var notification = webkitNotifications.createNotification('../resources/icon_48.png', 'Scrapbook for SingleFile', 'Pages are archived');
+	var notification = webkitNotifications.createHTMLNotification('notificationOK.html');
 	if (notificationArchiving)
 		notificationArchiving.cancel();
 	if (timeoutNoResponse)
@@ -225,8 +225,7 @@ function setTimeoutNoResponse() {
 	if (timeoutNoResponse)
 		clearTimeout(timeoutNoResponse);
 	timeoutNoResponse = setTimeout(function() {
-		notificationNoResponse = webkitNotifications.createNotification('../resources/icon_48.png', 'Scrapbook for SingleFile',
-				'Warning (60s timeout) : Archives are still being processed...');
+		webkitNotifications.createHTMLNotification('notificationTimeout.html');
 		tabs = {
 			length : 0
 		};
@@ -240,7 +239,7 @@ function setTimeoutNoResponse() {
 
 function saveTabs(tabIds) {
 	function execute() {
-		notificationArchiving = webkitNotifications.createNotification('../resources/icon_48.png', 'Scrapbook for SingleFile', 'Archiving pages...');
+		notificationArchiving = webkitNotifications.createHTMLNotification('notificationArchiving.html');
 		notificationArchiving.show();
 		setTimeout(function() {
 			notificationArchiving.cancel();
@@ -303,7 +302,7 @@ function notifyViews(notifyHandler) {
 	if (popups.length)
 		extensionPages = popups;
 	views.forEach(function(view) {
-		if (view.location.href.indexOf("chrome-extension://" + location.host + "/pages/popup.html")  == 0)
+		if (view.location.href.indexOf("chrome-extension://" + location.host + "/pages/popup.html") == 0)
 			extensionPages.push(view);
 	});
 	extensionPages.forEach(function(extensionPage) {
