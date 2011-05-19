@@ -821,7 +821,7 @@ var storage = {};
 							v.set([ 0xEF, 0xBB, 0xBF ]);
 							blobBuilder.append(BOM);
 							blobBuilder.append(content);
-							fileWriter.onerror = onFileError;							
+							fileWriter.onerror = onFileError;
 							fileWriter.onwrite = function(e) {
 								updateIndexFile();
 								if (callback)
