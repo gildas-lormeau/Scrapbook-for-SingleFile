@@ -405,6 +405,9 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 				newDoc.body.innerText.replace(/\s+/g, " "), function(id) {
 					if (getExpandArchives() == "yes")
 						newPages[id] = true;
+				}, function() {
+					var notificationFileError = webkitNotifications.createHTMLNotification('notificationFileError.html');
+					notificationFileError.show();
 				});
 		sendResponse({});
 	}

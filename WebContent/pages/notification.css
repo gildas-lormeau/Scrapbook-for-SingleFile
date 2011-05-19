@@ -8,6 +8,11 @@
 	top: 8px;
 }
 
+.error {
+	font-size: 9pt;
+	color: red;
+}
+
 img {
 	height: 16pt;
 	margin-right: 2pt;

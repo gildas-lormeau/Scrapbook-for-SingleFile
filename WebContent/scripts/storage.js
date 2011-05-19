@@ -795,12 +795,23 @@ var storage = {};
 		});
 	};
 
-	storage.addContent = function(favicoData, url, title, content, text, callback, forceUseDatabase) {
+	storage.addContent = function(favicoData, url, title, content, text, callback, onFileErrorCallback, forceUseDatabase) {
 		db.transaction(function(tx) {
 			var date = new Date();
 			tx.executeSql("insert into pages (favico, url, title, date, timestamp, size) values (?, ?, ?, ?, ?, length(?))", [ favicoData, url, title,
 					date.toString(), date.getTime(), content ], function(cbTx, result) {
 				var id = result.insertId;
+
+				function onFileError(e) {
+					if (onFileErrorCallback)
+						onFileErrorCallback(id);
+					db.transaction(function(tx) {
+						tx.executeSql("delete from pages where id = ?", [ id ], function() {
+							storage.addContent(favicoData, url, title, content, text, callback, onFileErrorCallback, true);
+						});
+					});
+				}
+
 				if (useFilesystem() && !forceUseDatabase) {
 					fs.root.getFile(id + ".html", {
 						create : true
@@ -810,9 +821,7 @@ var storage = {};
 							v.set([ 0xEF, 0xBB, 0xBF ]);
 							blobBuilder.append(BOM);
 							blobBuilder.append(content);
-							fileWriter.onerror = function(e) {
-								storage.addContent(favicoData, url, title, content, text, callback, true);
-							};
+							fileWriter.onerror = onFileError;							
 							fileWriter.onwrite = function(e) {
 								updateIndexFile();
 								if (callback)
@@ -820,9 +829,7 @@ var storage = {};
 							};
 							fileWriter.write(blobBuilder.getBlob());
 						});
-					}, function() {
-						storage.addContent(favicoData, url, title, content, text, callback, true);
-					});
+					}, onFileError);
 				} else
 					tx.executeSql("insert into pages_contents (id, content) values (?, ?)", [ id, content ], function() {
 						tx.executeSql("insert into pages_texts (id, text) values (?, ?)", [ id, text ], function() {
