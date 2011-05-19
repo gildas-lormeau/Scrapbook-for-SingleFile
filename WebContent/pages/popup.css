@@ -329,7 +329,6 @@ ul a:visited,#pages-links a {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	overflow: hidden;
 }
 
 .pages-date-link-input {
@@ -621,7 +620,6 @@ ul a:visited,#pages-links a {
 	top: 3px;
 	height: 15px;
 	width: 100px;
-	display: none;
 }
 
 .tags-row-link {
@@ -680,7 +678,7 @@ ul a:visited,#pages-links a {
 	width: 170px;
 }
 
-#options-import-progress,#options-export-progress {
+.tabs-options-progress {
 	height: 15px;
 	width: 100px;
 	display: none;

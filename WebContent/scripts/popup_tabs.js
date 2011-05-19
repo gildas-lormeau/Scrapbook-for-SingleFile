@@ -44,18 +44,16 @@
 		var tempElement = document.createElement("ul");
 
 		tabs.forEach(function(tab) {
-			var liElement, cbElement, aElement, favicoElement, progressElement;
+			var liElement, cbElement, aElement, favicoElement;
 			if (tab.url.indexOf("https://chrome.google.com") == 0 || !(tab.url.indexOf("http://") == 0 || tab.url.indexOf("https://") == 0))
 				return;
 			aElement = document.createElement("a");
 			favicoElement = document.createElement("img");
 			liElement = document.createElement("li");
 			cbElement = document.createElement("input");
-			progressElement = document.createElement("progress");
 			liElement.appendChild(cbElement);
 			liElement.appendChild(favicoElement);
 			liElement.appendChild(aElement);
-			liElement.appendChild(progressElement);
 			tempElement.appendChild(liElement);
 			aElement.className = "tabs-tab-title";
 			aElement.href = "#";
@@ -69,7 +67,6 @@
 			cbElement.type = "checkbox";
 			cbElement.title = "select a tab to archive";
 			aElement.textContent = tab.title;
-			progressElement.className = "tabs-tab-progress";
 		});
 		tempElement.id = ulElement.id;
 		tempElement.className = ulElement.className;
@@ -123,17 +120,21 @@
 			checkboxElement.checked = false;
 			allSelected = false;
 			selectAllButton.value = "Select All";
+			if (!progressElement) {
+				progressElement = document.createElement("progress");
+				progressElement.className = "tabs-tab-progress";
+				tabElement.appendChild(progressElement);
+			}
 			if (state != 2) {
 				checkboxElement.disabled = true;
 				titleElement.className = "tabs-tab-title saving";
-				progressElement.style.display = "inline-block";
 				progressElement.value = index;
 				progressElement.max = max;
 				progressElement.title = "progress: " + Math.floor((index * 100) / max) + "%";
 			} else {
 				checkboxElement.disabled = false;
 				titleElement.className = "tabs-tab-title";
-				progressElement.style.display = "";
+				progressElement.parentElement.removeChild(progressElement);
 			}
 		}
 	};
