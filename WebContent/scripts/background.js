@@ -271,12 +271,20 @@ function resetDefaultFilters() {
 	setDefaultFilters();
 }
 
+function openBgTab(value) {
+	localStorage.openBgTab = value;
+}
+
 function askConfirm(value) {
 	localStorage.askConfirm = value;
 }
 
 function expandArchives(value) {
 	localStorage.expandArchives = value;
+}
+
+function getOpenBgTab() {
+	return localStorage.openBgTab != null ? localStorage.openBgTab : "yes";
 }
 
 function getAskConfirm() {

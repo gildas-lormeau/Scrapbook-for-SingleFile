@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, saveOnDiskButton, importButton, exportButton;
+	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, saveOnDiskButton, importButton, exportButton, openBgTabButton;
 
 	var requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
@@ -32,6 +32,10 @@
 		bgPage.resetDefaultFilters();
 	}
 
+	function openBgTabButtonOnclick() {
+		bgPage.openBgTab(openBgTabButton.value);
+	}
+	
 	function askConfirmButtonOnclick() {
 		bgPage.askConfirm(askConfirmButton.value);
 	}
@@ -98,6 +102,7 @@
 		// importProgress = document.getElementById("options-import-progress");
 		importButton = document.getElementById("options-import-button");
 		// exportProgress = document.getElementById("options-export-progress");
+		openBgTabButton = document.getElementById("options-open-bgtab-button");
 		exportButton = document.getElementById("options-export-button");
 		document.getElementById("options-set-button").onclick = setButtonOnclick;
 		document.getElementById("options-reset-button").onclick = resetButtonOnclick;
@@ -106,6 +111,8 @@
 		expandArchivesButton.onclick = resetButtonOnclick;
 		askConfirmButton.onchange = askConfirmButtonOnclick;
 		askConfirmButton.value = bgPage.getAskConfirm();
+		openBgTabButton.onchange = openBgTabButtonOnclick;
+		openBgTabButton.value = bgPage.getOpenBgTab();
 		expandArchivesButton.onchange = expandArchivesButtonOnclick;
 		expandArchivesButton.value = bgPage.getExpandArchives();
 		saveOnDiskButton.onchange = saveOnDiskButtonOnclick;

@@ -404,7 +404,7 @@
 						bgPage.updatePage();
 						window.close();
 					} else
-						bgPage.open(row.id, false);
+						bgPage.open(row.id, bgPage.getOpenBgTab() != "yes");
 					return false;
 				};
 				moreElement.onenter = function(value) {
