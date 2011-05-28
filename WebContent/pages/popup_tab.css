@@ -31,15 +31,15 @@ html #tab-pages.selected, html #tab-tabs.selected, html #tab-tags.selected, html
 }
 
 html .title-input {
-	width: 485px;
+	width: 495px;
 }
 
 html .tabs-tab-title {
-	width: 490px;
+	width: 510px;
 }
 
 html .tabs-tab-title.saving {
-	width: 400px;
+	width: 420px;
 }
 
 html .pages-row-link-input {
