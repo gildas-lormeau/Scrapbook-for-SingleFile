@@ -71,8 +71,11 @@ function openURL(url, selected) {
 }
 
 function openPages(ids) {
-	ids.forEach(function(id) {
-		open(id, false);
+	ids.forEach(function(id, index) {
+		if (index)
+			open(id, false);
+		else
+			open(id, getOpenBgTab() != "yes");
 	});
 }
 
