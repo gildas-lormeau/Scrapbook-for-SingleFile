@@ -599,7 +599,7 @@ ul a:visited,#pages-links a {
 
 .tabs-tab-title {
 	display: inline-block;
-	width: 330px;
+	width: 320px;
 	margin-left: 5px;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -610,7 +610,7 @@ ul a:visited,#pages-links a {
 }
 
 .tabs-tab-title.saving {
-	width: 230px;
+	width: 220px;
 }
 
 .tabs-tab-progress {
