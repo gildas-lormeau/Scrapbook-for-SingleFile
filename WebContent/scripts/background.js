@@ -183,7 +183,7 @@ function detectSingleFile(callback) {
 		callback(singleFileID);
 	else
 		detectExtension(SINGLE_FILE_BETA_ID, function(detected) {
-			var SINGLE_FILE_ID = dev ? "oabofdibacblkhpogjinmdbcekfkikjc" : "jemlklgaibiijojffihnhieihhagocma";
+			var SINGLE_FILE_ID = dev ? "oabofdibacblkhpogjinmdbcekfkikjc" /*"onlinihoegnbbcmeeocfeplgbkmoidla"*/ : "jemlklgaibiijojffihnhieihhagocma";
 			if (detected) {
 				singleFileID = SINGLE_FILE_BETA_ID;
 				callback(singleFileID);
