@@ -394,7 +394,7 @@ args.currentPage = 0;
 
 chrome.extension.onRequestExternal.addListener(function(request, sender, sendResponse) {
 	var EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
-	var newDoc, favico;
+	var newDoc, favico, title, length, domain;
 	setTimeoutNoResponse();
 	if (request.processStart)
 		notifyTabProgress(request.tabId, 0, 0, 100);
@@ -409,7 +409,17 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 		newDoc.writeln(request.content);
 		newDoc.close();
 		favico = newDoc.querySelector('link[href][rel="shortcut icon"], link[href][rel="icon"], link[href][rel="apple-touch-icon"]');
-		storage.addContent(request.favicoData ? request.favicoData : favico ? favico.href : EMPTY_IMAGE_DATA, request.url, request.title, request.content,
+		title = (request.title || "").trim();
+		length = title.length;
+		domain = request.url.match(/\/\/([^\/]*)/)[1];
+		if ((!title.length || title.indexOf(" ") == -1) && domain) {
+			if (length)
+				title += " (";
+			title += domain;
+			if (length)
+				title += ")";
+		}			
+		storage.addContent(request.favicoData ? request.favicoData : favico ? favico.href : EMPTY_IMAGE_DATA, request.url, title, request.content,
 				newDoc.body.innerText.replace(/\s+/g, " "), function(id) {
 					if (getExpandArchives() == "yes")
 						newPages[id] = true;
