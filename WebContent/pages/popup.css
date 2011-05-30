@@ -157,16 +157,21 @@ ul a:visited,#pages-links a {
 	top: 3px;
 	position: absolute;
 	-webkit-transition: opacity 0.2s ease-out;
-	-webkit-border-radius: 10px;
-	padding-left: 2px;
+	-webkit-border-radius: 3px;
+	padding-right: 5px;
+	-webkit-transition: all .3s ease-out;	
+}
+
+.title-input-wrapper:hover {
+	background-color: rgba(229,232,245,1);
 }
 
 .title-input-wrapper .clickable {
-	opacity: 0.5;
+	opacity: 0.7;	
 }
 
 .title-input-wrapper .clickable:hover {
-	opacity: 1;
+	opacity: 1;	
 }
 
 .combobox-input,.combobox-suggest {
@@ -701,13 +706,14 @@ ul a:visited,#pages-links a {
 }
 
 #pages-list li[id], #tabs-list li[id], #tags-list li[id] {
-	-webkit-transition: background-color .5s ease-out;	
+	-webkit-transition: all .3s ease-out;	
 }
 
 #pages-list li[id]:hover, #tabs-list li[id]:hover, #tags-list li[id]:hover {
-	background-color: #f1f3fd;
+	background-color: rgba(229,232,245,1);
 	border-radius: 4px;
 	-webkit-transition-delay: .2s;
+	-webkit-box-shadow: 0px 0px 3px #222;
 }
 
 ul {
