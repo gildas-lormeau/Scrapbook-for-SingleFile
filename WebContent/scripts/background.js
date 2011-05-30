@@ -183,7 +183,7 @@ function detectSingleFile(callback) {
 		callback(singleFileID);
 	else
 		detectExtension(SINGLE_FILE_BETA_ID, function(detected) {
-			var SINGLE_FILE_ID = dev ? "oabofdibacblkhpogjinmdbcekfkikjc" /*"onlinihoegnbbcmeeocfeplgbkmoidla"*/ : "jemlklgaibiijojffihnhieihhagocma";
+			var SINGLE_FILE_ID = dev ? "oabofdibacblkhpogjinmdbcekfkikjc" /* "onlinihoegnbbcmeeocfeplgbkmoidla" */: "jemlklgaibiijojffihnhieihhagocma";
 			if (detected) {
 				singleFileID = SINGLE_FILE_BETA_ID;
 				callback(singleFileID);
@@ -241,22 +241,19 @@ function setTimeoutNoResponse() {
 }
 
 function saveTabs(tabIds) {
-	function execute() {
-		notificationArchiving = webkitNotifications.createHTMLNotification('notificationArchiving.html');
-		notificationArchiving.show();
-		setTimeout(function() {
-			notificationArchiving.cancel();
-		}, 3000);
-		setTimeoutNoResponse();
-		tabIds.forEach(function(tabId) {
-			notifyTabProgress(tabId, 0, 0, 100);
-		});
-		chrome.extension.sendRequest(singleFileID, {
-			tabIds : tabIds
-		}, function() {
-		});
-	}
-	execute();
+	notificationArchiving = webkitNotifications.createHTMLNotification('notificationArchiving.html');
+	notificationArchiving.show();
+	setTimeout(function() {
+		notificationArchiving.cancel();
+	}, 3000);
+	setTimeoutNoResponse();
+	tabIds.forEach(function(tabId) {
+		notifyTabProgress(tabId, 0, 0, 100);
+	});
+	chrome.extension.sendRequest(singleFileID, {
+		tabIds : tabIds
+	}, function() {
+	});
 }
 
 function selectTab(tabId) {
