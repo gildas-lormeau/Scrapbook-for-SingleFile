@@ -812,6 +812,15 @@ var storage = {};
 					});
 				}
 
+				function insertPageText() {
+					db.transaction(function(tx) {
+						tx.executeSql("insert into pages_texts (id, text) values (?, ?)", [ id, text ], function() {
+							if (callback)
+								callback(id);
+						});
+					});
+				}
+
 				if (useFilesystem() && !forceUseDatabase) {
 					fs.root.getFile(id + ".html", {
 						create : true
@@ -824,19 +833,13 @@ var storage = {};
 							fileWriter.onerror = onFileError;
 							fileWriter.onwrite = function(e) {
 								updateIndexFile();
-								if (callback)
-									callback(id);
+								insertPageText();
 							};
 							fileWriter.write(blobBuilder.getBlob());
 						});
 					}, onFileError);
 				} else
-					tx.executeSql("insert into pages_contents (id, content) values (?, ?)", [ id, content ], function() {
-						tx.executeSql("insert into pages_texts (id, text) values (?, ?)", [ id, text ], function() {
-							if (callback)
-								callback(id);
-						});
-					});
+					tx.executeSql("insert into pages_contents (id, content) values (?, ?)", [ id, content ], insertPageText);
 			});
 		});
 	};
