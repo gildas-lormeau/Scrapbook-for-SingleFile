@@ -31,11 +31,15 @@ html #tab-pages.selected, html #tab-tabs.selected, html #tab-tags.selected, html
 }
 
 html .title-input {
-	width: 495px;
+	width: 510px;
+}
+
+html #pages-list li[id]:hover .title-input {
+	width: 475px;
 }
 
 html .tabs-tab-title {
-	width: 500px;
+	width: 515px;
 }
 
 html .tabs-tab-title.saving {
@@ -43,11 +47,19 @@ html .tabs-tab-title.saving {
 }
 
 html .pages-row-link-input {
-	width: 456px;
+	width: 485px;
 }
 
 html .tags-row-link {
-	width: 510px;
+	width: 535px;
+}
+
+html #tab-tags .title-input {
+	width: 535px;
+}
+
+html #tags-list li[id]:hover .title-input {
+	width: 500px;
 }
 
 html #options-newtab {
@@ -63,4 +75,8 @@ html .screen-mask {
 
 html #pages-tags-filter, html #pages-url-filter {
 	width: 500px;
+}
+
+html .tags-row-link {
+	color: #5F7EC1 !important;
 }

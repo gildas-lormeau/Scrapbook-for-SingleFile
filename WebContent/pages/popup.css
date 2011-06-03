@@ -156,14 +156,13 @@ ul a:visited,#pages-links a {
 	right: 3px;
 	top: 3px;
 	position: absolute;
-	-webkit-transition: opacity 0.2s ease-out;
 	-webkit-border-radius: 3px;
 	padding-right: 5px;
 	-webkit-transition: all .3s ease-out;	
 }
 
 .title-input-wrapper:hover {
-	background-color: rgba(229,232,245,1);
+	/*background-color: rgba(229,232,245,1);*/
 }
 
 .title-input-wrapper .clickable {
@@ -307,7 +306,7 @@ ul a:visited,#pages-links a {
 	padding-bottom: 5px;
 }
 
-#pages-list .collapser-content a,.keywords-input-keyword {
+#pages-list .collapser-content a,.keywords-input-keyword, .tags-row-link {
 	color: #5f7ec1;
 }
 
@@ -647,7 +646,7 @@ ul a:visited,#pages-links a {
 	font-size: 9pt;
 	margin-bottom: 10px;
 	margin-left: 33px;
-	opacity: 0.5;
+	/*opacity: 0.5;*/
 }
 
 .tags-row-unused .collapser-button {
@@ -710,10 +709,34 @@ ul a:visited,#pages-links a {
 }
 
 #pages-list li[id]:hover, #tabs-list li[id]:hover, #tags-list li[id]:hover {
-	background-color: rgba(229,232,245,1);
+	background-color: rgba(235, 238, 249, 1);
 	border-radius: 4px;
-	-webkit-transition-delay: .2s;
+	-webkit-transition-delay: .3s;
 	-webkit-box-shadow: 0px 0px 3px #222;
+}
+
+.title-input {
+	-webkit-transition: all .3s ease-out;
+}
+
+#pages-list li[id]:hover .title-input-wrapper, #tags-list li[id]:hover .title-input-wrapper {
+	-webkit-transition-delay: .3s;
+}
+
+#tags-list .title-input {
+	width: 335px;
+}
+
+#tags-list li[id]:hover .title-input {
+	width: 300px;	
+}
+
+#pages-list li[id]:hover .title-input{
+	width: 280px;	
+}
+
+#pages-list li[id]:hover .title-input, #tags-list li[id]:hover .title-input {
+	-webkit-transition-delay: .3s;
 }
 
 ul {
@@ -721,4 +744,13 @@ ul {
 	padding-right: 5px;
 	padding-top: 2px;
 	margin-top: 3px;
+}
+
+#pages-list .collapser-content a, .keywords-input-keyword, #tags-list li[id]:hover .tags-row-link {
+	-webkit-transition: all .3s ease-out;
+}
+
+#pages-list li[id]:hover .collapser-content a, li[id]:hover .keywords-input-keyword, #tags-list li[id]:hover .tags-row-link {
+	-webkit-transition-delay: .3s;
+	color : rgba(28, 32, 48, 1);
 }
