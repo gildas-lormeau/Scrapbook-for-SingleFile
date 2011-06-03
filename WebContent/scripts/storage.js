@@ -113,8 +113,12 @@ var storage = {};
 
 	storage.importDB = function(onprogress, onfinish) {
 		function importContent(rows, index) {
-			console.log("importContent", index, rows.length);
 			var id, content;
+
+			function importNextContent() {
+				importContent(rows, index + 1);
+			}
+
 			if (index == rows.length || !importingState) {
 				if (index)
 					updateIndexFile();
@@ -128,27 +132,15 @@ var storage = {};
 						content = evt.target.result;
 						db.transaction(function(tx) {
 							tx.executeSql("insert into pages_contents (id, content) values (?,?)", [ id, content ], function() {
-								fileEntry.remove(function() {
-									importContent(rows, index + 1);
-								}, function() {
-									importContent(rows, index + 1);
-								});
-							}, function() {
-								importContent(rows, index + 1);
-							});
-						}, function() {
-							importContent(rows, index + 1);
-						});
+								fileEntry.remove(importNextContent, importNextContent);
+							}, importNextContent);
+						}, importNextContent);
 					};
-					fileReader.onerror = function(e) {
-						importContent(rows, index + 1);
-					};
+					fileReader.onerror = importNextContent;
 					fileEntry.file(function(file) {
 						fileReader.readAsText(file, "UTF-8");
 					});
-				}, function() {
-					importContent(rows, index + 1);
-				});
+				}, importNextContent);
 			}
 		}
 		db.transaction(function(tx) {
@@ -162,8 +154,12 @@ var storage = {};
 
 	storage.exportDB = function(onprogress, onfinish) {
 		function exportContent(rows, index) {
-			console.log("exportContent", index, rows.length);
 			var id, content;
+
+			function exportNextContent() {
+				exportContent(rows, index + 1);
+			}
+
 			if (index == rows.length || !exportingState) {
 				if (index)
 					updateIndexFile();
@@ -184,28 +180,14 @@ var storage = {};
 								blobBuilder.append(content || "");
 								fileWriter.onwrite = function(e) {
 									db.transaction(function(tx) {
-										tx.executeSql("delete from pages_contents where id = ?", [ id ], function() {
-											exportContent(rows, index + 1);
-										}, function() {
-											exportContent(rows, index + 1);
-										});
-									}, function() {
-										exportContent(rows, index + 1);
-									});
+										tx.executeSql("delete from pages_contents where id = ?", [ id ], exportNextContent, exportNextContent);
+									}, exportNextContent);
 								};
 								fileWriter.write(blobBuilder.getBlob());
-							}, function() {
-								exportContent(rows, index + 1);
-							});
-						}, function() {
-							exportContent(rows, index + 1);
-						});
-					}, function() {
-						exportContent(rows, index + 1);
-					});
-				}, function() {
-					exportContent(rows, index + 1);
-				});
+							}, exportNextContent);
+						}, exportNextContent);
+					}, exportNextContent);
+				}, exportNextContent);
 			}
 		}
 
