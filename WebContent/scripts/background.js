@@ -418,9 +418,9 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 			title += domain;
 			if (length)
 				title += ")";
-		}			
-		storage.addContent(request.favicoData ? request.favicoData : favico ? favico.href : EMPTY_IMAGE_DATA, request.url, title, request.content,
-				newDoc.body.innerText.replace(/\s+/g, " "), function(id) {
+		}
+		storage.addContent(request.favicoData ? request.favicoData : favico ? favico.href : EMPTY_IMAGE_DATA, request.url.match(/[^#]*/)[0], title,
+				request.content, newDoc.body.innerText.replace(/\s+/g, " "), function(id) {
 					if (getExpandArchives() == "yes")
 						newPages[id] = true;
 				}, function() {
