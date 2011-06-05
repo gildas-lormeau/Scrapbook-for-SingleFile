@@ -42,7 +42,7 @@
 
 			this.entries = [];
 			var e = new JSUnzip.ZipEntry(this.fileContents);
-			while (typeof (e.data) === "string") {
+			while ("fileName" in e) {
 				this.entries.push(e);
 				e = new JSUnzip.ZipEntry(this.fileContents);
 			}
@@ -54,6 +54,8 @@
 	}
 
 	JSUnzip.ZipEntry = function(binaryStream) {
+		var dataOffsetStart;
+
 		this.signature = binaryStream.getNextBytesAsNumber(4);
 		if (this.signature !== JSUnzip.MAGIC_NUMBER) {
 			return;
@@ -90,7 +92,13 @@
 		}
 
 		this.extra = binaryStream.getNextBytesAsString(this.extraFieldLength);
-		this.data = binaryStream.getNextBytesAsString(this.compressedSize);
+
+		dataOffsetStart = binaryStream.currentByteIndex;
+		this.getData = function() {
+			return binaryStream.getByteRangeAsString(dataOffsetStart, this.compressedSize);
+		};
+
+		binaryStream.currentByteIndex += this.compressedSize;
 	}
 
 	JSUnzip.ZipEntry.prototype = {
@@ -975,7 +983,8 @@
 					: BlobBuilder ? new BlobBuilder() : null;
 			zipEntry = JSUnzip.instance.entries[index];
 			if (zipEntry) {
-				uncompressedData = zipEntry.compressionMethod == 0 ? entry.data : zipEntry.compressionMethod == 8 ? JSInflate.inflate(zipEntry.data) : null;
+				var zipData = zipEntry.getData(); // zipEntry.data;
+				uncompressedData = zipEntry.compressionMethod == 0 ? zipData : zipEntry.compressionMethod == 8 ? JSInflate.inflate(zipData) : null;
 				utf8ArrayBuffer = new ArrayBuffer(uncompressedData.length);
 				uint8Array = new Uint8Array(utf8ArrayBuffer);
 				uint8Array.set(uncompressedData);
