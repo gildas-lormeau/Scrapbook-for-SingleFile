@@ -20,22 +20,20 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), ulElement, selectAllUsedButton, selectAllUnusedButton, deleteButton, searchInput, allUsedTagsSelected, allUnusedTagsSelected;
+	var bgPage = chrome.extension.getBackgroundPage(), ulElement, selectAllButton, deleteButton, searchInput, allSelected;
 
-	function selectAllUsedButtonOnclick() {
-		allUsedTagsSelected = !allUsedTagsSelected;
-		Array.prototype.forEach.call(document.querySelectorAll(".tags-row-used input[type=checkbox]"), function(inputElement) {
-			inputElement.checked = allUsedTagsSelected;
-			selectAllUsedButton.value = allUsedTagsSelected ? "Unselect used" : "Select used";
-		});
+	function selectAllButtonRefresh() {
+		selectAllButton.src = allSelected ? "../resources/unselectAll.png" : "../resources/selectAll.png";
+		selectAllButton.title = allSelected ? "unselect all tabs" : "select all tags";
 	}
 
-	function selectAllUnusedButtonOnclick() {
-		allUnusedTagsSelected = !allUnusedTagsSelected;
-		Array.prototype.forEach.call(document.querySelectorAll(".tags-row-unused input[type=checkbox]"), function(inputElement) {
-			inputElement.checked = allUnusedTagsSelected;
-			selectAllUnusedButton.value = allUnusedTagsSelected ? "Unselect unused" : "Select unused";
+	function selectAllButtonOnclick() {
+		allSelected = !allSelected;
+		Array.prototype.forEach.call(document.querySelectorAll(".tags-row-used input[type=checkbox], .tags-row-unused input[type=checkbox]"), function(
+				inputElement) {
+			inputElement.checked = allSelected;
 		});
+		selectAllButtonRefresh();
 	}
 
 	function deleteButtonOnclick() {
@@ -143,10 +141,8 @@
 		tempElement.className = ulElement.className;
 		ulElement.parentElement.replaceChild(tempElement, ulElement);
 		ulElement = tempElement;
-		allUsedTagsSelected = false;
-		allUnusedTagsSelected = false;
-		selectAllUsedButton.value = "Select used";
-		selectAllUnusedButton.value = "Select unused";
+		allSelected = false;
+		selectAllButtonRefresh();
 	}
 
 	function search(callback) {
@@ -164,8 +160,7 @@
 	}
 
 	function getElements() {
-		selectAllUsedButton = document.getElementById("tags-used-select-button");
-		selectAllUnusedButton = document.getElementById("tags-unused-select-button");
+		selectAllButton = document.getElementById("tags-select-button");
 		deleteButton = document.getElementById("tags-delete-button");
 		searchInput = document.getElementById("tags-search-input");
 		ulElement = document.getElementById("tags-list");
@@ -173,8 +168,7 @@
 
 	this.initTagsTab = function() {
 		getElements();
-		selectAllUsedButton.onclick = selectAllUsedButtonOnclick;
-		selectAllUnusedButton.onclick = selectAllUnusedButtonOnclick;
+		selectAllButton.onclick = selectAllButtonOnclick;
 		deleteButton.onclick = deleteButtonOnclick;
 		searchInput.onchange = showTags;
 		document.getElementById("tags-form").onsubmit = showTags;

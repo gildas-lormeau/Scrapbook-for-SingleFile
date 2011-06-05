@@ -33,7 +33,7 @@ var notificationArchiving, timeoutNoResponse, firstUse = localStorage.defaultArg
 
 var tabs = {
 	length : 0
-}, importingState, exportingState;
+}, importingState, exportingState, exportingToZipState;
 
 function deletePages(ids, callback) {
 	storage.deletePages(ids, callback);
@@ -358,6 +358,61 @@ function exportDB() {
 		exportingState = null;
 		notifyViews(function(extensionPage) {
 			extensionPage.notifyExportProgress();
+		});
+	});
+}
+
+function exportToZip(ids) {
+	var zipWorker = new Worker("../scripts/jszip.js");
+	var pagesSaved = 0;
+
+	function onAdd() {
+		pagesSaved++;
+		exportingToZipState.index++;
+		notifyViews(function(extensionPage) {
+			extensionPage.notifyExportToZipProgress();
+		});
+	}
+
+	exportingToZipState = {
+		index : 0,
+		max : 0
+	};
+	zipWorker.postMessage({
+		message : "new"
+	});
+	zipWorker.onmessage = function(event) {
+		if (event.data.message == "add")
+			onAdd();
+	};
+	storage.exportToZip(ids, zipWorker, function(index, max) {
+		exportingToZipState = {
+			index : index + pagesSaved,
+			max : max + ids.length
+		};
+		notifyViews(function(extensionPage) {
+			extensionPage.notifyExportToZipProgress();
+		});
+	}, function() {
+		var blobBuilder = WebKitBlobBuilder ? new WebKitBlobBuilder() : BlobBuilder ? new BlobBuilder() : null;
+		zipWorker.onmessage = function(event) {
+			var data = event.data;
+			if (data.message == "generate") {
+				exportingToZipState = null;
+				notifyViews(function(extensionPage) {
+					extensionPage.notifyExportToZipProgress();
+				});
+				chrome.tabs.create({
+					url : webkitURL.createObjectURL(data.zip),
+					selected : false
+				});
+				zipWorker.terminate();
+			}
+			if (data.message == "add")
+				onAdd();
+		};
+		zipWorker.postMessage({
+			message : "generate"
 		});
 	});
 }

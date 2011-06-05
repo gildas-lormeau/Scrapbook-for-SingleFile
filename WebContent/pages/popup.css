@@ -158,19 +158,15 @@ ul a:visited,#pages-links a {
 	position: absolute;
 	-webkit-border-radius: 3px;
 	padding-right: 5px;
-	-webkit-transition: all .3s ease-out;	
-}
-
-.title-input-wrapper:hover {
-	/*background-color: rgba(229,232,245,1);*/
+	-webkit-transition: all .3s ease-out;
 }
 
 .title-input-wrapper .clickable {
-	opacity: 0.7;	
+	opacity: 0.7;
 }
 
 .title-input-wrapper .clickable:hover {
-	opacity: 1;	
+	opacity: 1;
 }
 
 .combobox-input,.combobox-suggest {
@@ -306,7 +302,8 @@ ul a:visited,#pages-links a {
 	padding-bottom: 5px;
 }
 
-#pages-list .collapser-content a,.keywords-input-keyword, .tags-row-link {
+#pages-list .collapser-content a,.keywords-input-keyword,.tags-row-link
+	{
 	color: #5f7ec1;
 }
 
@@ -407,8 +404,10 @@ ul a:visited,#pages-links a {
 	margin-left: 20px;
 }
 
-#pages-select-button {
-	margin-right: 62px;
+#pages-select-button,#tabs-select-button,#tags-select-button {
+	margin-top: 2px;
+	margin-left: 6px;
+	cursor: pointer;
 }
 
 #pages-list .collapser-content div {
@@ -653,7 +652,7 @@ ul a:visited,#pages-links a {
 	visibility: hidden;
 }
 
-#options-disable-sf-container,#options-ask-confirm-container,#options-expand-archives-container,#options-set-container,#options-reset-container,#options-save-archives-container,#options-import-container,#options-export-container,#options-open-bgtab-container
+#options-disable-sf-container,#options-ask-confirm-container,#options-expand-archives-container,#options-set-container,#options-reset-container,#options-save-archives-container,#options-import-container,#options-export-container,#options-export-tozip-container,#options-open-bgtab-container
 	{
 	display: block;
 	position: relative;
@@ -676,7 +675,8 @@ ul a:visited,#pages-links a {
 	background-color: #F3F3F3;
 }
 
-#options-import-container .label,#options-export-container .label {
+#options-import-container .label,#options-export-container .label,#options-export-tozip-container .label
+	{
 	display: inline-block;
 	width: 170px;
 }
@@ -687,7 +687,7 @@ ul a:visited,#pages-links a {
 	display: none;
 }
 
-#options-set-button,#options-reset-button,#options-import-button,#options-export-button
+#options-set-button,#options-reset-button,#options-import-button,#options-export-button,#options-export-tozip-button
 	{
 	position: absolute;
 	right: -1px;
@@ -704,11 +704,12 @@ ul a:visited,#pages-links a {
 	border-radius: 4px;
 }
 
-#pages-list li[id], #tabs-list li[id], #tags-list li[id] {
-	-webkit-transition: all .3s ease-out;	
+#pages-list li[id],#tabs-list li[id],#tags-list li[id] {
+	-webkit-transition: all .3s ease-out;
 }
 
-#pages-list li[id]:hover, #tabs-list li[id]:hover, #tags-list li[id]:hover {
+#pages-list li[id]:hover,#tabs-list li[id]:hover,#tags-list li[id]:hover
+	{
 	background-color: rgba(235, 238, 249, 1);
 	border-radius: 4px;
 	-webkit-transition-delay: .3s;
@@ -719,7 +720,8 @@ ul a:visited,#pages-links a {
 	-webkit-transition: all .3s ease-out;
 }
 
-#pages-list li[id]:hover .title-input-wrapper, #tags-list li[id]:hover .title-input-wrapper {
+#pages-list li[id]:hover .title-input-wrapper,#tags-list li[id]:hover .title-input-wrapper
+	{
 	-webkit-transition-delay: .3s;
 }
 
@@ -728,14 +730,15 @@ ul a:visited,#pages-links a {
 }
 
 #tags-list li[id]:hover .title-input {
-	width: 300px;	
+	width: 300px;
 }
 
-#pages-list li[id]:hover .title-input{
-	width: 280px;	
+#pages-list li[id]:hover .title-input {
+	width: 280px;
 }
 
-#pages-list li[id]:hover .title-input, #tags-list li[id]:hover .title-input {
+#pages-list li[id]:hover .title-input,#tags-list li[id]:hover .title-input
+	{
 	-webkit-transition-delay: .3s;
 }
 
@@ -746,11 +749,13 @@ ul {
 	margin-top: 3px;
 }
 
-#pages-list .collapser-content a, .keywords-input-keyword, #tags-list li[id]:hover .tags-row-link {
+#pages-list .collapser-content a,.keywords-input-keyword,#tags-list li[id]:hover .tags-row-link
+	{
 	-webkit-transition: all .3s ease-out;
 }
 
-#pages-list li[id]:hover .collapser-content a, li[id]:hover .keywords-input-keyword, #tags-list li[id]:hover .tags-row-link {
+#pages-list li[id]:hover .collapser-content a,li[id]:hover .keywords-input-keyword,#tags-list li[id]:hover .tags-row-link
+	{
 	-webkit-transition-delay: .3s;
-	color : rgba(28, 32, 48, 1);
+	color: rgba(28, 32, 48, 1);
 }

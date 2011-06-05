@@ -152,6 +152,36 @@ var storage = {};
 		});
 	};
 
+	storage.exportToZip = function(pageIds, zipWorker, onprogress, onfinish) {
+		var query;
+
+		function exportContent(pageIds, index) {
+			var id, content, name;
+
+			function exportNextContent() {
+				exportContent(pageIds, index + 1);
+			}
+
+			if (index == pageIds.length || !exportingToZipState) {
+				onfinish();
+			} else {
+				onprogress(index, pageIds.length);
+				id = pageIds[index];
+				storage.getContent(id, function(content, title) {
+					name = (title.replace(/[\\\/:\*\?\"><|]/gi, "").trim() || "Untitled") + " (" + id + ").html";
+					zipWorker.postMessage({
+						message : "add",
+						name : name,
+						content : content
+					});
+					exportNextContent();
+				});
+			}
+		}
+
+		exportContent(pageIds, 0);
+	};
+
 	storage.exportDB = function(onprogress, onfinish) {
 		function exportContent(rows, index) {
 			var id, content;

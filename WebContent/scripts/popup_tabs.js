@@ -22,12 +22,17 @@
 
 	var bgPage = chrome.extension.getBackgroundPage(), allSelected = false, selectAllButton, saveButton, ulElement, searchInput;
 
+	function selectAllButtonRefresh() {
+		selectAllButton.src = allSelected ? "../resources/unselectAll.png" : "../resources/selectAll.png";
+		selectAllButton.title = allSelected ? "unselect all tabs" : "select all tabs";
+	}
+
 	function selectAllButtonOnclick() {
 		allSelected = !allSelected;
 		Array.prototype.forEach.call(document.querySelectorAll("#tab-tabs input[type=checkbox]"), function(inputElement) {
 			inputElement.checked = allSelected;
-			selectAllButton.value = allSelected ? "Unselect all" : "Select All";
 		});
+		selectAllButtonRefresh();
 	}
 
 	function saveButtonOnclick() {
@@ -78,6 +83,7 @@
 			tab = bgPage.tabs[tabId];
 			notifyTabProgress(tabId, tab.state, tab.index, tab.max);
 		}
+		selectAllButtonRefresh();
 	}
 
 	function search(callback) {
@@ -119,7 +125,7 @@
 			titleElement = tabElement.querySelector(".tabs-tab-title");
 			checkboxElement.checked = false;
 			allSelected = false;
-			selectAllButton.value = "Select All";
+			selectAllButtonRefresh();
 			if (!progressElement) {
 				progressElement = document.createElement("progress");
 				progressElement.className = "tabs-tab-progress";

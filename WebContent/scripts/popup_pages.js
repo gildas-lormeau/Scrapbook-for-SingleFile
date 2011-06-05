@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), args = bgPage.args, pageCount, expandButton, sortByReadDateLink, tagsInput, limitInput, searchInput, fromRatingInput, toRatingInput, expandMiscButton, expandReadDateButton, expandSavedDateButton, expandUrlButton, expandTagsButton, savedPeriodInput, readPeriodInput, urlInput, sortByTitleLink, fromSizeInput, toSizeInput, otherInput, sortByDateLink, sortByRatingLink, sortByUrlLink, sortBySizeLink, expandSearchButton, selectAllButton, ulElement, nextLink, previousLink, links, tagInput, tagMask, allSelected = false;
+	var bgPage = chrome.extension.getBackgroundPage(), args = bgPage.args, pageCount, expandButton, sortByReadDateLink, tagsInput, limitInput, searchInput, fromRatingInput, toRatingInput, expandMiscButton, expandReadDateButton, expandSavedDateButton, expandUrlButton, expandTagsButton, savedPeriodInput, readPeriodInput, urlInput, sortByTitleLink, fromSizeInput, toSizeInput, otherInput, sortByDateLink, sortByRatingLink, sortByUrlLink, sortBySizeLink, expandSearchButton, selectAllButton, exportButton, ulElement, nextLink, previousLink, links, tagInput, tagMask, allSelected = false;
 
 	function tagsInputOninput() {
 		var datalist = document.getElementById("pages-tags-filter-data"), select = document.createElement("select");
@@ -170,12 +170,17 @@
 			search();
 	}
 
+	function selectAllButtonRefresh() {
+		selectAllButton.src = allSelected ? "../resources/unselectAll.png" : "../resources/selectAll.png";
+		selectAllButton.title = allSelected ? "unselect all archives" : "select all archives";
+	}
+
 	function selectAllButtonOnclick() {
 		allSelected = !allSelected;
 		Array.prototype.forEach.call(document.querySelectorAll("#tab-pages input[type=checkbox]"), function(inputElement) {
 			inputElement.checked = allSelected;
-			selectAllButton.value = allSelected ? "Unselect all" : "Select All";
 		});
+		selectAllButtonRefresh();
 	}
 
 	function getSelectedIds() {
@@ -209,6 +214,14 @@
 			tagInput.value = "";
 			tagMask.style.display = "block";
 			tagInput.focus();
+		}
+	}
+
+	function exportButtonOnclick() {
+		var selectedIds = getSelectedIds();
+		if (selectedIds.length) {
+			exportButton.disabled = true;
+			bgPage.exportToZip(selectedIds);
 		}
 	}
 
@@ -470,6 +483,7 @@
 		tempElement.className = ulElement.className;
 		ulElement.parentElement.replaceChild(tempElement, ulElement);
 		ulElement = tempElement;
+		selectAllButtonRefresh();
 	}
 
 	function search(callback, dontResetCurrentPage) {
@@ -583,6 +597,7 @@
 		links = document.getElementById("pages-links");
 		tagInput = document.getElementById("pages-tag-input");
 		tagMask = document.getElementById("pages-tag-mask");
+		exportButton = document.getElementById("pages-export-button");
 	}
 
 	this.initPagesTab = function() {
@@ -656,6 +671,9 @@
 		expandUrlButton.onenter = expandUrlButtonOnenter;
 		expandMiscButton.onenter = expandMiscButtonOnenter;
 		selectAllButton.onclick = selectAllButtonOnclick;
+		exportButton.onclick = exportButtonOnclick;
+		nextLink.onclick = nextOnclick;
+		previousLink.onclick = previousOnclick;
 		searchInput.onchange = showPages;
 		fromRatingInput.onchange = showPages;
 		toRatingInput.onchange = showPages;
@@ -673,8 +691,6 @@
 		document.getElementById("pages-readdate-filter-link").onclick = filterReadDateLinkOnclick;
 		document.getElementById("pages-url-filter-link").onclick = filterUrlLinkOnclick;
 		document.getElementById("pages-misc-filter-link").onclick = filterMiscLinkOnclick;
-		nextLink.onclick = nextOnclick;
-		previousLink.onclick = previousOnclick;
 		document.getElementById("pages-tag-ok-button").onclick = tagOkButtonOnclick;
 		document.getElementById("pages-tag-cancel-button").onclick = tagCancelButtonOnclick;
 		new ComboBox(tagInput, "");
@@ -695,6 +711,8 @@
 		}
 		limitInput.value = "" + args.limit;
 		expandButton.value = args.moreInfo;
+		if (bgPage.exportingToZipState)
+			exportButton.disabled = true;
 	};
 
 	this.showPagesTab = function(callback) {

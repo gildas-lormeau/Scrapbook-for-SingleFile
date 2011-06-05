@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, saveOnDiskButton, importButton, exportButton, openBgTabButton;
+	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, saveOnDiskButton, importButton, exportButton, exportToZipButton, openBgTabButton;
 
 	var requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
@@ -35,7 +35,7 @@
 	function openBgTabButtonOnclick() {
 		bgPage.openBgTab(openBgTabButton.value);
 	}
-	
+
 	function askConfirmButtonOnclick() {
 		bgPage.askConfirm(askConfirmButton.value);
 	}
@@ -62,6 +62,11 @@
 			bgPage.exportDB();
 	}
 
+	function exportToZipButton() {
+		if (bgPage.exportingToZipState)
+			bgPage.cancelExportDB();
+	}
+
 	function notifyProgress(state, buttonElement, altButtonElement) {
 		var progressElement;
 		if (buttonElement.previousElementSibling.tagName == "PROGRESS")
@@ -73,17 +78,17 @@
 		}
 		if (state) {
 			buttonElement.value = "Cancel";
-			altButtonElement.disabled = true;
+			if (altButtonElement)
+				altButtonElement.disabled = true;
 			progressElement.style.display = "inline-block";
 			progressElement.value = state.index;
 			progressElement.max = state.max;
 			progressElement.title = "progress: " + Math.floor((state.index * 100) / state.max) + "%";
 		} else {
-			// progressElement.style.display = "";
-			// progressElement.title = "";
 			progressElement.parentElement.removeChild(progressElement);
 			buttonElement.value = "OK";
-			altButtonElement.disabled = false;
+			if (altButtonElement)
+				altButtonElement.disabled = false;
 		}
 	}
 
@@ -95,19 +100,23 @@
 		notifyProgress(bgPage.exportingState, exportButton, importButton);
 	};
 
+	this.notifyExportToZipProgress = function() {
+		notifyProgress(bgPage.exportingToZipState, exportToZipButton);
+	};
+
 	this.initOptionsTab = function() {
 		askConfirmButton = document.getElementById("options-ask-confirm-button");
 		expandArchivesButton = document.getElementById("options-expand-archives-button");
 		saveOnDiskButton = document.getElementById("options-save-archives-button");
-		// importProgress = document.getElementById("options-import-progress");
 		importButton = document.getElementById("options-import-button");
-		// exportProgress = document.getElementById("options-export-progress");
 		openBgTabButton = document.getElementById("options-open-bgtab-button");
 		exportButton = document.getElementById("options-export-button");
+		exportToZipButton = document.getElementById("options-export-tozip-button");
 		document.getElementById("options-set-button").onclick = setButtonOnclick;
 		document.getElementById("options-reset-button").onclick = resetButtonOnclick;
 		importButton.onclick = importButtonOnclick;
 		exportButton.onclick = exportButtonOnclick;
+		exportToZipButton.onclick = exportToZipButton;
 		expandArchivesButton.onclick = resetButtonOnclick;
 		askConfirmButton.onchange = askConfirmButtonOnclick;
 		askConfirmButton.value = bgPage.getAskConfirm();
@@ -126,6 +135,8 @@
 			notifyImportProgress(bgPage.importingState.index, bgPage.importingState.max);
 		if (bgPage.exportingState)
 			notifyExportProgress(bgPage.exportingState.index, bgPage.exportingState.max);
+		if (bgPage.exportingToZipState)
+			notifyExportToZipProgress(bgPage.exportingToZipState.index, bgPage.exportingToZipState.max);
 	};
 
 	this.showOptionsTab = function(callback) {
