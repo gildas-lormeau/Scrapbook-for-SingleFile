@@ -222,17 +222,8 @@
 		</div>
 	</div>
 	<div id="tab-options">
-		<div>
-			<div id="options-set-container">
-				<span class="label">Set current filters as default filters</span>
-				<input id="options-set-button" type="button" value="OK">
-			</div>
-		</div>
-		<div>
-			<div id="options-reset-container">
-				<span class="label">Reset default filters</span>
-				<input id="options-reset-button" type="button" value="OK">
-			</div>
+		<div class="option-header">
+			Configuration:
 		</div>
 		<div>
 			<div id="options-open-bgtab-container">
@@ -262,8 +253,23 @@
 			</div>
 		</div>
 		<div>
+			<div id="options-set-container">
+				<span class="label">Set current filters as default filters</span>
+				<input id="options-set-button" type="button" value="OK">
+			</div>
+		</div>
+		<div>
+			<div id="options-reset-container">
+				<span class="label">Reset default filters</span>
+				<input id="options-reset-button" type="button" value="OK">
+			</div>
+		</div>
+		<div class="option-header">
+			Database configuration:
+		</div>
+		<div>
 			<div id="options-save-archives-container">
-				<span class="label">Save archives on disk</span>
+				<span class="label">Save archives on sandboxed filesystem</span>
 				<select id="options-save-archives-button">
 					<option value="yes">yes</option>
 					<option value="">no</option>							
@@ -272,15 +278,18 @@
 		</div>
 		<div>
 			<div id="options-import-container">
-				<span class="label">Import archives from disk</span>
+				<span class="label">Import archives from filesystem</span>
 				<input id="options-import-button" type="button" value="OK">
 			</div>
 		</div>
 		<div>
 			<div id="options-export-container">
-				<span class="label">Export archives to disk</span>
+				<span class="label">Export archives to filesystem</span>
 				<input id="options-export-button" type="button" value="OK">
 			</div>
+		</div>
+		<div class="option-header">
+			Database export:
 		</div>
 		<div>
 			<div id="options-export-tozip-container">

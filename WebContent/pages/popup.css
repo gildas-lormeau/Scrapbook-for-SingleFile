@@ -124,7 +124,6 @@ ul a:visited,#pages-links a {
 }
 
 .period-from-label-input,.period-to-label-input,.label {
-	-webkit-user-select: none;
 	cursor: default;
 	opacity: 0.5;
 }
@@ -337,7 +336,6 @@ ul a:visited,#pages-links a {
 
 .pages-filter {
 	-webkit-transition: opacity 0.3s ease-out;
-	-webkit-user-select: none;
 	cursor: pointer;
 	opacity: 0.5;
 }
@@ -589,7 +587,7 @@ ul a:visited,#pages-links a {
 }
 
 #tab-pages .buttons-action input {
-	width: 80px;
+	width: 70px;
 }
 
 #pages-navigation {
@@ -678,7 +676,7 @@ ul a:visited,#pages-links a {
 #options-import-container .label,#options-export-container .label,#options-export-tozip-container .label
 	{
 	display: inline-block;
-	width: 170px;
+	width: 180px;
 }
 
 .tabs-options-progress {
@@ -758,4 +756,12 @@ ul {
 	{
 	-webkit-transition-delay: .3s;
 	color: rgba(28, 32, 48, 1);
+}
+
+.option-header {
+	cursor: default;
+	opacity: 0.7;
+	padding-left: 5px;
+	padding-top: 5px;
+	padding-bottom: 3px;
 }
