@@ -28,7 +28,7 @@ var DEFAULT_ARGS = {
 	limit : 20
 };
 
-var notificationArchiving, timeoutNoResponse, firstUse = localStorage.defaultArgs == null, defaultArgs = localStorage.defaultArgs ? JSON
+var notificationArchiving, notificationExporting, timeoutNoResponse, firstUse = localStorage.defaultArgs == null, defaultArgs = localStorage.defaultArgs ? JSON
 		.parse(localStorage.defaultArgs) : DEFAULT_ARGS, args = JSON.parse(JSON.stringify(defaultArgs)), searchedTabs, searchedTags, expandedPages = [], newPages = [], expandedTags = [], singleFileID;
 
 var tabs = {
@@ -378,6 +378,11 @@ function exportToZip(ids) {
 		index : 0,
 		max : 0
 	};
+	notificationExporting = webkitNotifications.createHTMLNotification('notificationExporting.html');
+	notificationExporting.show();
+	setTimeout(function() {
+		notificationExporting.cancel();
+	}, 3000);
 	zipWorker.postMessage({
 		message : "new"
 	});
@@ -399,14 +404,15 @@ function exportToZip(ids) {
 			var data = event.data;
 			if (data.message == "generate") {
 				exportingToZipState = null;
+				zipWorker.terminate();
 				notifyViews(function(extensionPage) {
 					extensionPage.notifyExportToZipProgress();
 				});
+				notificationExporting.cancel();
 				chrome.tabs.create({
 					url : webkitURL.createObjectURL(data.zip),
 					selected : false
 				});
-				zipWorker.terminate();
 			}
 			if (data.message == "add")
 				onAdd();
