@@ -253,6 +253,7 @@ ul a:visited,#pages-links a {
 #options-container {
 	position: absolute;
 	right: 0px;
+	bottom: 5px;
 }
 
 #options-newtab {
@@ -266,7 +267,7 @@ ul a:visited,#pages-links a {
 }
 
 #options-link {
-	padding-right: 0px;
+	padding-right: 5px;
 }
 
 #options-newtab:hover {
