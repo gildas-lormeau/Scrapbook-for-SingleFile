@@ -383,13 +383,26 @@ function exportToZip(ids) {
 	setTimeout(function() {
 		notificationExporting.cancel();
 	}, 3000);
+	zipWorker.onmessage = function(event) {
+		var data = event.data;
+		if (data.message == "generate") {
+			exportingToZipState = null;
+			zipWorker.terminate();
+			notifyViews(function(extensionPage) {
+				extensionPage.notifyExportToZipProgress();
+			});
+			notificationExporting.cancel();
+			chrome.tabs.create({
+				url : webkitURL.createObjectURL(data.zip),
+				selected : false
+			});
+		}
+		if (data.message == "add")
+			onAdd();
+	};
 	zipWorker.postMessage({
 		message : "new"
 	});
-	zipWorker.onmessage = function(event) {
-		if (event.data.message == "add")
-			onAdd();
-	};
 	storage.exportToZip(ids, zipWorker, function(index, max) {
 		exportingToZipState = {
 			index : index + pagesSaved,
@@ -399,24 +412,6 @@ function exportToZip(ids) {
 			extensionPage.notifyExportToZipProgress();
 		});
 	}, function() {
-		var blobBuilder = WebKitBlobBuilder ? new WebKitBlobBuilder() : BlobBuilder ? new BlobBuilder() : null;
-		zipWorker.onmessage = function(event) {
-			var data = event.data;
-			if (data.message == "generate") {
-				exportingToZipState = null;
-				zipWorker.terminate();
-				notifyViews(function(extensionPage) {
-					extensionPage.notifyExportToZipProgress();
-				});
-				notificationExporting.cancel();
-				chrome.tabs.create({
-					url : webkitURL.createObjectURL(data.zip),
-					selected : false
-				});
-			}
-			if (data.message == "add")
-				onAdd();
-		};
 		zipWorker.postMessage({
 			message : "generate"
 		});

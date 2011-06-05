@@ -2053,6 +2053,8 @@ if (!JSZip) {
 
 /*
  * Worker API
+ *
+ * author: Gildas Lormeau
  */
 onmessage = function(event) {
 	var i, blobBuilder, uint8, arrayBuffer, length, zipData, data = event.data;
