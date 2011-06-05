@@ -2080,6 +2080,5 @@ onmessage = function(event) {
 			message : "generate",
 			zip : blobBuilder.getBlob()
 		});
-		JSZip.instance = null;
 	}
 };

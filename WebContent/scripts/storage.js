@@ -119,7 +119,7 @@ var storage = {};
 				importContent(rows, index + 1);
 			}
 
-			if (index == rows.length || !importingState) {
+			if (index == rows.length) {
 				if (index)
 					updateIndexFile();
 				onfinish();
@@ -152,21 +152,16 @@ var storage = {};
 		});
 	};
 
-	storage.exportToZip = function(pageIds, zipWorker, onprogress, onfinish) {
-		var query;
+	storage.exportToZip = function(pageIds, onprogress, onfinish) {
+		var query, zipWorker = new Worker("../scripts/jszip.js"), exportIndex = 0;
 
 		function exportContent(pageIds, index) {
-			var id, content, name;
-
-			function exportNextContent() {
-				exportContent(pageIds, index + 1);
-			}
-
-			if (index == pageIds.length || !exportingToZipState) {
-				onfinish();
-			} else {
-				onprogress(index, pageIds.length);
-				id = pageIds[index];
+			var content, name, id = pageIds[index];
+			if (index == pageIds.length)
+				zipWorker.postMessage({
+					message : "generate"
+				});
+			else
 				storage.getContent(id, function(content, title) {
 					name = (title.replace(/[\\\/:\*\?\"><|]/gi, "").trim() || "Untitled") + " (" + id + ").html";
 					zipWorker.postMessage({
@@ -174,12 +169,67 @@ var storage = {};
 						name : name,
 						content : content
 					});
-					exportNextContent();
+					exportContent(pageIds, index + 1);
 				});
-			}
 		}
 
+		zipWorker.onmessage = function(event) {
+			var data = event.data;
+			if (data.message == "generate") {
+				zipWorker.terminate();
+				onfinish(data.zip);
+			}
+			if (data.message == "add") {
+				exportIndex++;
+				onprogress(exportIndex, pageIds.length);
+			}
+		};
+		zipWorker.postMessage({
+			message : "new"
+		});
 		exportContent(pageIds, 0);
+	};
+
+	storage.importFromZip = function(file, onprogress, onfinish) {
+		var fileReader = new FileReader(), index = 0, max = 0, unzipWorker = new Worker("../scripts/jsunzip.js");
+		fileReader.onloadend = function(event) {
+			var content = event.target.result;
+			unzipWorker.postMessage({
+				message : "parse",
+				content : content
+			});
+			unzipWorker.onmessage = function(event) {
+				var data = event.data;
+				if (data.message == "parse") {
+					max = data.entriesLength;
+					onprogress(index, max);
+					unzipWorker.postMessage({
+						message : "getNextEntry"
+					});
+				}
+				if (data.message == "getNextEntry") {
+					var fileReader = new FileReader();
+					fileReader.onloadend = function(event) {
+						index++;
+						onprogress(index, max);
+						storage.addContent(event.target.result, data.filename.replace(/.html?$/, "").replace(/ \(\d*\)$/, ""), null, null, function() {
+							onprogress(index, max);
+							if (index == max) {
+								unzipWorker.terminate();
+								onfinish();
+							} else
+								unzipWorker.postMessage({
+									message : "getNextEntry"
+								});
+						}, function() {
+							// TODO
+						});
+					};
+					fileReader.readAsText(data.file, "UTF-8");
+				}
+			};
+		};
+		fileReader.readAsBinaryString(file);
 	};
 
 	storage.exportDB = function(onprogress, onfinish) {
@@ -807,7 +857,7 @@ var storage = {};
 		});
 	};
 
-	storage.addContent = function(favicoData, url, title, content, text, callback, onFileErrorCallback, forceUseDatabase) {
+	function addContent(favicoData, url, title, content, text, callback, onFileErrorCallback, forceUseDatabase) {
 		db.transaction(function(tx) {
 			var date = new Date();
 			tx.executeSql("insert into pages (favico, url, title, date, timestamp, size) values (?, ?, ?, ?, ?, length(?))", [ favicoData, url, title,
@@ -819,7 +869,7 @@ var storage = {};
 						onFileErrorCallback(id);
 					db.transaction(function(tx) {
 						tx.executeSql("delete from pages where id = ?", [ id ], function() {
-							storage.addContent(favicoData, url, title, content, text, callback, onFileErrorCallback, true);
+							addContent(favicoData, url, title, content, text, callback, onFileErrorCallback, true);
 						});
 					});
 				}
@@ -854,6 +904,42 @@ var storage = {};
 					tx.executeSql("insert into pages_contents (id, content) values (?, ?)", [ id, content ], insertPageText);
 			});
 		});
+	}
+
+	storage.addContent = function(content, title, url, favicoData, callback, onFileErrorCallback) {
+		var EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+		var newDoc = document.implementation.createHTMLDocument(), length, domain, domainArray, node, urlArray;
+		newDoc.open();
+		newDoc.writeln(content);
+		newDoc.close();
+		if (!favicoData) {
+			favicoData = newDoc.querySelector('link[href][rel="shortcut icon"], link[href][rel="icon"], link[href][rel="apple-touch-icon"]');
+			favicoData = favicoData ? favicoData.href : EMPTY_IMAGE_DATA;
+		}
+		if (!url) {
+			node = newDoc.documentElement.childNodes[0];
+			if (node && node.nodeType == Node.COMMENT_NODE && node.textContent.indexOf("SingleFile") != -1) {
+				urlArray = node.textContent.match(/url:(.*)/);
+				if (urlArray)
+					url = urlArray[1].trim();
+			}
+		}
+		title = (title || "").trim();
+		length = title.length;
+		url = url ? url.match(/[^#]*/)[0] : "about:blank";
+		domainArray = url.match(/\/\/([^\/]*)/);
+		if (domainArray)
+			domain = domainArray[1];
+		if (!length)
+			title = url.match(/\/\/(.*)/)[1];
+		else if (title.indexOf(" ") == -1 && domain) {
+			if (length)
+				title += " (";
+			title += domain;
+			if (length)
+				title += ")";
+		}
+		addContent(favicoData, url, title, content, newDoc.body.innerText.replace(/\s+/g, " "), callback, onFileErrorCallback);
 	};
 
 	storage.setRating = function(id, rating) {

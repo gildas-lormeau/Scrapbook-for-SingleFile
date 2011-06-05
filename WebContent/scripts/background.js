@@ -28,12 +28,12 @@ var DEFAULT_ARGS = {
 	limit : 20
 };
 
-var notificationArchiving, notificationExporting, timeoutNoResponse, firstUse = localStorage.defaultArgs == null, defaultArgs = localStorage.defaultArgs ? JSON
+var notificationArchiving, timeoutNoResponse, firstUse = localStorage.defaultArgs == null, defaultArgs = localStorage.defaultArgs ? JSON
 		.parse(localStorage.defaultArgs) : DEFAULT_ARGS, args = JSON.parse(JSON.stringify(defaultArgs)), searchedTabs, searchedTags, expandedPages = [], newPages = [], expandedTags = [], singleFileID;
 
 var tabs = {
 	length : 0
-}, importingState, exportingState, exportingToZipState;
+}, importingState, exportingState, exportingToZipState, importingFromZipState;
 
 function deletePages(ids, callback) {
 	storage.deletePages(ids, callback);
@@ -363,16 +363,7 @@ function exportDB() {
 }
 
 function exportToZip(ids) {
-	var zipWorker = new Worker("../scripts/jszip.js");
-	var pagesSaved = 0;
-
-	function onAdd() {
-		pagesSaved++;
-		exportingToZipState.index++;
-		notifyViews(function(extensionPage) {
-			extensionPage.notifyExportToZipProgress();
-		});
-	}
+	var notificationExporting;
 
 	exportingToZipState = {
 		index : 0,
@@ -383,38 +374,66 @@ function exportToZip(ids) {
 	setTimeout(function() {
 		notificationExporting.cancel();
 	}, 3000);
-	zipWorker.onmessage = function(event) {
-		var data = event.data;
-		if (data.message == "generate") {
-			exportingToZipState = null;
-			zipWorker.terminate();
-			notifyViews(function(extensionPage) {
-				extensionPage.notifyExportToZipProgress();
-			});
-			notificationExporting.cancel();
-			chrome.tabs.create({
-				url : webkitURL.createObjectURL(data.zip),
-				selected : false
-			});
-		}
-		if (data.message == "add")
-			onAdd();
-	};
-	zipWorker.postMessage({
-		message : "new"
-	});
-	storage.exportToZip(ids, zipWorker, function(index, max) {
+	storage.exportToZip(ids, function(index, max) {
 		exportingToZipState = {
-			index : index + pagesSaved,
-			max : max + ids.length
+			index : index,
+			max : max
 		};
 		notifyViews(function(extensionPage) {
 			extensionPage.notifyExportToZipProgress();
 		});
-	}, function() {
-		zipWorker.postMessage({
-			message : "generate"
+	}, function(file) {
+		var notificationExportOK;
+		exportingToZipState = null;
+		notifyViews(function(extensionPage) {
+			extensionPage.notifyExportToZipProgress();
 		});
+		notificationExporting.cancel();
+		chrome.tabs.create({
+			url : webkitURL.createObjectURL(file),
+			selected : false
+		});
+		notificationExportOK = webkitNotifications.createHTMLNotification('notificationExportOK.html');
+		notificationExporting.cancel();
+		notificationExportOK.show();
+		setTimeout(function() {
+			notificationExportOK.cancel();
+		}, 3000);
+	});
+}
+
+function importFromZip(file) {
+	var notificationImporting;
+
+	importingFromZipState = {
+		index : 0,
+		max : 0
+	};
+	notificationImporting = webkitNotifications.createHTMLNotification('notificationImporting.html');
+	notificationImporting.show();
+	setTimeout(function() {
+		notificationImporting.cancel();
+	}, 3000);
+	storage.importFromZip(file, function(index, max) {
+		importingFromZipState = {
+			index : index,
+			max : max
+		};
+		notifyViews(function(extensionPage) {
+			extensionPage.notifyImportFromZipProgress();
+		});
+	}, function() {
+		var notificationImportOK;
+		importingFromZipState = null;
+		notifyViews(function(extensionPage) {
+			extensionPage.notifyImportFromZipProgress();
+		});
+		notificationImportOK = webkitNotifications.createHTMLNotification('notificationImportOK.html');
+		notificationImporting.cancel();
+		notificationImportOK.show();
+		setTimeout(function() {
+			notificationImportOK.cancel();
+		}, 3000);
 	});
 }
 
@@ -449,8 +468,6 @@ setDefaultFilters();
 args.currentPage = 0;
 
 chrome.extension.onRequestExternal.addListener(function(request, sender, sendResponse) {
-	var EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
-	var newDoc, favico, title, length, domain, url;
 	setTimeoutNoResponse();
 	if (request.processStart)
 		notifyTabProgress(request.tabId, 0, 0, 100);
@@ -460,32 +477,12 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 		notifyTabProgress(request.tabId, 2);
 		if (tabs.length == 0)
 			onProcessEnd();
-		newDoc = document.implementation.createHTMLDocument();
-		newDoc.open();
-		newDoc.writeln(request.content);
-		newDoc.close();
-		favico = newDoc.querySelector('link[href][rel="shortcut icon"], link[href][rel="icon"], link[href][rel="apple-touch-icon"]');
-		title = (request.title || "").trim();
-		length = title.length;
-		url = request.url.match(/[^#]*/)[0];
-		domain = url.match(/\/\/([^\/]*)/)[1];
-		if (!length)
-			title = url.match(/\/\/(.*)/)[1];
-		else if (title.indexOf(" ") == -1 && domain) {
-			if (length)
-				title += " (";
-			title += domain;
-			if (length)
-				title += ")";
-		}
-		storage.addContent(request.favicoData ? request.favicoData : favico ? favico.href : EMPTY_IMAGE_DATA, url, title, request.content,
-				newDoc.body.innerText.replace(/\s+/g, " "), function(id) {
-					if (getExpandArchives() == "yes")
-						newPages[id] = true;
-				}, function() {
-					var notificationFileError = webkitNotifications.createHTMLNotification('notificationFileError.html');
-					notificationFileError.show();
-				});
+		storage.addContent(request.content, request.title, request.url, request.favicoData, function(id) {
+			if (getExpandArchives() == "yes")
+				newPages[id] = true;
+		}, function() {
+			webkitNotifications.createHTMLNotification('notificationFileError.html').show();
+		});
 		sendResponse({});
 	}
 });

@@ -650,7 +650,7 @@ ul a:visited,#pages-links a {
 	visibility: hidden;
 }
 
-#options-disable-sf-container,#options-ask-confirm-container,#options-expand-archives-container,#options-set-container,#options-reset-container,#options-save-archives-container,#options-import-container,#options-export-container,#options-export-tozip-container,#options-open-bgtab-container
+#options-disable-sf-container,#options-ask-confirm-container,#options-expand-archives-container,#options-set-container,#options-reset-container,#options-save-archives-container,#options-import-container,#options-export-container,#options-export-tozip-container,#options-open-bgtab-container, #options-export-tozip-container, #options-import-fromzip-container
 	{
 	display: block;
 	position: relative;
@@ -680,8 +680,10 @@ ul a:visited,#pages-links a {
 }
 
 .tabs-options-progress {
+	position: absolute;
+	right: 100px;
 	height: 15px;
-	width: 100px;
+	width: 80px;
 	display: none;
 }
 
@@ -764,4 +766,18 @@ ul {
 	padding-left: 5px;
 	padding-top: 5px;
 	padding-bottom: 3px;
+}
+
+#options-import-fromzip-button {
+	position: absolute;
+	right: -1px;
+	top: -2px;
+	margin: 2px;
+	direction: rtl;
+	color: transparent;
+}
+
+*::-webkit-file-upload-button {
+	background-color: #F3F3F3;
+	-webkit-border-radius: 3px;
 }
