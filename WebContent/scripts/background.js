@@ -228,7 +228,7 @@ function setTimeoutNoResponse() {
 	if (timeoutNoResponse)
 		clearTimeout(timeoutNoResponse);
 	timeoutNoResponse = setTimeout(function() {
-		webkitNotifications.createHTMLNotification('notificationTimeout.html');
+		var notificationNoResponse = webkitNotifications.createHTMLNotification('notificationTimeout.html');
 		tabs = {
 			length : 0
 		};
