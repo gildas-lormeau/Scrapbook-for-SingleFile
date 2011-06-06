@@ -617,10 +617,10 @@ ul a:visited,#pages-links a {
 
 .tabs-tab-progress {
 	position: absolute;
-	right: 0px;
+	right: 5px;
 	top: 3px;
 	height: 15px;
-	width: 100px;
+	width: 95px;
 }
 
 .tags-row-link {
