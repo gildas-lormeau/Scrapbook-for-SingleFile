@@ -71,6 +71,9 @@ JSZip.prototype.add = function(name, data, o) {
 	if (o.binary === false)
 		data = this.utf8encode(data);
 
+	if (o.utf8 === true)
+		data = "\xEF\xBB\xBF" + data;
+
 	var compression = JSZip.compressions[this.compression];
 	var compressedData = compression.compress(data);
 
@@ -2053,7 +2056,7 @@ if (!JSZip) {
 
 /*
  * Worker API
- *
+ * 
  * author: Gildas Lormeau
  */
 onmessage = function(event) {
@@ -2061,7 +2064,9 @@ onmessage = function(event) {
 	if (data.message == "new")
 		JSZip.instance = new JSZip("DEFLATE");
 	if (data.message == "add") {
-		JSZip.instance.add(data.name, data.content);
+		JSZip.instance.add(data.name, data.content, {
+			utf8 : true
+		});
 		postMessage({
 			message : "add",
 			name : data.name
