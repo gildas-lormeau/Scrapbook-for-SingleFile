@@ -152,6 +152,10 @@ var storage = {};
 		});
 	};
 
+	function removeMetaCharset(content) {
+		return content.replace(/<meta[^>]*http-equiv\s*=\s*["']?content-type[^>]*>/gi, "").replace(/<meta[^>]*charset\s*=[^>]*>/gi, "");
+	}
+
 	storage.exportToZip = function(pageIds, onprogress, onfinish) {
 		var query, zipWorker = new Worker("../scripts/jszip.js"), exportIndex = 0;
 
@@ -167,7 +171,7 @@ var storage = {};
 					zipWorker.postMessage({
 						message : "add",
 						name : name,
-						content : content
+						content : removeMetaCharset(content)
 					});
 					exportContent(pageIds, index + 1);
 				});
@@ -231,7 +235,7 @@ var storage = {};
 		};
 		fileReader.readAsBinaryString(file);
 	};
-
+	
 	storage.exportDB = function(onprogress, onfinish) {
 		function exportContent(rows, index) {
 			var id, content;
