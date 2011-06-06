@@ -208,7 +208,10 @@ JSZip.prototype.generate = function(asBytes) {
 	asBytes = asBytes || false;
 
 	// The central directory, and files data
-	var directory = [], files = [], fileOffset = 0;
+	var fileOffset = 0, filesLength = 0;
+
+	var fileData = "";
+	var dirData = "";
 
 	for ( var name in this.files) {
 		if (!this.files.hasOwnProperty(name)) {
@@ -217,6 +220,7 @@ JSZip.prototype.generate = function(asBytes) {
 
 		var fileRecord = "", dirRecord = "";
 		fileRecord = "\x50\x4b\x03\x04" + this.files[name].header + this.utf8encode(name) + this.files[name].data;
+		delete this.files[name].data;
 
 		dirRecord = "\x50\x4b\x01\x02" +
 		// version made by (00: DOS)
@@ -238,12 +242,13 @@ JSZip.prototype.generate = function(asBytes) {
 
 		fileOffset += fileRecord.length;
 
-		files.push(fileRecord);
-		directory.push(dirRecord);
-	}
+		fileData += fileRecord;
+		dirData += dirRecord;
+		filesLength++;
 
-	var fileData = files.join("");
-	var dirData = directory.join("");
+		// files.push(fileRecord);
+		// directory.push(dirRecord);
+	}
 
 	var dirEnd = "";
 
@@ -254,9 +259,9 @@ JSZip.prototype.generate = function(asBytes) {
 	// number of the disk with the start of the central directory
 	"\x00\x00" +
 	// total number of entries in the central directory on this disk
-	this.decToHex(files.length, 2) +
+	this.decToHex(filesLength/* files.length */, 2) +
 	// total number of entries in the central directory
-	this.decToHex(files.length, 2) +
+	this.decToHex(filesLength/* files.length */, 2) +
 	// size of the central directory 4 bytes
 	this.decToHex(dirData.length, 4) +
 	// offset of start of central directory with respect to the starting disk number
@@ -2081,6 +2086,7 @@ onmessage = function(event) {
 		for (i = 0; i < length; i++)
 			uint8[i] = zipData.charCodeAt(i);
 		blobBuilder.append(arrayBuffer);
+		zipData = null;
 		postMessage({
 			message : "generate",
 			zip : blobBuilder.getBlob()
