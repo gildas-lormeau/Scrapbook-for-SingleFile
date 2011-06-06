@@ -566,7 +566,7 @@ if (!JSZip) {
 	var zip_DeflateCT = function() {
 		this.fc = 0; // frequency count or bit string
 		this.dl = 0; // father node in Huffman tree or length of bit string
-	}
+	};
 
 	var zip_DeflateTreeDesc = function() {
 		this.dyn_tree = null; // the dynamic tree
@@ -576,7 +576,7 @@ if (!JSZip) {
 		this.elems = 0; // max number of elements in the tree
 		this.max_length = 0; // max bit length for the codes
 		this.max_code = 0; // largest code with non zero frequency
-	}
+	};
 
 	/*
 	 * Values for max_lazy_match, good_match and max_chain_length, depending on the desired pack level (0..9). The values given below have
@@ -587,14 +587,14 @@ if (!JSZip) {
 		this.max_lazy = b; // do not perform lazy search above this match length
 		this.nice_length = c; // quit search above this match length
 		this.max_chain = d;
-	}
+	};
 
 	var zip_DeflateBuffer = function() {
 		this.next = null;
 		this.len = 0;
 		this.ptr = new Array(zip_OUTBUFSIZ);
 		this.off = 0;
-	}
+	};
 
 	/* constant tables */
 	var zip_extra_lbits = new Array(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0);
@@ -656,7 +656,7 @@ if (!JSZip) {
 		zip_base_length = new Array(zip_LENGTH_CODES);
 		zip_base_dist = new Array(zip_D_CODES);
 		zip_flag_buf = new Array(parseInt(zip_LIT_BUFSIZE / 8));
-	}
+	};
 
 	var zip_deflate_end = function() {
 		zip_free_queue = zip_qhead = zip_qtail = null;
@@ -681,12 +681,12 @@ if (!JSZip) {
 		zip_base_length = null;
 		zip_base_dist = null;
 		zip_flag_buf = null;
-	}
+	};
 
 	var zip_reuse_queue = function(p) {
 		p.next = zip_free_queue;
 		zip_free_queue = p;
-	}
+	};
 
 	var zip_new_queue = function() {
 		var p;
@@ -700,15 +700,15 @@ if (!JSZip) {
 		p.len = p.off = 0;
 
 		return p;
-	}
+	};
 
 	var zip_head1 = function(i) {
 		return zip_prev[zip_WSIZE + i];
-	}
+	};
 
 	var zip_head2 = function(i, val) {
 		return zip_prev[zip_WSIZE + i] = val;
-	}
+	};
 
 	/*
 	 * put_byte is used for the compressed output, put_ubyte for the uncompressed output. However unlzw() uses window for its suffix table
@@ -718,7 +718,7 @@ if (!JSZip) {
 		zip_outbuf[zip_outoff + zip_outcnt++] = c;
 		if (zip_outoff + zip_outcnt == zip_OUTBUFSIZ)
 			zip_qoutbuf();
-	}
+	};
 
 	/* Output a 16 bit value, lsb first */
 	var zip_put_short = function(w) {
@@ -730,7 +730,7 @@ if (!JSZip) {
 			zip_put_byte(w & 0xff);
 			zip_put_byte(w >>> 8);
 		}
-	}
+	};
 
 	/*
 	 * ========================================================================== Insert string s in the dictionary and set match_head to
@@ -743,12 +743,12 @@ if (!JSZip) {
 		zip_hash_head = zip_head1(zip_ins_h);
 		zip_prev[zip_strstart & zip_WMASK] = zip_hash_head;
 		zip_head2(zip_ins_h, zip_strstart);
-	}
+	};
 
 	/* Send a code of the given tree. c and tree must not have side effects */
 	var zip_SEND_CODE = function(c, tree) {
 		zip_send_bits(tree[c].fc, tree[c].dl);
-	}
+	};
 
 	/*
 	 * Mapping from a distance to a distance code. dist is the distance - 1 and must not have side effects. dist_code[256] and
@@ -756,7 +756,7 @@ if (!JSZip) {
 	 */
 	var zip_D_CODE = function(dist) {
 		return (dist < 256 ? zip_dist_code[dist] : zip_dist_code[256 + (dist >> 7)]) & 0xff;
-	}
+	};
 
 	/*
 	 * ========================================================================== Compares to subtrees, using the tree depth as tie breaker
@@ -764,7 +764,7 @@ if (!JSZip) {
 	 */
 	var zip_SMALLER = function(tree, n, m) {
 		return tree[n].fc < tree[m].fc || (tree[n].fc == tree[m].fc && zip_depth[n] <= zip_depth[m]);
-	}
+	};
 
 	/*
 	 * ========================================================================== read string data
@@ -774,7 +774,7 @@ if (!JSZip) {
 		for (i = 0; i < n && zip_deflate_pos < zip_deflate_data.length; i++)
 			buff[offset + i] = zip_deflate_data.charCodeAt(zip_deflate_pos++) & 0xff;
 		return i;
-	}
+	};
 
 	/*
 	 * ========================================================================== Initialize the "longest match" routines for a new file
@@ -821,7 +821,7 @@ if (!JSZip) {
 			// UPDATE_HASH(ins_h, window[j]);
 			zip_ins_h = ((zip_ins_h << zip_H_SHIFT) ^ (zip_window[j] & 0xff)) & zip_HASH_MASK;
 		}
-	}
+	};
 
 	/*
 	 * ========================================================================== Set match_start to the longest match starting at the given
@@ -900,7 +900,7 @@ if (!JSZip) {
 		} while ((cur_match = zip_prev[cur_match & zip_WMASK]) > limit && --chain_length != 0);
 
 		return best_len;
-	}
+	};
 
 	/*
 	 * ========================================================================== Fill the window when the lookahead becomes insufficient.
@@ -957,7 +957,7 @@ if (!JSZip) {
 			else
 				zip_lookahead += n;
 		}
-	}
+	};
 
 	/*
 	 * ========================================================================== Processes a new input file and return its compressed
@@ -1036,7 +1036,7 @@ if (!JSZip) {
 			while (zip_lookahead < zip_MIN_LOOKAHEAD && !zip_eofile)
 				zip_fill_window();
 		}
-	}
+	};
 
 	var zip_deflate_better = function() {
 		/* Process the input block. */
@@ -1127,7 +1127,7 @@ if (!JSZip) {
 			while (zip_lookahead < zip_MIN_LOOKAHEAD && !zip_eofile)
 				zip_fill_window();
 		}
-	}
+	};
 
 	var zip_init_deflate = function() {
 		if (zip_eofile)
@@ -1150,7 +1150,7 @@ if (!JSZip) {
 		}
 
 		zip_complete = false;
-	}
+	};
 
 	/*
 	 * ========================================================================== Same as above, but achieves better compression. We use a
@@ -1185,7 +1185,7 @@ if (!JSZip) {
 			zip_complete = true;
 		}
 		return n + zip_qcopy(buff, n + off, buff_size - n);
-	}
+	};
 
 	var zip_qcopy = function(buff, off, buff_size) {
 		var n, i, j;
@@ -1226,7 +1226,7 @@ if (!JSZip) {
 				zip_outcnt = zip_outoff = 0;
 		}
 		return n;
-	}
+	};
 
 	/*
 	 * ========================================================================== Allocate the match buffer, initialize the various tables
@@ -1332,7 +1332,7 @@ if (!JSZip) {
 
 		// Initialize the first block of the first file:
 		zip_init_block();
-	}
+	};
 
 	/*
 	 * ========================================================================== Initialize a new block.
@@ -1353,7 +1353,7 @@ if (!JSZip) {
 		zip_last_lit = zip_last_dist = zip_last_flags = 0;
 		zip_flags = 0;
 		zip_flag_bit = 1;
-	}
+	};
 
 	/*
 	 * ========================================================================== Restore the heap property by moving down the tree starting
@@ -1382,7 +1382,7 @@ if (!JSZip) {
 			j <<= 1;
 		}
 		zip_heap[k] = v;
-	}
+	};
 
 	/*
 	 * ========================================================================== Compute the optimal bit lengths for a tree and update the
@@ -1470,7 +1470,7 @@ if (!JSZip) {
 				n--;
 			}
 		}
-	}
+	};
 
 	/*
 	 * ========================================================================== Generate the codes for a given tree and bit counts (which
@@ -1508,7 +1508,7 @@ if (!JSZip) {
 			// Tracec(tree != static_ltree, (stderr,"\nn %3d %c l %2d c %4x (%x) ",
 			// n, (isgraph(n) ? n : ' '), len, tree[n].fc, next_code[len]-1));
 		}
-	}
+	};
 
 	/*
 	 * ========================================================================== Construct one Huffman tree and assigns the code bit
@@ -1598,7 +1598,7 @@ if (!JSZip) {
 
 		// The field len is now set, we can generate the bit codes
 		zip_gen_codes(tree, max_code);
-	}
+	};
 
 	/*
 	 * ========================================================================== Scan a literal or distance tree to determine the
@@ -1649,7 +1649,7 @@ if (!JSZip) {
 				min_count = 4;
 			}
 		}
-	}
+	};
 
 	/*
 	 * ========================================================================== Send a literal or distance tree in compressed form, using
@@ -1708,7 +1708,7 @@ if (!JSZip) {
 				min_count = 4;
 			}
 		}
-	}
+	};
 
 	/*
 	 * ========================================================================== Construct the Huffman tree for the bit lengths and return
@@ -1742,7 +1742,7 @@ if (!JSZip) {
 		// encoder->opt_len, encoder->static_len));
 
 		return max_blindex;
-	}
+	};
 
 	/*
 	 * ========================================================================== Send the header for a block using dynamic Huffman trees:
@@ -1769,7 +1769,7 @@ if (!JSZip) {
 
 		// send the distance tree
 		zip_send_tree(zip_dyn_dtree, dcodes - 1);
-	}
+	};
 
 	/*
 	 * ========================================================================== Determine the best encoding for the current block: dynamic
@@ -1845,7 +1845,7 @@ if (!JSZip) {
 
 		if (eof != 0)
 			zip_bi_windup();
-	}
+	};
 
 	/*
 	 * ========================================================================== Save the match info and tally the frequency counts. Return
@@ -1900,7 +1900,7 @@ if (!JSZip) {
 		 * We avoid equality with LIT_BUFSIZE because of wraparound at 64K on 16 bit machines and because stored blocks are restricted to
 		 * 64K-1 bytes.
 		 */
-	}
+	};
 
 	/*
 	 * ========================================================================== Send the block data compressed using the given Huffman
@@ -1950,7 +1950,7 @@ if (!JSZip) {
 			} while (lx < zip_last_lit);
 
 		zip_SEND_CODE(zip_END_BLOCK, ltree);
-	}
+	};
 
 	/*
 	 * ========================================================================== Send a value on a given number of bits. IN assertion:
@@ -1972,7 +1972,7 @@ if (!JSZip) {
 			zip_bi_buf |= value << zip_bi_valid;
 			zip_bi_valid += length;
 		}
-	}
+	};
 
 	/*
 	 * ========================================================================== Reverse the first len bits of a code, using
@@ -1987,7 +1987,7 @@ if (!JSZip) {
 			res <<= 1;
 		} while (--len > 0);
 		return res >> 1;
-	}
+	};
 
 	/*
 	 * ========================================================================== Write out any remaining bits in an incomplete byte.
@@ -2000,7 +2000,7 @@ if (!JSZip) {
 		}
 		zip_bi_buf = 0;
 		zip_bi_valid = 0;
-	}
+	};
 
 	var zip_qoutbuf = function() {
 		if (zip_outcnt != 0) {
@@ -2016,7 +2016,7 @@ if (!JSZip) {
 				q.ptr[i] = zip_outbuf[zip_outoff + i];
 			zip_outcnt = zip_outoff = 0;
 		}
-	}
+	};
 
 	var zip_deflate = function(str, level) {
 		var i, j;
@@ -2038,7 +2038,7 @@ if (!JSZip) {
 		}
 		zip_deflate_data = null; // G.C.
 		return aout.join("");
-	}
+	};
 
 	//
 	// end of the script of Masanao Izumo.
@@ -2050,7 +2050,7 @@ if (!JSZip) {
 		compress : function(content) {
 			return zip_deflate(content);
 		}
-	}
+	};
 
 })();
 

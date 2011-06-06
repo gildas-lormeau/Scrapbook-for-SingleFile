@@ -1,7 +1,7 @@
 (function(GLOBAL) {
 	var JSUnzip = function(fileContents) {
 		this.fileContents = new JSUnzip.BigEndianBinaryStream(fileContents);
-	}
+	};
 	GLOBAL.JSUnzip = JSUnzip;
 	JSUnzip.MAGIC_NUMBER = 0x04034b50;
 
@@ -51,7 +51,7 @@
 		isZipFile : function() {
 			return this.fileContents.getByteRangeAsNumber(0, 4) === JSUnzip.MAGIC_NUMBER;
 		}
-	}
+	};
 
 	JSUnzip.ZipEntry = function(binaryStream) {
 		var dataOffsetStart;
@@ -99,7 +99,7 @@
 		};
 
 		binaryStream.currentByteIndex += this.compressedSize;
-	}
+	};
 
 	JSUnzip.ZipEntry.prototype = {
 		isEncrypted : function() {
@@ -117,12 +117,12 @@
 		isUsingZip64 : function() {
 			this.compressedSize === 0xFFFFFFFF || this.uncompressedSize === 0xFFFFFFFF;
 		}
-	}
+	};
 
 	JSUnzip.BigEndianBinaryStream = function(stream) {
 		this.stream = stream;
 		this.resetByteIndex();
-	}
+	};
 
 	JSUnzip.BigEndianBinaryStream.prototype = {
 		// The index of the current byte, used when we step through the byte
@@ -171,7 +171,7 @@
 			}
 			return result;
 		}
-	}
+	};
 }(this));
 
 (function(GLOBAL) {
