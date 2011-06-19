@@ -320,7 +320,7 @@
 				readDateLabelElement = document.createElement("span");
 				readDateLinkElement = document.createElement("a");
 				sizeLabelElement = document.createElement("span");
-				starsElement = document.createElement("div");
+				starsElement = document.createElement("div");				
 				infoLine1Element.className = "pages-row-link";
 				infoLine2Element.className = "pages-row-misc";
 				infoLine1Element.appendChild(linkElement);
@@ -621,7 +621,7 @@
 		group = [ sortByTitleLink, sortByDateLink, sortByRatingLink, sortBySizeLink, sortByReadDateLink, sortByUrlLink ];
 		new ComboBox(tagsInput, args.tags && args.tags.values ? args.tags.values.join(",") : "");
 		tagsInput.oninput = tagsInputOninput;
-		if (document.documentElement.className == "newtab")
+		if (document.documentElement.className == "newtab" && args.limit != "all")
 			args.limit = Math.max(args.limit, 20);
 		if (args.savedPeriod && args.savedPeriod.period)
 			new PeriodInput(savedPeriodInput, args.savedPeriod.period, args.savedPeriod.from, args.savedPeriod.to, "from: ", "to: ", "all", "", "today",
@@ -649,7 +649,7 @@
 		sortByReadDateLink.onenter = showPages;
 		savedPeriodInput.onenter = showPages;
 		readPeriodInput.onenter = showPages;
-		expandSearchButton.onenter = expandSearchButtonOnenter;
+		expandSearchButton.onenter = expandSearchButtonOnenter;		
 		new CollapserButton(expandSearchButton, document.getElementById("pages-options-container"), args.advancedSearch, "hide search filters",
 				"show search filters");
 		new CollapserButton(expandTagsButton, document.getElementById("pages-tags-container"), args.tags, "hide tags filter", "show tags filter");
