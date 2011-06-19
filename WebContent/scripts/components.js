@@ -249,28 +249,44 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		currentKeyword.removeEventListener("keydown", onkeydown);
 		element.removeChild(currentKeyword);
 		currentKeyword = null;
-	}
+	}	
 
 	function decorateKeywordElement() {
 		var deleteElement = document.createElement("img"), keyword = currentKeyword;
-		currentKeyword.className = "keywords-input-keyword";
-
-		currentKeyword.addEventListener("click", function() {
+		
+		function keywordOnclick() {
 			if (element.onselect)
 				element.onselect(keyword.textContent);
-		});
-
-		deleteElement.className = "keywords-input-delete-button clickable";
-		deleteElement.src = "../resources/delete.png";
-		if (deleteTagTitle)
-			deleteElement.title = deleteTagTitle;
-		deleteElement.onclick = function() {
+		}
+		
+		function deleteOnclick(){
 			if (element.ondelete)
 				element.ondelete(keyword.textContent);
 			element.removeChild(keyword);
 			element.removeChild(deleteElement);
-			currentKeyword = null;
-		};
+			currentKeyword = null;			
+		}
+		
+		currentKeyword.className = "keywords-input-keyword";
+		currentKeyword.tabIndex = "0";
+
+		currentKeyword.addEventListener("click", keywordOnclick);
+		currentKeyword.addEventListener("keyup", function(event) {
+			if (event.keyIdentifier == "Enter")
+				keywordOnclick();
+		}, false);
+
+		deleteElement.className = "keywords-input-delete-button clickable";
+		deleteElement.src = "../resources/delete.png";
+		deleteElement.tabIndex = "0";
+		
+		if (deleteTagTitle)
+			deleteElement.title = deleteTagTitle;
+		deleteElement.onclick = deleteOnclick;
+		deleteElement.addEventListener("keyup", function(event) {
+			if (event.keyIdentifier == "Enter")
+				deleteOnclick();
+		}, false);
 		element.insertBefore(deleteElement, plusElement);
 	}
 
@@ -294,10 +310,8 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		}
 	}
 
-	function onmousedown(event) {
+	function onmousedown() {
 		var textContent;
-		if (event.button != 0)
-			return;
 		if (currentKeyword) {
 			if (currentKeyword.textContent) {
 				textContent = currentKeyword.textContent;
@@ -321,8 +335,7 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		currentKeyword.title = "";
 		new ComboBox(currentKeyword);
 		currentKeyword.addEventListener("keydown", onkeydown);
-		currentKeyword.focus();
-		event.preventDefault();
+		currentKeyword.focus();		
 	}
 
 	this.__proto__.datalistCount = this.__proto__.datalistCount || 0;
@@ -349,7 +362,17 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 	plusElement.className = "keywords-input-plus-button  clickable";
 	if (addTagtitle)
 		plusElement.title = addTagtitle;
-	plusElement.addEventListener("mousedown", onmousedown);
+	plusElement.addEventListener("mousedown", function() {
+		if (event.button == 0) {
+			onmousedown();
+			event.preventDefault();
+		}
+	});
+	plusElement.tabIndex = "0";
+	plusElement.addEventListener("keyup", function(event) {
+		if (event.keyIdentifier == "Enter")
+			onmousedown();
+	}, false);
 }
 
 function TitleInput(element, value, editButtonTitle, deleteButtonTitle) {
@@ -521,13 +544,19 @@ function CollapserButton(element, contentElement, expanded, expandTitle, collaps
 				element.onenter(value);
 		}
 	}
+	
+	function toggleContent() {
+		value = (value == "expanded") ? "" : "expanded";
+		refresh();
+	}
 
 	element.className += " collapser-button";
 	contentElement.className += " collapser-content";
-	element.addEventListener("click", function() {
-		value = (value == "expanded") ? "" : "expanded";
-		refresh();
-	});
+	element.addEventListener("click", toggleContent);
+	element.addEventListener("keyup", function(event) {
+		if (event.keyIdentifier == "Enter")
+			toggleContent();
+	}, false);
 
 	element.__defineSetter__("value", function(val) {
 		value = val ? "expanded" : "";
@@ -537,6 +566,7 @@ function CollapserButton(element, contentElement, expanded, expandTitle, collaps
 		return value;
 	}, true);
 
+	element.tabIndex = "0";
 	element.value = expanded ? "expanded" : "";
 }
 
