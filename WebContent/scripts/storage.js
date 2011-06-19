@@ -157,7 +157,7 @@ var storage = {};
 	}
 
 	storage.exportToZip = function(pageIds, onprogress, onfinish) {
-		var query, zipWorker = new Worker("../scripts/jszip.js"), exportIndex = 0;
+		var query, zipWorker = new Worker("../scripts/jszip_worker.js"), exportIndex = 0;
 
 		function exportContent(pageIds, index) {
 			var content, name, id = pageIds[index];
@@ -755,7 +755,8 @@ var storage = {};
 			} else
 				query += " pages.id desc";
 			var currentPage = args.currentPage || 0;
-			query += " limit " + (args.limit * currentPage) + ", " + args.limit;
+			if (args.limit != "all")
+				query += " limit " + (args.limit * currentPage) + ", " + args.limit;
 			// console.log(query, params);
 			tx.executeSql(query, params, function(cbTx, result) {
 				var i, rows = [], item, count;
@@ -787,7 +788,7 @@ var storage = {};
 						for (i = 0; i < rows.length; i++)
 							tags.push(ret[rows[i].id]);
 						if (callback)
-							callback(rows, tags, Math.ceil(count / args.limit));
+							callback(rows, tags, args.limit != "all" ? Math.ceil(count / args.limit): 1);
 					});
 				});
 			});
