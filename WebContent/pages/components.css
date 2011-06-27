@@ -2,8 +2,8 @@
 	margin: 0px;
 }
 
-.combobox-input { 
-	/* empty */	
+.combobox-input {
+	/* empty */
 }
 
 .combobox-wrapper {
@@ -32,7 +32,6 @@
 	display: inline-block;
 	position: relative;
 	top: 2px;
-	cursor: pointer;
 }
 
 .rating-input.rating-value-100 {
@@ -58,7 +57,6 @@
 .keywords-input-plus-button {
 	position: relative;
 	top: 2px;
-	cursor: pointer;
 	margin-left: 5px;
 }
 
@@ -66,7 +64,6 @@
 	position: relative;
 	top: 2px;
 	left: -7px;
-	cursor: pointer;
 	margin-left: 2px;
 }
 
@@ -88,7 +85,6 @@
 
 .title-input-edit-button,.title-input-delete-button {
 	margin-left: 5px;
-	cursor: pointer;
 }
 
 .sortby-link {
@@ -106,7 +102,6 @@
 }
 
 .collapser-button {
-	cursor: pointer;
 	background-image: url(../resources/arrow_expand.gif);
 	width: 16px;
 	height: 16px;
