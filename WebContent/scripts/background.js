@@ -30,6 +30,17 @@ var DEFAULT_SEARCH_FILTERS = {
 
 var SINGLE_FILE_ID = dev ? "onlinihoegnbbcmeeocfeplgbkmoidla" /* "oabofdibacblkhpogjinmdbcekfkikjc" */: "jemlklgaibiijojffihnhieihhagocma";
 
+var options = localStorage.options ? JSON.parse(localStorage.options) : {
+	askConfirmation : "yes",
+	expandNewArchive : "yes",
+	openInBgTab : "yes",
+	filesystemEnabled : ""
+};
+
+options.save = function() {
+	localStorage.options = JSON.stringify(options);
+};
+
 var notificationArchiving, timeoutNoResponse;
 
 var popupState = {
@@ -93,7 +104,7 @@ function openPages(checkedPages) {
 		if (index)
 			open(id, false);
 		else
-			open(id, getOpenBgTab() != "yes");
+			open(id, options.openInBgTab != "yes");
 	});
 }
 
@@ -183,25 +194,16 @@ function getSelectedTab(callback) {
 	});
 }
 
-function detectExtension(extensionId, callback) {
+function detectSingleFile(callback) {
 	var img;
 	img = new Image();
-	img.src = "chrome-extension://" + extensionId + "/resources/icon_16.png";
+	img.src = "chrome-extension://" + SINGLE_FILE_ID + "/resources/icon_16.png";
 	img.onload = function() {
 		callback(true);
 	};
 	img.onerror = function() {
 		callback(false);
 	};
-}
-
-function detectSingleFile(callback) {
-	detectExtension(SINGLE_FILE_ID, function(detected) {
-		if (detected) {
-			callback(true);
-		} else
-			callback();
-	});
 }
 
 function getTabsInfo(callback) {
@@ -275,38 +277,6 @@ function setDefaultFilters() {
 function resetDefaultFilters() {
 	popupState.searchFilters = DEFAULT_SEARCH_FILTERS;
 	setDefaultFilters();
-}
-
-function openBgTab(value) {
-	localStorage.openBgTab = value;
-}
-
-function askConfirm(value) {
-	localStorage.askConfirm = value;
-}
-
-function expandArchives(value) {
-	localStorage.expandArchives = value;
-}
-
-function getOpenBgTab() {
-	return localStorage.openBgTab != null ? localStorage.openBgTab : "yes";
-}
-
-function getAskConfirm() {
-	return localStorage.askConfirm != null ? localStorage.askConfirm : "yes";
-}
-
-function getExpandArchives() {
-	return localStorage.expandArchives != null ? localStorage.expandArchives : "yes";
-}
-
-function setFilesystemEnabled(value) {
-	localStorage.filesystemEnabled = value;
-}
-
-function getFilesystemEnabled() {
-	return localStorage.filesystemEnabled != null ? localStorage.filesystemEnabled : "";
 }
 
 function notifyViews(notifyHandler) {
@@ -484,7 +454,7 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 		if (tabs.length == 0)
 			onProcessEnd();
 		storage.addContent(request.content, request.title, request.url, request.favicoData, function(id) {
-			if (getExpandArchives() == "yes")
+			if (options.expandNewArchive == "yes")
 				popupState.newPages[id] = true;
 		}, function() {
 			webkitNotifications.createHTMLNotification('notificationFileError.html').show();

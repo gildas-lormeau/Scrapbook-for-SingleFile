@@ -36,7 +36,7 @@
 				selectedIds.push(inputElement.parentElement.id.split("tag.")[1]);
 		});
 		if (selectedIds.length) {
-			if (bgPage.getAskConfirm() != "yes" || confirm("Do you really want to delete selected tags ?"))
+			if (bgPage.options.askConfirmation != "yes" || confirm("Do you really want to delete selected tags ?"))
 				bgPage.deleteTags(selectedIds, function() {
 					showTagsTab();
 				});

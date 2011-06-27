@@ -170,7 +170,7 @@
 
 	function deleteButtonOnclick() {
 		if (checkedPages.length)
-			if (bgPage.getAskConfirm() != "yes" || confirm("Do you really want to delete selected archives ?"))
+			if (bgPage.options.askConfirmation != "yes" || confirm("Do you really want to delete selected archives ?"))
 				bgPage.deletePages(checkedPages, function() {
 					checkedPages = [];
 					showPagesTab();
@@ -393,7 +393,7 @@
 						bgPage.updatePage();
 						window.close();
 					} else
-						bgPage.open(row.id, bgPage.getOpenBgTab() != "yes");
+						bgPage.open(row.id, bgPage.options.openInBgTab != "yes");
 					return false;
 				};
 				moreElement.onenter = function(value) {

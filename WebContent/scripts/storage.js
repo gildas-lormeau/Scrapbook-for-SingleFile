@@ -27,7 +27,7 @@ var storage = {};
 	var db, fs, BBuilder = window.BlobBuilder || window.WebKitBlobBuilder, requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
 	function useFilesystem() {
-		return getFilesystemEnabled() == "yes" && typeof requestFS != "undefined";
+		return options.filesystemEnabled == "yes" && typeof requestFS != "undefined";
 	}
 
 	function openFileSystem() {
@@ -35,7 +35,7 @@ var storage = {};
 			requestFS(true, DATA_SIZE, function(filesystem) {
 				fs = filesystem;
 			}, function() {
-				setFilesystemEnabled("");
+				options.filesystemEnabled = "";
 			});
 	}
 

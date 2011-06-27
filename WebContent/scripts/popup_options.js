@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, saveOnDiskButton, importButton, exportButton, exportToZipButton, importFromZipButton, openBgTabButton;
+	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, searchTitleButton, saveOnDiskButton, importButton, exportButton, exportToZipButton, importFromZipButton, openBgTabButton;
 
 	var requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
@@ -33,19 +33,23 @@
 	}
 
 	function openBgTabButtonOnclick() {
-		bgPage.openBgTab(openBgTabButton.value);
+		bgPage.options.openInBgTab = openBgTabButton.value;
+		bgPage.options.save();
 	}
 
 	function askConfirmButtonOnclick() {
-		bgPage.askConfirm(askConfirmButton.value);
+		bgPage.options.askConfirmation = askConfirmButton.value;
+		bgPage.options.save();
 	}
 
 	function expandArchivesButtonOnclick() {
-		bgPage.expandArchives(expandArchivesButton.value);
+		bgPage.options.expandNewArchive = expandArchivesButton.value;
+		bgPage.options.save();
 	}
 
 	function saveOnDiskButtonOnclick() {
-		bgPage.setFilesystemEnabled(saveOnDiskButton.value);
+		bgPage.options.filesystemEnabled = saveOnDiskButton.value;
+		bgPage.options.save();
 	}
 
 	function importButtonOnclick() {
@@ -117,6 +121,7 @@
 	this.initOptionsTab = function() {
 		askConfirmButton = document.getElementById("options-ask-confirm-button");
 		expandArchivesButton = document.getElementById("options-expand-archives-button");
+		// searchTitleButton = document.getElementById("options-search-title-button");
 		saveOnDiskButton = document.getElementById("options-save-archives-button");
 		importButton = document.getElementById("options-import-button");
 		openBgTabButton = document.getElementById("options-open-bgtab-button");
@@ -127,20 +132,23 @@
 		document.getElementById("options-reset-button").onclick = resetButtonOnclick;
 		importButton.onclick = importButtonOnclick;
 		exportButton.onclick = exportButtonOnclick;
-		expandArchivesButton.onclick = resetButtonOnclick;
 		askConfirmButton.onchange = askConfirmButtonOnclick;
 		importFromZipButton.onchange = importFromZipButtonOnclick;
-		askConfirmButton.value = bgPage.getAskConfirm();
+		askConfirmButton.value = bgPage.options.askConfirmation;
 		openBgTabButton.onchange = openBgTabButtonOnclick;
-		openBgTabButton.value = bgPage.getOpenBgTab();
+		openBgTabButton.value = bgPage.options.openInBgTab;
 		expandArchivesButton.onchange = expandArchivesButtonOnclick;
-		expandArchivesButton.value = bgPage.getExpandArchives();
+		expandArchivesButton.value = bgPage.options.expandNewArchive;
+		// searchTitleButton.onchange = searchTitleButtonOnclick;
+		// searchTitleButton.value = bgPage.getSearchTitle();
 		saveOnDiskButton.onchange = saveOnDiskButtonOnclick;
-		saveOnDiskButton.value = bgPage.getFilesystemEnabled();
+		saveOnDiskButton.value = bgPage.options.filesystemEnabled;
 		if (typeof requestFS == "undefined") {
 			document.getElementById("options-save-archives-container").style.display = "none";
 			document.getElementById("options-import-container").style.display = "none";
 			document.getElementById("options-export-container").style.display = "none";
+			document.getElementById("options-import-fromzip-container").style.display = "none";
+			document.getElementById("options-export-tozip-container").style.display = "none";
 		}
 		notifyImportProgress();
 		notifyExportProgress();
