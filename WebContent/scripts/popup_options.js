@@ -103,6 +103,8 @@
 
 	this.notifyExportToZipProgress = function() {
 		notifyProgress(bgPage.process.exportingToZip, exportToZipButton);
+		if (!bgPage.process.exportingToZip)
+			document.getElementById("pages-export-button").disabled = false;
 	};
 
 	this.notifyImportFromZipProgress = function() {
