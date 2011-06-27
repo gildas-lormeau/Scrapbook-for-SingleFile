@@ -20,19 +20,12 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), allSelected = false, selectAllButton, saveButton, ulElement, searchInput;
-
-	function selectAllButtonRefresh() {
-		selectAllButton.src = allSelected ? "../resources/unselectAll.png" : "../resources/selectAll.png";
-		selectAllButton.title = allSelected ? "unselect all tabs" : "select all tabs";
-	}
+	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, allSelected = false, selectAllButton, saveButton, ulElement, searchInput;
 
 	function selectAllButtonOnclick() {
-		allSelected = !allSelected;
 		Array.prototype.forEach.call(document.querySelectorAll("#tab-tabs input[type=checkbox]"), function(inputElement) {
-			inputElement.checked = allSelected;
+			inputElement.checked = true;
 		});
-		selectAllButtonRefresh();
 	}
 
 	function saveButtonOnclick() {
@@ -78,16 +71,14 @@
 		ulElement.parentElement.replaceChild(tempElement, ulElement);
 		ulElement = tempElement;
 		allSelected = false;
-		selectAllButton.value = "Select All";
 		for (tabId in bgPage.tabs) {
 			tab = bgPage.tabs[tabId];
 			notifyTabProgress(tabId, tab.state, tab.index, tab.max);
 		}
-		selectAllButtonRefresh();
 	}
 
 	function search(callback) {
-		bgPage.searchedTabs = searchInput.value ? searchInput.value.split(/\s+/) : null;
+		state.searchedTabs = searchInput.value ? searchInput.value.split(/\s+/) : null;
 		bgPage.getTabsInfo(function(tabs) {
 			display(tabs);
 			if (callback)
@@ -114,7 +105,7 @@
 		saveButton.onclick = saveButtonOnclick;
 		searchInput.onchange = showTabs;
 		document.getElementById("tabs-form").onsubmit = showTabs;
-		searchInput.value = bgPage.searchedTabs ? bgPage.searchedTabs.join(" ") : "";
+		searchInput.value = state.searchedTabs ? bgPage.popupState.searchedTabs.join(" ") : "";
 	};
 
 	this.notifyTabProgress = function(tabId, state, index, max) {
@@ -125,7 +116,6 @@
 			titleElement = tabElement.querySelector(".tabs-tab-title");
 			checkboxElement.checked = false;
 			allSelected = false;
-			selectAllButtonRefresh();
 			if (!progressElement) {
 				progressElement = document.createElement("progress");
 				progressElement.className = "tabs-tab-progress";

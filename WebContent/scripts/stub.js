@@ -40,7 +40,7 @@
 				return;
 			}
 			bgPage.getPage(currLink.href, function(id) {
-				bgPage.newPages[id] = false;
+				bgPage.popupState.newPages[id] = false;
 				href = id ? "/pages/stub.html?" + id : currLink.href;
 				if (newWindow)
 					bgPage.openURL(href, false);
@@ -76,8 +76,15 @@
 	}
 
 	chrome.extension.getBackgroundPage().getContent(archiveId, function(content, title) {
-		chrome = null;
-		bgPage.newPages[archiveId] = false;
+		try {
+			window.chrome = null;
+			window.webkitRequestFileSystem = null;
+			window.openDatabase = null;
+			window.__defineGetter__("localStorage", function() {
+			});
+		} catch (e) {
+		}
+		bgPage.popupState.newPages[archiveId] = false;
 		document.open();
 		document.write(content);
 		document.close();

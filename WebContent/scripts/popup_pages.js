@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), args = bgPage.args, pageCount, expandButton, sortByReadDateLink, tagsInput, limitInput, searchInput, fromRatingInput, toRatingInput, expandMiscButton, expandReadDateButton, expandSavedDateButton, expandUrlButton, expandTagsButton, savedPeriodInput, readPeriodInput, urlInput, sortByTitleLink, fromSizeInput, toSizeInput, otherInput, sortByDateLink, sortByRatingLink, sortByUrlLink, sortBySizeLink, expandSearchButton, selectAllButton, exportButton, ulElement, nextLink, previousLink, links, tagInput, tagMask, allSelected = false;
+	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, searchFilters = state.searchFilters, pageCount, expandButton, sortByReadDateLink, tagsInput, limitInput, searchInput, fromRatingInput, toRatingInput, expandMiscButton, expandReadDateButton, expandSavedDateButton, expandUrlButton, expandTagsButton, savedPeriodInput, readPeriodInput, urlInput, sortByTitleLink, fromSizeInput, toSizeInput, otherInput, sortByDateLink, sortByRatingLink, sortByUrlLink, sortBySizeLink, expandSearchButton, selectAllButton, exportButton, ulElement, nextLink, previousLink, links, tagInput, tagMask, allSelected = false, checkedPages = [];
 
 	function tagsInputOninput() {
 		var datalist = document.getElementById("pages-tags-filter-data"), select = document.createElement("select");
@@ -51,17 +51,17 @@
 	}
 
 	function expandInputOnchange(value) {
-		args.moreInfo = expandButton.value;
+		searchFilters.moreInfo = expandButton.value;
 		search();
 	}
 
 	function expandTagsButtonSetArgs() {
 		var values;
 		if (!expandTagsButton.value)
-			args.tags = null;
+			searchFilters.tags = null;
 		else {
 			values = tagsInput.values;
-			args.tags = {
+			searchFilters.tags = {
 				values : values.length ? values : null
 			};
 		}
@@ -70,9 +70,9 @@
 
 	function expandSavedDateButtonSetArgs() {
 		if (!expandSavedDateButton.value)
-			args.savedPeriod = null;
+			searchFilters.savedPeriod = null;
 		else
-			args.savedPeriod = {
+			searchFilters.savedPeriod = {
 				period : savedPeriodInput.period,
 				from : savedPeriodInput.fromDate,
 				to : savedPeriodInput.toDate
@@ -82,9 +82,9 @@
 
 	function expandReadDateButtonSetArgs() {
 		if (!expandReadDateButton.value)
-			args.readPeriod = null;
+			searchFilters.readPeriod = null;
 		else
-			args.readPeriod = {
+			searchFilters.readPeriod = {
 				period : readPeriodInput.period,
 				from : readPeriodInput.fromDate,
 				to : readPeriodInput.toDate
@@ -94,9 +94,9 @@
 
 	function expandUrlButtonSetArgs() {
 		if (!expandUrlButton.value)
-			args.url = null;
+			searchFilters.url = null;
 		else
-			args.url = {
+			searchFilters.url = {
 				value : urlInput.value || null
 			};
 		updateFilterButtonState();
@@ -104,9 +104,9 @@
 
 	function expandMiscButtonSetArgs() {
 		if (!expandMiscButton.value)
-			args.misc = null;
+			searchFilters.misc = null;
 		else
-			args.misc = {
+			searchFilters.misc = {
 				rating : {
 					from : fromRatingInput.value,
 					to : toRatingInput.value
@@ -124,9 +124,7 @@
 		expandTagsButton.setArgs(value);
 		if (value)
 			tagsInput.focus();
-		else
-			searchInput.focus();
-		if (!value || (args.tags && args.tags.values))
+		if (!value || (searchFilters.tags && searchFilters.tags.values))
 			search();
 	}
 
@@ -134,9 +132,7 @@
 		expandSavedDateButton.setArgs(value);
 		if (value)
 			savedPeriodInput.focus();
-		else
-			searchInput.focus();
-		if (!value || (args.savedPeriod && args.savedPeriod.period != "all"))
+		if (!value || (searchFilters.savedPeriod && searchFilters.savedPeriod.period != "all"))
 			search();
 	}
 
@@ -144,9 +140,7 @@
 		expandReadDateButton.setArgs(value);
 		if (value)
 			readPeriodInput.focus();
-		else
-			searchInput.focus();
-		if (!value || (args.readPeriod && args.readPeriod.period != "all"))
+		if (!value || (searchFilters.readPeriod && searchFilters.readPeriod.period != "all"))
 			search();
 	}
 
@@ -154,9 +148,7 @@
 		expandUrlButton.setArgs(value);
 		if (value)
 			urlInput.focus();
-		else
-			searchInput.focus();
-		if (!value || (args.url && args.url.value))
+		if (!value || (searchFilters.url && searchFilters.url.value))
 			search();
 	}
 
@@ -164,53 +156,33 @@
 		expandMiscButton.setArgs(value);
 		if (value)
 			fromRatingInput.focus();
-		else
-			searchInput.focus();
-		if (!value || (args.misc && JSON.stringify(args.misc) != '{"rating":{"from":"0","to":"500"},"size":{"from":null,"to":null},"other":null}'))
+		if (!value
+				|| (searchFilters.misc && JSON.stringify(searchFilters.misc) != '{"rating":{"from":"0","to":"500"},"size":{"from":null,"to":null},"other":null}'))
 			search();
 	}
 
-	function selectAllButtonRefresh() {
-		selectAllButton.src = allSelected ? "../resources/unselectAll.png" : "../resources/selectAll.png";
-		selectAllButton.title = allSelected ? "unselect all archives" : "select all archives";
-	}
-
 	function selectAllButtonOnclick() {
-		allSelected = !allSelected;
 		Array.prototype.forEach.call(document.querySelectorAll("#tab-pages input[type=checkbox]"), function(inputElement) {
-			inputElement.checked = allSelected;
+			checkedPages.push(inputElement.parentElement.id.split("page.")[1]);
+			inputElement.checked = true;
 		});
-		selectAllButtonRefresh();
-	}
-
-	function getSelectedIds() {
-		var selectedIds = [];
-		Array.prototype.forEach.call(document.querySelectorAll("#tab-pages input[type=checkbox]"), function(inputElement) {
-			if (inputElement.checked)
-				selectedIds.push(inputElement.parentElement.id.split("page.")[1]);
-		});
-		return selectedIds;
 	}
 
 	function deleteButtonOnclick() {
-		var selectedIds = getSelectedIds();
-		if (selectedIds.length) {
+		if (checkedPages.length)
 			if (bgPage.getAskConfirm() != "yes" || confirm("Do you really want to delete selected archives ?"))
-				bgPage.deletePages(selectedIds, function() {
+				bgPage.deletePages(checkedPages, function() {
+					checkedPages = [];
 					showPagesTab();
 				});
-		}
 	}
 
 	function openButtonOnclick() {
-		var selectedIds = getSelectedIds();
-		if (selectedIds.length)
-			bgPage.openPages(selectedIds);
+		bgPage.openPages(checkedPages);
 	}
 
 	function tagButtonOnclick() {
-		var selectedIds = getSelectedIds();
-		if (selectedIds.length) {
+		if (checkedPages.length) {
 			tagInput.value = "";
 			tagMask.style.display = "block";
 			tagInput.focus();
@@ -218,29 +190,26 @@
 	}
 
 	function exportButtonOnclick() {
-		var selectedIds = getSelectedIds();
-		if (selectedIds.length) {
+		if (checkedPages.length) {
 			exportButton.disabled = true;
-			bgPage.exportToZip(selectedIds);
+			bgPage.exportToZip(checkedPages);
 		}
 	}
 
 	function expandSearchButtonOnenter(value) {
-		args.advancedSearch = value;
+		searchFilters.advancedSearch = value;
 		ulElement.className = value;
-		if (!value)
-			searchInput.focus();
 	}
 
 	function nextOnclick() {
-		if (args.currentPage < pageCount - 1)
-			args.currentPage++;
+		if (searchFilters.currentPage < pageCount - 1)
+			searchFilters.currentPage++;
 		search(null, true);
 	}
 
 	function previousOnclick() {
-		if (args.currentPage)
-			args.currentPage--;
+		if (searchFilters.currentPage)
+			searchFilters.currentPage--;
 		search(null, true);
 	}
 
@@ -262,8 +231,8 @@
 	}
 
 	function updateFilterButtonState() {
-		if (args.tags || args.url || args.readPeriod || args.savedPeriod || args.misc
-				|| (args.sortBy && (args.sortBy.field != "date" || args.sortBy.value != "desc"))) {
+		if (searchFilters.tags || searchFilters.url || searchFilters.readPeriod || searchFilters.savedPeriod || searchFilters.misc
+				|| (searchFilters.sortBy && (searchFilters.sortBy.field != "date" || searchFilters.sortBy.value != "desc"))) {
 			if (expandSearchButton.className.indexOf(" pages-filter-applied") == -1)
 				expandSearchButton.className += " pages-filter-applied";
 		} else
@@ -273,7 +242,7 @@
 	function tagOkButtonOnclick() {
 		var values = tagInput.values;
 		if (values.length)
-			bgPage.addTags(values, getSelectedIds(), function() {
+			bgPage.addTags(values, checkedPages, function() {
 				search(null, true);
 			});
 		tagMask.style.display = "none";
@@ -320,7 +289,7 @@
 				readDateLabelElement = document.createElement("span");
 				readDateLinkElement = document.createElement("a");
 				sizeLabelElement = document.createElement("span");
-				starsElement = document.createElement("div");				
+				starsElement = document.createElement("div");
 				infoLine1Element.className = "pages-row-link";
 				infoLine2Element.className = "pages-row-misc";
 				infoLine1Element.appendChild(linkElement);
@@ -403,10 +372,17 @@
 				sizeLabelElement.textContent = Math.floor(row.size / (1024 * 1024) * 100) / 100 + " MB";
 				sizeLabelElement.className = "pages-row-size-label";
 				moreElement.className = "clickable";
-				new CollapserButton(moreElement, moreDivElement, expandButton.value || bgPage.expandedPages[row.id] || bgPage.newPages[row.id],
+				new CollapserButton(moreElement, moreDivElement, expandButton.value || state.expandedPages[row.id] || bgPage.popupState.newPages[row.id],
 						"show only title", "show more info");
 				cbElement.type = "checkbox";
 				cbElement.title = "select a page to open or delete";
+				cbElement.onclick = function(event) {
+					if (!cbElement.checked)
+						checkedPages.splice(checkedPages.indexOf("" + row.id), 1);
+					else
+						checkedPages.push("" + row.id);
+				};
+				cbElement.checked = checkedPages.indexOf("" + row.id) != -1;
 				favicoElement.src = row.favico ? row.favico : "../resources/default_favico.gif";
 				favicoElement.className = "row-favico";
 				aElement.href = "#";
@@ -421,8 +397,8 @@
 					return false;
 				};
 				moreElement.onenter = function(value) {
-					bgPage.newPages[row.id] = false;
-					bgPage.expandedPages[row.id] = value;
+					state.newPages[row.id] = false;
+					state.expandedPages[row.id] = value;
 				};
 				aElement.onenter = function(value) {
 					title = value;
@@ -483,48 +459,46 @@
 		tempElement.className = ulElement.className;
 		ulElement.parentElement.replaceChild(tempElement, ulElement);
 		ulElement = tempElement;
-		selectAllButtonRefresh();
 	}
 
 	function search(callback, dontResetCurrentPage) {
 		if (!dontResetCurrentPage)
-			args.currentPage = 0;
-		args.text = searchInput.value ? searchInput.value.split(/\s+/) : null;
+			searchFilters.currentPage = 0;
+		searchFilters.text = searchInput.value ? searchInput.value.split(/\s+/) : null;
 		expandTagsButton.setArgs();
 		expandSavedDateButton.setArgs();
 		expandReadDateButton.setArgs();
 		expandUrlButton.setArgs();
 		expandMiscButton.setArgs();
-		args.limit = limitInput.value;
-		args.sortBy = {};
+		searchFilters.limit = limitInput.value;
+		searchFilters.sortBy = {};
 		if (sortByTitleLink.value) {
-			args.sortBy.field = "title";
-			args.sortBy.value = sortByTitleLink.value == "asc" ? "desc" : sortByTitleLink.value == "desc" ? "asc" : "";
+			searchFilters.sortBy.field = "title";
+			searchFilters.sortBy.value = sortByTitleLink.value == "asc" ? "desc" : sortByTitleLink.value == "desc" ? "asc" : "";
 		}
 		if (sortByDateLink.value) {
-			args.sortBy.field = "date";
-			args.sortBy.value = sortByDateLink.value;
+			searchFilters.sortBy.field = "date";
+			searchFilters.sortBy.value = sortByDateLink.value;
 		}
 		if (sortByRatingLink.value) {
-			args.sortBy.field = "rating";
-			args.sortBy.value = sortByRatingLink.value;
+			searchFilters.sortBy.field = "rating";
+			searchFilters.sortBy.value = sortByRatingLink.value;
 		}
 		if (sortByUrlLink.value) {
-			args.sortBy.field = "url";
-			args.sortBy.value = sortByUrlLink.value == "asc" ? "desc" : sortByUrlLink.value == "desc" ? "asc" : "";
+			searchFilters.sortBy.field = "url";
+			searchFilters.sortBy.value = sortByUrlLink.value == "asc" ? "desc" : sortByUrlLink.value == "desc" ? "asc" : "";
 		}
 		if (sortBySizeLink.value) {
-			args.sortBy.field = "size";
-			args.sortBy.value = sortBySizeLink.value;
+			searchFilters.sortBy.field = "size";
+			searchFilters.sortBy.value = sortBySizeLink.value;
 		}
 		if (sortByReadDateLink.value) {
-			args.sortBy.field = "readDate";
-			args.sortBy.value = sortByReadDateLink.value;
+			searchFilters.sortBy.field = "readDate";
+			searchFilters.sortBy.value = sortByReadDateLink.value;
 		}
 		updateFilterButtonState();
 		allSelected = false;
-		selectAllButton.value = "Select All";
-		location.hash = encodeURIComponent(JSON.stringify(args));
+		location.hash = encodeURIComponent(JSON.stringify(searchFilters));
 
 		bgPage.search(function(rows, tags, count) {
 			var i, link, start;
@@ -532,10 +506,10 @@
 			display(rows, tags);
 			if (pageCount > 1) {
 				links.innerHTML = "";
-				start = Math.min(Math.max(pageCount - 10, 0), Math.max(args.currentPage - 5, 0));
+				start = Math.min(Math.max(pageCount - 10, 0), Math.max(searchFilters.currentPage - 5, 0));
 				for (i = start; i < Math.min(start + 10, pageCount); i++) {
 					link = document.createElement("a");
-					if (i == args.currentPage)
+					if (i == searchFilters.currentPage)
 						link.className = "label";
 					else {
 						link.className = "clickable";
@@ -543,14 +517,14 @@
 					}
 					link.textContent = i + 1;
 					link.onclick = function() {
-						args.currentPage = parseInt(this.textContent, 10) - 1;
+						searchFilters.currentPage = parseInt(this.textContent, 10) - 1;
 						search(null, true);
 						return false;
 					};
 					links.appendChild(link);
 				}
-				previousLink.style.display = args.currentPage == 0 ? "none" : "";
-				nextLink.style.display = args.currentPage == (pageCount - 1) ? "none" : "";
+				previousLink.style.display = searchFilters.currentPage == 0 ? "none" : "";
+				nextLink.style.display = searchFilters.currentPage == (pageCount - 1) ? "none" : "";
 				document.getElementById("pages-navigation").style.display = "";
 			} else {
 				document.getElementById("pages-navigation").style.display = "none";
@@ -606,41 +580,41 @@
 
 		var hash = location.hash.substring(1);
 		if (hash) {
-			bgPage.args = args = JSON.parse(decodeURIComponent(hash));
-			if (args.readPeriod) {
-				args.readPeriod.from = args.readPeriod.from ? new Date(args.readPeriod.from) : null;
-				args.readPeriod.to = args.readPeriod.to ? new Date(args.readPeriod.to) : null;
+			bgPage.popupState.searchFilters = searchFilters = JSON.parse(decodeURIComponent(hash));
+			if (searchFilters.readPeriod) {
+				searchFilters.readPeriod.from = searchFilters.readPeriod.from ? new Date(searchFilters.readPeriod.from) : null;
+				searchFilters.readPeriod.to = searchFilters.readPeriod.to ? new Date(searchFilters.readPeriod.to) : null;
 			}
-			if (args.savedPeriod) {
-				args.savedPeriod.from = args.readPeriod.from ? new Date(args.savedPeriod.from) : null;
-				args.savedPeriod.to = args.readPeriod.to ? new Date(args.savedPeriod.to) : null;
+			if (searchFilters.savedPeriod) {
+				searchFilters.savedPeriod.from = searchFilters.readPeriod.from ? new Date(searchFilters.savedPeriod.from) : null;
+				searchFilters.savedPeriod.to = searchFilters.readPeriod.to ? new Date(searchFilters.savedPeriod.to) : null;
 			}
 			location.hash = "";
 		}
 
 		group = [ sortByTitleLink, sortByDateLink, sortByRatingLink, sortBySizeLink, sortByReadDateLink, sortByUrlLink ];
-		new ComboBox(tagsInput, args.tags && args.tags.values ? args.tags.values.join(",") : "");
+		new ComboBox(tagsInput, searchFilters.tags && searchFilters.tags.values ? searchFilters.tags.values.join(",") : "");
 		tagsInput.oninput = tagsInputOninput;
-		if (document.documentElement.className == "newtab" && args.limit != "all")
-			args.limit = Math.max(args.limit, 20);
-		if (args.savedPeriod && args.savedPeriod.period)
-			new PeriodInput(savedPeriodInput, args.savedPeriod.period, args.savedPeriod.from, args.savedPeriod.to, "from: ", "to: ", "all", "", "today",
-					"this week", "this month", "user defined");
+		if (document.documentElement.className == "newtab" && searchFilters.limit != "all")
+			searchFilters.limit = Math.max(searchFilters.limit, 20);
+		if (searchFilters.savedPeriod && searchFilters.savedPeriod.period)
+			new PeriodInput(savedPeriodInput, searchFilters.savedPeriod.period, searchFilters.savedPeriod.from, searchFilters.savedPeriod.to, "from: ", "to: ",
+					"all", "", "today", "this week", "this month", "user defined");
 		else
 			new PeriodInput(savedPeriodInput, "all", null, null, "from: ", "to: ", "all", "", "today", "this week", "this month", "user defined");
-		if (args.readPeriod && args.readPeriod.period)
-			new PeriodInput(readPeriodInput, args.readPeriod.period, args.readPeriod.from, args.readPeriod.to, "from: ", "to: ", "all", "unread", "today",
-					"this week", "this month", "user defined");
+		if (searchFilters.readPeriod && searchFilters.readPeriod.period)
+			new PeriodInput(readPeriodInput, searchFilters.readPeriod.period, searchFilters.readPeriod.from, searchFilters.readPeriod.to, "from: ", "to: ",
+					"all", "unread", "today", "this week", "this month", "user defined");
 		else
 			new PeriodInput(readPeriodInput, "all", null, null, "from: ", "to: ", "all", "unread", "today", "this week", "this month", "user defined");
-		new SortByLink(sortByTitleLink, args.sortBy && (args.sortBy.field == "title") ? (args.sortBy.value == "asc" ? "desc"
-				: args.sortBy.value == "desc" ? "asc" : "") : "", group);
-		new SortByLink(sortByDateLink, args.sortBy && (args.sortBy.field == "date") ? args.sortBy.value : "", group);
-		new SortByLink(sortByRatingLink, args.sortBy && (args.sortBy.field == "rating") ? args.sortBy.value : "", group);
-		new SortByLink(sortByUrlLink, args.sortBy && (args.sortBy.field == "url") ? (args.sortBy.value == "asc" ? "desc" : args.sortBy.value == "desc" ? "asc"
-				: "") : "", group);
-		new SortByLink(sortBySizeLink, args.sortBy && (args.sortBy.field == "size") ? args.sortBy.value : "", group);
-		new SortByLink(sortByReadDateLink, args.sortBy && (args.sortBy.field == "readDate") ? args.sortBy.value : "", group);
+		new SortByLink(sortByTitleLink, searchFilters.sortBy && (searchFilters.sortBy.field == "title") ? (searchFilters.sortBy.value == "asc" ? "desc"
+				: searchFilters.sortBy.value == "desc" ? "asc" : "") : "", group);
+		new SortByLink(sortByDateLink, searchFilters.sortBy && (searchFilters.sortBy.field == "date") ? searchFilters.sortBy.value : "", group);
+		new SortByLink(sortByRatingLink, searchFilters.sortBy && (searchFilters.sortBy.field == "rating") ? searchFilters.sortBy.value : "", group);
+		new SortByLink(sortByUrlLink, searchFilters.sortBy && (searchFilters.sortBy.field == "url") ? (searchFilters.sortBy.value == "asc" ? "desc"
+				: searchFilters.sortBy.value == "desc" ? "asc" : "") : "", group);
+		new SortByLink(sortBySizeLink, searchFilters.sortBy && (searchFilters.sortBy.field == "size") ? searchFilters.sortBy.value : "", group);
+		new SortByLink(sortByReadDateLink, searchFilters.sortBy && (searchFilters.sortBy.field == "readDate") ? searchFilters.sortBy.value : "", group);
 		sortByTitleLink.onenter = showPages;
 		sortByDateLink.onenter = showPages;
 		sortByRatingLink.onenter = showPages;
@@ -649,16 +623,17 @@
 		sortByReadDateLink.onenter = showPages;
 		savedPeriodInput.onenter = showPages;
 		readPeriodInput.onenter = showPages;
-		expandSearchButton.onenter = expandSearchButtonOnenter;		
-		new CollapserButton(expandSearchButton, document.getElementById("pages-options-container"), args.advancedSearch, "hide search filters",
+		expandSearchButton.onenter = expandSearchButtonOnenter;
+		new CollapserButton(expandSearchButton, document.getElementById("pages-options-container"), searchFilters.advancedSearch, "hide search filters",
 				"show search filters");
-		new CollapserButton(expandTagsButton, document.getElementById("pages-tags-container"), args.tags, "hide tags filter", "show tags filter");
-		new CollapserButton(expandSavedDateButton, document.getElementById("pages-saveddate-container"), args.savedPeriod, "hide saved date filter",
+		new CollapserButton(expandTagsButton, document.getElementById("pages-tags-container"), searchFilters.tags, "hide tags filter", "show tags filter");
+		new CollapserButton(expandSavedDateButton, document.getElementById("pages-saveddate-container"), searchFilters.savedPeriod, "hide saved date filter",
 				"show saved date filter");
-		new CollapserButton(expandReadDateButton, document.getElementById("pages-readdate-container"), args.readPeriod, "hide last read date filter",
+		new CollapserButton(expandReadDateButton, document.getElementById("pages-readdate-container"), searchFilters.readPeriod, "hide last read date filter",
 				"show last read date filter");
-		new CollapserButton(expandUrlButton, document.getElementById("pages-url-container"), args.url, "hide original URL filter", "show original URL filter");
-		new CollapserButton(expandMiscButton, document.getElementById("pages-misc-container"), args.misc, "hide misc filter", "show misc filter");
+		new CollapserButton(expandUrlButton, document.getElementById("pages-url-container"), searchFilters.url, "hide original URL filter",
+				"show original URL filter");
+		new CollapserButton(expandMiscButton, document.getElementById("pages-misc-container"), searchFilters.misc, "hide misc filter", "show misc filter");
 		expandButton.onchange = expandInputOnchange;
 		expandTagsButton.setArgs = expandTagsButtonSetArgs;
 		expandSavedDateButton.setArgs = expandSavedDateButtonSetArgs;
@@ -696,22 +671,22 @@
 		new ComboBox(tagInput, "");
 		tagInput.oninput = tagInputOninput;
 		tagInput.onkeydown = tagInputOnkeydown;
-		if (args.text)
-			searchInput.value = args.text.join(" ");
-		if (args.url)
-			urlInput.value = args.url.value;
+		if (searchFilters.text)
+			searchInput.value = searchFilters.text.join(" ");
+		if (searchFilters.url)
+			urlInput.value = searchFilters.url.value;
 		fromRatingInput.value = "0";
 		toRatingInput.value = "500";
-		if (args.misc) {
-			fromSizeInput.value = args.misc.size.from ? Math.floor(args.misc.size.from / (1024 * 1024) * 10) / 10 : "";
-			toSizeInput.value = args.misc.size.to ? Math.ceil(args.misc.size.to / (1024 * 1024) * 10) / 10 : "";
-			fromRatingInput.value = "" + args.misc.rating.from;
-			toRatingInput.value = "" + args.misc.rating.to;
-			otherInput.value = args.misc.other;
+		if (searchFilters.misc) {
+			fromSizeInput.value = searchFilters.misc.size.from ? Math.floor(searchFilters.misc.size.from / (1024 * 1024) * 10) / 10 : "";
+			toSizeInput.value = searchFilters.misc.size.to ? Math.ceil(searchFilters.misc.size.to / (1024 * 1024) * 10) / 10 : "";
+			fromRatingInput.value = "" + searchFilters.misc.rating.from;
+			toRatingInput.value = "" + searchFilters.misc.rating.to;
+			otherInput.value = searchFilters.misc.other;
 		}
-		limitInput.value = "" + args.limit;
-		expandButton.value = args.moreInfo;
-		if (bgPage.exportingToZipState)
+		limitInput.value = "" + searchFilters.limit;
+		expandButton.value = searchFilters.moreInfo;
+		if (bgPage.process.exportingToZip)
 			exportButton.disabled = true;
 	};
 

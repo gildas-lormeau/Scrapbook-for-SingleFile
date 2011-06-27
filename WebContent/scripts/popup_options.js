@@ -49,14 +49,14 @@
 	}
 
 	function importButtonOnclick() {
-		if (bgPage.importingState)
+		if (bgPage.process.importing)
 			bgPage.cancelImportDB();
 		else
 			bgPage.importDB();
 	}
 
 	function exportButtonOnclick() {
-		if (bgPage.exportingState)
+		if (bgPage.process.exporting)
 			bgPage.cancelExportDB();
 		else
 			bgPage.exportDB();
@@ -94,22 +94,22 @@
 	}
 
 	this.notifyImportProgress = function() {
-		notifyProgress(bgPage.importingState, importButton, exportButton);
+		notifyProgress(bgPage.process.importing, importButton, exportButton);
 	};
 
 	this.notifyExportProgress = function() {
-		notifyProgress(bgPage.exportingState, exportButton, importButton);
+		notifyProgress(bgPage.process.exporting, exportButton, importButton);
 	};
 
 	this.notifyExportToZipProgress = function() {
-		notifyProgress(bgPage.exportingToZipState, exportToZipButton);
+		notifyProgress(bgPage.process.exportingToZip, exportToZipButton);
 	};
 
 	this.notifyImportFromZipProgress = function() {
-		notifyProgress(bgPage.importingFromZipState, importFromZipButton);
-		if (!bgPage.importingFromZipState)
+		notifyProgress(bgPage.process.importingFromZip, importFromZipButton);
+		if (!bgPage.process.importingFromZip)
 			importFromZipButton.disabled = false;
-		importFromZipButton.hidden = !!bgPage.importingFromZipState;
+		importFromZipButton.hidden = !!bgPage.process.importingFromZip;
 	};
 
 	this.initOptionsTab = function() {

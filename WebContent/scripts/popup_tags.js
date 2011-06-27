@@ -20,20 +20,13 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), ulElement, selectAllButton, deleteButton, searchInput, allSelected;
-
-	function selectAllButtonRefresh() {
-		selectAllButton.src = allSelected ? "../resources/unselectAll.png" : "../resources/selectAll.png";
-		selectAllButton.title = allSelected ? "unselect all tabs" : "select all tags";
-	}
+	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, ulElement, selectAllButton, deleteButton, searchInput, allSelected;
 
 	function selectAllButtonOnclick() {
-		allSelected = !allSelected;
 		Array.prototype.forEach.call(document.querySelectorAll(".tags-row-used input[type=checkbox], .tags-row-unused input[type=checkbox]"), function(
 				inputElement) {
-			inputElement.checked = allSelected;
+			inputElement.checked = true;
 		});
-		selectAllButtonRefresh();
 	}
 
 	function deleteButtonOnclick() {
@@ -51,7 +44,8 @@
 	}
 
 	function display(usedTags, unusedTags) {
-		var i, tag, tempElement = document.createElement("ul"), liElement;
+		var i, tag, tempElement = document.createElement("ul"), liElement, usedTagsLength = Object.keys(usedTags).length, unusedTagsLength = Object
+				.keys(unusedTags).length;
 
 		function setRow(tag, tagData, rowClass) {
 			var liElement, cbElement, tagElement, moreElement, moreDivElement, tagPages, i, pageLinkElement;
@@ -83,7 +77,7 @@
 			liElement.id = "tag." + tagData.id;
 			liElement.className = rowClass;
 			moreElement.className = "clickable";
-			new CollapserButton(moreElement, moreDivElement, bgPage.expandedTags[tagData.id], "show only tag", "show all related archives");
+			new CollapserButton(moreElement, moreDivElement, state.expandedTags[tagData.id], "show only tag", "show all related archives");
 			cbElement.type = "checkbox";
 			cbElement.title = "select a tag to delete";
 			new TitleInput(tagElement, tag, "edit tag value \"" + tag + "\"", "delete \"" + tag + "\"");
@@ -103,7 +97,7 @@
 				};
 			}
 			moreElement.onenter = function(value) {
-				bgPage.expandedTags[tagData.id] = value;
+				state.expandedTags[tagData.id] = value;
 			};
 			tagElement.onenter = function(value) {
 				bgPage.updateTagValue(tag, value);
@@ -117,36 +111,38 @@
 			};
 		}
 
-		liElement = document.createElement("li");
-		liElement.textContent = "used tags:";
-		tempElement.appendChild(liElement);
-
-		for (tag in usedTags)
-			setRow(tag, usedTags[tag], "tags-row-used");
-
-		liElement = document.createElement("li");
-		liElement.innerHTML = "<br>";
-		tempElement.appendChild(liElement);
-
-		liElement = document.createElement("li");
-		liElement.textContent = "unused tags:";
-		tempElement.appendChild(liElement);
-
-		for (tag in unusedTags) {
-			bgPage.expandedTags[tag.id] = false;
-			setRow(tag, unusedTags[tag], "tags-row-unused");
+		if (usedTagsLength) {
+			if (unusedTagsLength) {
+				liElement = document.createElement("li");
+				liElement.textContent = "used tags:";
+				tempElement.appendChild(liElement);
+			}
+			for (tag in usedTags)
+				setRow(tag, usedTags[tag], "tags-row-used");
 		}
-
+		if (unusedTagsLength) {
+			if (usedTagsLength) {
+				liElement = document.createElement("li");
+				liElement.innerHTML = "<br>";
+				tempElement.appendChild(liElement);
+			}
+			liElement = document.createElement("li");
+			liElement.textContent = "unused tags:";
+			tempElement.appendChild(liElement);
+			for (tag in unusedTags) {
+				state.expandedTags[tag.id] = false;
+				setRow(tag, unusedTags[tag], "tags-row-unused");
+			}
+		}
 		tempElement.id = ulElement.id;
 		tempElement.className = ulElement.className;
 		ulElement.parentElement.replaceChild(tempElement, ulElement);
 		ulElement = tempElement;
 		allSelected = false;
-		selectAllButtonRefresh();
 	}
 
 	function search(callback) {
-		bgPage.searchedTags = searchInput.value ? searchInput.value.split(/\s+/) : null;
+		state.searchedTags = searchInput.value ? searchInput.value.split(/\s+/) : null;
 		bgPage.getTags(function(usedTags, unusedTags) {
 			display(usedTags, unusedTags);
 			if (callback)
@@ -172,7 +168,7 @@
 		deleteButton.onclick = deleteButtonOnclick;
 		searchInput.onchange = showTags;
 		document.getElementById("tags-form").onsubmit = showTags;
-		searchInput.value = bgPage.searchedTags ? bgPage.searchedTags.join(" ") : "";
+		searchInput.value = state.searchedTags ? bgPage.popupState.searchedTags.join(" ") : "";
 	};
 
 	this.showTagsTab = function(callback) {

@@ -18,9 +18,9 @@
  *   along with Scrapbook for SingleFile.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var dev = false;
+var dev = true;
 
-var DEFAULT_ARGS = {
+var DEFAULT_SEARCH_FILTERS = {
 	sortBy : {
 		field : "date",
 		value : "desc"
@@ -28,15 +28,33 @@ var DEFAULT_ARGS = {
 	limit : 20
 };
 
-var notificationArchiving, timeoutNoResponse, firstUse = localStorage.defaultArgs == null, defaultArgs = localStorage.defaultArgs ? JSON
-		.parse(localStorage.defaultArgs) : DEFAULT_ARGS, args = JSON.parse(JSON.stringify(defaultArgs)), searchedTabs, searchedTags, expandedPages = [], newPages = [], expandedTags = [], singleFileID;
+var SINGLE_FILE_ID = dev ? "onlinihoegnbbcmeeocfeplgbkmoidla" /* "oabofdibacblkhpogjinmdbcekfkikjc" */: "jemlklgaibiijojffihnhieihhagocma";
+
+var notificationArchiving, timeoutNoResponse;
+
+var popupState = {
+	firstUse : localStorage.defautSearchFilters == null,
+	searchFilters : JSON.parse(JSON.stringify(localStorage.defautSearchFilters ? JSON.parse(localStorage.defautSearchFilters) : DEFAULT_SEARCH_FILTERS)),
+	searchedTabs : "",
+	searchedTags : "",
+	expandedPages : {},
+	expandedTags : {},
+	newPages : {}
+};
+
+var process = {
+	importing : null,
+	exporting : null,
+	exportingToZip : null,
+	importingFromZip : null
+};
 
 var tabs = {
 	length : 0
-}, importingState, exportingState, exportingToZipState, importingFromZipState;
+};
 
-function deletePages(ids, callback) {
-	storage.deletePages(ids, callback);
+function deletePages(checkedPages, callback) {
+	storage.deletePages(checkedPages, callback);
 }
 
 function setRating(id, rating) {
@@ -44,7 +62,7 @@ function setRating(id, rating) {
 }
 
 function search(callback) {
-	storage.search(args, callback);
+	storage.search(popupState.searchFilters, callback);
 }
 
 function resetDatabase() {
@@ -70,8 +88,8 @@ function openURL(url, selected) {
 	});
 }
 
-function openPages(ids) {
-	ids.forEach(function(id, index) {
+function openPages(checkedPages) {
+	checkedPages.forEach(function(id, index) {
 		if (index)
 			open(id, false);
 		else
@@ -132,7 +150,7 @@ function removeTag(pageId, id, callback) {
 }
 
 function getTags(callback) {
-	storage.getTags(searchedTags, callback);
+	storage.getTags(popupState.searchedTags, callback);
 }
 
 function updateTagValue(oldValue, newValue) {
@@ -155,8 +173,8 @@ function getTagCompletion(searchTag, pageId, callback) {
 	storage.getTagCompletion(searchTag, pageId, callback);
 }
 
-function addTags(tagValues, pageIds, callback) {
-	storage.addTags(tagValues, pageIds, callback);
+function addTags(tagValues, checkedPages, callback) {
+	storage.addTags(tagValues, checkedPages, callback);
 }
 
 function getSelectedTab(callback) {
@@ -178,33 +196,21 @@ function detectExtension(extensionId, callback) {
 }
 
 function detectSingleFile(callback) {
-	var SINGLE_FILE_BETA_ID = dev ? "gdeieoedpffolbofhgfoecpocddeajda" : "ocjhfplakacigfckfgfejpbjpbcjodmk";
-	if (singleFileID)
-		callback(singleFileID);
-	else
-		detectExtension(SINGLE_FILE_BETA_ID, function(detected) {
-			var SINGLE_FILE_ID = dev ? "onlinihoegnbbcmeeocfeplgbkmoidla" /* "oabofdibacblkhpogjinmdbcekfkikjc" */: "jemlklgaibiijojffihnhieihhagocma";
-			if (detected) {
-				singleFileID = SINGLE_FILE_BETA_ID;
-				callback(singleFileID);
-			} else
-				detectExtension(SINGLE_FILE_ID, function(detected) {
-					if (detected) {
-						singleFileID = SINGLE_FILE_ID;
-						callback(singleFileID);
-					} else
-						callback();
-				});
-		});
+	detectExtension(SINGLE_FILE_ID, function(detected) {
+		if (detected) {
+			callback(true);
+		} else
+			callback();
+	});
 }
 
 function getTabsInfo(callback) {
 	chrome.tabs.getAllInWindow(null, function(tabs) {
-		if (searchedTabs)
+		if (popupState.searchedTabs)
 			tabs = tabs.filter(function(tab) {
 				var i, test = true;
-				for (i = 0; i < searchedTabs.length && test; i++)
-					test = test && tab.title.toLowerCase().indexOf(searchedTabs[i].toLowerCase()) != -1;
+				for (i = 0; i < popupState.searchedTabs.length && test; i++)
+					test = test && tab.title.toLowerCase().indexOf(popupState.searchedTabs[i].toLowerCase()) != -1;
 				return test;
 			});
 		callback(tabs);
@@ -250,7 +256,7 @@ function saveTabs(tabIds) {
 	tabIds.forEach(function(tabId) {
 		notifyTabProgress(tabId, 0, 0, 100);
 	});
-	chrome.extension.sendRequest(singleFileID, {
+	chrome.extension.sendRequest(SINGLE_FILE_ID, {
 		tabIds : tabIds
 	}, function() {
 	});
@@ -263,11 +269,11 @@ function selectTab(tabId) {
 }
 
 function setDefaultFilters() {
-	localStorage.defaultArgs = JSON.stringify(args);
+	localStorage.defautSearchFilters = JSON.stringify(popupState.searchFilters);
 }
 
 function resetDefaultFilters() {
-	args = DEFAULT_ARGS;
+	popupState.searchFilters = DEFAULT_SEARCH_FILTERS;
 	setDefaultFilters();
 }
 
@@ -320,12 +326,12 @@ function notifyViews(notifyHandler) {
 }
 
 function importDB() {
-	importingState = {
+	process.importing = {
 		index : 0,
 		max : 0
 	};
 	storage.importDB(function(index, max) {
-		importingState = {
+		process.importing = {
 			index : index,
 			max : max
 		};
@@ -333,7 +339,7 @@ function importDB() {
 			extensionPage.notifyImportProgress();
 		});
 	}, function() {
-		importingState = null;
+		process.importing = null;
 		notifyViews(function(extensionPage) {
 			if (extensionPage.notifyImportProgress)
 				extensionPage.notifyImportProgress();
@@ -342,12 +348,12 @@ function importDB() {
 }
 
 function exportDB() {
-	exportingState = {
+	process.exporting = {
 		index : 0,
 		max : 0
 	};
 	storage.exportDB(function(index, max) {
-		exportingState = {
+		process.exporting = {
 			index : index,
 			max : max
 		};
@@ -355,17 +361,17 @@ function exportDB() {
 			extensionPage.notifyExportProgress();
 		});
 	}, function() {
-		exportingState = null;
+		process.exporting = null;
 		notifyViews(function(extensionPage) {
 			extensionPage.notifyExportProgress();
 		});
 	});
 }
 
-function exportToZip(ids) {
+function exportToZip(checkedPages) {
 	var notificationExporting;
 
-	exportingToZipState = {
+	process.exportingToZip = {
 		index : 0,
 		max : 0
 	};
@@ -374,8 +380,8 @@ function exportToZip(ids) {
 	setTimeout(function() {
 		notificationExporting.cancel();
 	}, 3000);
-	storage.exportToZip(ids, function(index, max) {
-		exportingToZipState = {
+	storage.exportToZip(checkedPages, function(index, max) {
+		process.exportingToZip = {
 			index : index,
 			max : max
 		};
@@ -384,7 +390,7 @@ function exportToZip(ids) {
 		});
 	}, function(file) {
 		var notificationExportOK;
-		exportingToZipState = null;
+		process.exportingToZip = null;
 		notifyViews(function(extensionPage) {
 			extensionPage.notifyExportToZipProgress();
 		});
@@ -405,7 +411,7 @@ function exportToZip(ids) {
 function importFromZip(file) {
 	var notificationImporting;
 
-	importingFromZipState = {
+	process.importingFromZip = {
 		index : 0,
 		max : 0
 	};
@@ -415,7 +421,7 @@ function importFromZip(file) {
 		notificationImporting.cancel();
 	}, 3000);
 	storage.importFromZip(file, function(index, max) {
-		importingFromZipState = {
+		process.importingFromZip = {
 			index : index,
 			max : max
 		};
@@ -424,7 +430,7 @@ function importFromZip(file) {
 		});
 	}, function() {
 		var notificationImportOK;
-		importingFromZipState = null;
+		process.importingFromZip = null;
 		notifyViews(function(extensionPage) {
 			extensionPage.notifyImportFromZipProgress();
 		});
@@ -438,11 +444,11 @@ function importFromZip(file) {
 }
 
 function cancelImportDB() {
-	importingState = null;
+	process.importing = null;
 }
 
 function cancelExportDB() {
-	exportingState = null;
+	process.exporting = null;
 }
 
 function notifyTabProgress(tabId, state, index, max) {
@@ -465,7 +471,7 @@ function notifyTabProgress(tabId, state, index, max) {
 }
 
 setDefaultFilters();
-args.currentPage = 0;
+popupState.searchFilters.currentPage = 0;
 
 chrome.extension.onRequestExternal.addListener(function(request, sender, sendResponse) {
 	setTimeoutNoResponse();
@@ -479,7 +485,7 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 			onProcessEnd();
 		storage.addContent(request.content, request.title, request.url, request.favicoData, function(id) {
 			if (getExpandArchives() == "yes")
-				newPages[id] = true;
+				popupState.newPages[id] = true;
 		}, function() {
 			webkitNotifications.createHTMLNotification('notificationFileError.html').show();
 		});

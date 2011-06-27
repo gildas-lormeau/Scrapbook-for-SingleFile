@@ -244,7 +244,7 @@ var storage = {};
 				exportContent(rows, index + 1);
 			}
 
-			if (index == rows.length || !exportingState) {
+			if (index == rows.length) {
 				if (index)
 					updateIndexFile();
 				onfinish();
@@ -322,16 +322,16 @@ var storage = {};
 	storage.getPage = function(url, callback) {
 		db.transaction(function(tx) {
 			tx.executeSql("select id from pages where url = ? or url = ? order by id desc", [ url, url + '/' ], function(cbTx, result) {
-				var search, args = [], urls = [], match, i, query, params = [];
+				var search, searchFilters = [], urls = [], match, i, query, params = [];
 				if (result.rows.length) {
 					if (callback)
 						callback(result.rows.item(0).id);
 				} else {
 					search = url.split("?")[1];
 					if (search) {
-						args = search.split("&");
-						for (i = 0; i < args.length; i++) {
-							match = decodeURIComponent(args[i]).match(/https?:\/\/.*/);
+						searchFilters = search.split("&");
+						for (i = 0; i < searchFilters.length; i++) {
+							match = decodeURIComponent(searchFilters[i]).match(/https?:\/\/.*/);
 							if (match)
 								urls.push(match[0]);
 						}
@@ -500,7 +500,7 @@ var storage = {};
 					used[row.tag].id = row.id;
 				}
 				tx.executeSql(requestUnused, [], function(cbTx, result) {
-					var i, unused = [], row;
+					var i, unused = {}, row;
 					for (i = 0; i < result.rows.length; i++) {
 						row = result.rows.item(i);
 						unused[row.tag] = unused[row.tag] || {};
@@ -602,15 +602,15 @@ var storage = {};
 		return dates;
 	}
 
-	function buildSearchPagesQuery(args, params, tags, tagIndex) {
+	function buildSearchPagesQuery(searchFilters, params, tags, tagIndex) {
 		var i, dates, query = "select pages.id as id from pages";
 		if (tags)
 			query += ", pages_tags, tags";
-		if (args.text)
+		if (searchFilters.text)
 			query += ", pages_texts";
 		query += " where 1 = 1";
-		if (args.savedPeriod) {
-			dates = getDates(args.savedPeriod.period, args.savedPeriod.from, args.savedPeriod.to);
+		if (searchFilters.savedPeriod) {
+			dates = getDates(searchFilters.savedPeriod.period, searchFilters.savedPeriod.from, searchFilters.savedPeriod.to);
 			if (dates.from || dates.to) {
 				query += " and ((";
 				if (dates.from) {
@@ -626,8 +626,8 @@ var storage = {};
 				query += ") or timestamp is null)";
 			}
 		}
-		if (args.readPeriod) {
-			dates = getDates(args.readPeriod.period, args.readPeriod.from, args.readPeriod.to);
+		if (searchFilters.readPeriod) {
+			dates = getDates(searchFilters.readPeriod.period, searchFilters.readPeriod.from, searchFilters.readPeriod.to);
 			query += " and (";
 			if (dates.from || dates.to)
 				query += "(";
@@ -650,31 +650,31 @@ var storage = {};
 			}
 			query += ")";
 		}
-		if (args.misc) {
-			query += " and ((idx >= ? and idx <= ?)" + (args.misc.rating.from == 0 ? " or idx is null" : "") + ")";
-			params.push(args.misc.rating.from);
-			params.push(args.misc.rating.to);
-			if (args.misc.size.from != null || args.misc.size.to != null) {
+		if (searchFilters.misc) {
+			query += " and ((idx >= ? and idx <= ?)" + (searchFilters.misc.rating.from == 0 ? " or idx is null" : "") + ")";
+			params.push(searchFilters.misc.rating.from);
+			params.push(searchFilters.misc.rating.to);
+			if (searchFilters.misc.size.from != null || searchFilters.misc.size.to != null) {
 				query += " and (";
-				if (args.misc.size.from != null) {
+				if (searchFilters.misc.size.from != null) {
 					query += "size >= ?";
-					params.push(args.misc.size.from);
+					params.push(searchFilters.misc.size.from);
 				}
-				if (args.misc.size.to != null) {
-					if (args.misc.size.from != null)
+				if (searchFilters.misc.size.to != null) {
+					if (searchFilters.misc.size.from != null)
 						query += " and";
 					query += " size <= ?";
-					params.push(args.misc.size.to);
+					params.push(searchFilters.misc.size.to);
 				}
 				query += ")";
 			}
-			if (args.misc.other) {
+			if (searchFilters.misc.other) {
 				query += " and";
-				if (args.misc.other == "dupURL")
+				if (searchFilters.misc.other == "dupURL")
 					query += " url in (select url from pages group by url having (count(url) > 1))";
-				if (args.misc.other == "dupTitle")
+				if (searchFilters.misc.other == "dupTitle")
 					query += " title in (select title from pages group by title having (count(title) > 1))";
-				if (args.misc.other == "emptyTitle")
+				if (searchFilters.misc.other == "emptyTitle")
 					query += " title = ''";
 			}
 		}
@@ -684,42 +684,42 @@ var storage = {};
 			params.push(tagValue);
 			query += " and tags.id = tag_id and page_id = pages.id";
 		}
-		if (args.text) {
+		if (searchFilters.text) {
 			query += " and pages_texts.id = pages.id";
-			for (i = 0; i < args.text.length; i++) {
-				query += " and (pages_texts.text like '%" + args.text[i].replace(/'/g, "\\'") + "%'";
-				query += " or title like '%" + args.text[i].replace(/'/g, "\\'") + "%')";
+			for (i = 0; i < searchFilters.text.length; i++) {
+				query += " and (pages_texts.text like '%" + searchFilters.text[i].replace(/'/g, "\\'") + "%'";
+				query += " or title like '%" + searchFilters.text[i].replace(/'/g, "\\'") + "%')";
 			}
 		}
-		if (args.url && args.url.value)
-			query += " and url like '%" + args.url.value.replace(/'/g, "\\'") + "%'";
+		if (searchFilters.url && searchFilters.url.value)
+			query += " and url like '%" + searchFilters.url.value.replace(/'/g, "\\'") + "%'";
 		return query;
 	}
 
-	function buildFullSearchPagesQuery(args, params, count) {
+	function buildFullSearchPagesQuery(searchFilters, params, count) {
 		var query, tagIndex, queries = [], excludeTags, includeTags;
-		if (args.tags && args.tags.values) {
-			excludeTags = args.tags.values.filter(function(tagValue) {
+		if (searchFilters.tags && searchFilters.tags.values) {
+			excludeTags = searchFilters.tags.values.filter(function(tagValue) {
 				return (tagValue.indexOf("-") == 0);
 			}).map(function(tagValue) {
 				return tagValue.substring(1);
 			});
-			includeTags = args.tags.values.filter(function(tagValue) {
+			includeTags = searchFilters.tags.values.filter(function(tagValue) {
 				return (tagValue.indexOf("-") != 0);
 			});
 			for (tagIndex = 0; tagIndex < includeTags.length; tagIndex++)
-				queries.push(buildSearchPagesQuery(args, params, includeTags, tagIndex));
+				queries.push(buildSearchPagesQuery(searchFilters, params, includeTags, tagIndex));
 			query = queries.join(" intersect ");
 			if (excludeTags.length) {
 				queries = [];
 				for (tagIndex = 0; tagIndex < excludeTags.length; tagIndex++)
-					queries.push(buildSearchPagesQuery(args, params, excludeTags, tagIndex));
+					queries.push(buildSearchPagesQuery(searchFilters, params, excludeTags, tagIndex));
 				if (!query)
 					query = "select pages.id as id from pages";
 				query += " except " + queries.join(" except ");
 			}
 		} else
-			query = buildSearchPagesQuery(args, params);
+			query = buildSearchPagesQuery(searchFilters, params);
 		if (count)
 			query = "select count(id) as count from (" + query + ")";
 		else
@@ -727,36 +727,36 @@ var storage = {};
 		return query;
 	}
 
-	storage.search = function(args, callback) {
+	storage.search = function(searchFilters, callback) {
 		db.transaction(function(tx) {
-			var params = [], query = buildFullSearchPagesQuery(args, params);
+			var params = [], query = buildFullSearchPagesQuery(searchFilters, params);
 			query += " order by";
-			if (args.sortBy) {
-				switch (args.sortBy.field) {
+			if (searchFilters.sortBy) {
+				switch (searchFilters.sortBy.field) {
 				case "title":
-					query += " lower(title) " + args.sortBy.value;
+					query += " lower(title) " + searchFilters.sortBy.value;
 					break;
 				case "date":
-					query += " timestamp " + args.sortBy.value;
+					query += " timestamp " + searchFilters.sortBy.value;
 					break;
 				case "readDate":
-					query += " read_timestamp " + args.sortBy.value;
+					query += " read_timestamp " + searchFilters.sortBy.value;
 					break;
 				case "rating":
-					query += " idx " + args.sortBy.value;
+					query += " idx " + searchFilters.sortBy.value;
 					break;
 				case "size":
-					query += " size " + args.sortBy.value;
+					query += " size " + searchFilters.sortBy.value;
 					break;
 				case "url":
-					query += " lower(replace(replace(url, 'www.', ''), 'https://', 'http://')) " + args.sortBy.value;
+					query += " lower(replace(replace(url, 'www.', ''), 'https://', 'http://')) " + searchFilters.sortBy.value;
 					break;
 				}
 			} else
 				query += " pages.id desc";
-			var currentPage = args.currentPage || 0;
-			if (args.limit != "all")
-				query += " limit " + (args.limit * currentPage) + ", " + args.limit;
+			var currentPage = searchFilters.currentPage || 0;
+			if (searchFilters.limit != "all")
+				query += " limit " + (searchFilters.limit * currentPage) + ", " + searchFilters.limit;
 			// console.log(query, params);
 			tx.executeSql(query, params, function(cbTx, result) {
 				var i, rows = [], item, count;
@@ -776,7 +776,7 @@ var storage = {};
 					});
 				}
 				params = [];
-				tx.executeSql(buildFullSearchPagesQuery(args, params, true), params, function(cbTx, result) {
+				tx.executeSql(buildFullSearchPagesQuery(searchFilters, params, true), params, function(cbTx, result) {
 					count = result.rows.item(0).count;
 					tx.executeSql("select page_id, tag from tags, pages_tags where id = tag_id", [], function(cbTx, result) {
 						var i, item, ret = [], tags = [];
@@ -788,7 +788,7 @@ var storage = {};
 						for (i = 0; i < rows.length; i++)
 							tags.push(ret[rows[i].id]);
 						if (callback)
-							callback(rows, tags, args.limit != "all" ? Math.ceil(count / args.limit): 1);
+							callback(rows, tags, searchFilters.limit != "all" ? Math.ceil(count / searchFilters.limit): 1);
 					});
 				});
 			});

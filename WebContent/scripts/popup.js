@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), displayed = false, pagesLink, tabsLink, tagsLink, optionsLink, tabPages, tabTabs, tabTags, tabOptions, newTabLink;
+	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, displayed = false, pagesLink, tabsLink, tagsLink, optionsLink, tabPages, tabTabs, tabTags, tabOptions, newTabLink;
 
 	this.showTab = function(tab, callback) {
 		var loader = document.getElementById("loader");
@@ -103,9 +103,9 @@
 			initOptionsTab();
 			showTab(bgPage.tab || "pages", function() {
 				var loader = document.getElementById("loader");
-				if (bgPage.firstUse) {
+				if (state.firstUse) {
 					showTab("firstUse");
-					bgPage.firstUse = false;
+					state.firstUse = false;
 					return;
 				}
 				if (!displayed) {
