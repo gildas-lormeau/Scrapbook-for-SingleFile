@@ -777,6 +777,10 @@ ul {
 	color: transparent;
 }
 
+#tab-tags .title-input:not([href]){
+    cursor: default;
+}
+
 *::-webkit-file-upload-button {
 	background-color: #F3F3F3;
 	-webkit-border-radius: 3px;
