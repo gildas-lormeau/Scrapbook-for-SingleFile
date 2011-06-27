@@ -11,7 +11,8 @@
 			askConfirmation : localStorage.askConfirm,
 			expandNewArchive : localStorage.expandArchives,
 			openInBgTab : localStorage.openBgTab,
-			filesystemEnabled : localStorage.filesystemEnabled
+			filesystemEnabled : localStorage.filesystemEnabled,
+			searchInTitle : ""
 		};
 		delete localStorage.askConfirm;
 		delete localStorage.expandArchives;

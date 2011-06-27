@@ -602,11 +602,11 @@ var storage = {};
 		return dates;
 	}
 
-	function buildSearchPagesQuery(searchFilters, params, tags, tagIndex) {
+	function buildSearchPagesQuery(searchFilters, searchInTitle, params, tags, tagIndex) {
 		var i, dates, query = "select pages.id as id from pages";
 		if (tags)
 			query += ", pages_tags, tags";
-		if (searchFilters.text)
+		if (searchFilters.text && !searchInTitle)
 			query += ", pages_texts";
 		query += " where 1 = 1";
 		if (searchFilters.savedPeriod) {
@@ -685,10 +685,15 @@ var storage = {};
 			query += " and tags.id = tag_id and page_id = pages.id";
 		}
 		if (searchFilters.text) {
-			query += " and pages_texts.id = pages.id";
+			if (!searchInTitle)
+				query += " and pages_texts.id = pages.id";
 			for (i = 0; i < searchFilters.text.length; i++) {
-				query += " and (pages_texts.text like '%" + searchFilters.text[i].replace(/'/g, "\\'") + "%'";
-				query += " or title like '%" + searchFilters.text[i].replace(/'/g, "\\'") + "%')";
+				query += " and";
+				if (!searchInTitle)
+					query += " (pages_texts.text like '%" + searchFilters.text[i].replace(/'/g, "\\'") + "%' or";
+				query += " title like '%" + searchFilters.text[i].replace(/'/g, "\\'") + "%'";
+				if (!searchInTitle)
+					query += ")";
 			}
 		}
 		if (searchFilters.url && searchFilters.url.value)
@@ -696,7 +701,7 @@ var storage = {};
 		return query;
 	}
 
-	function buildFullSearchPagesQuery(searchFilters, params, count) {
+	function buildFullSearchPagesQuery(searchFilters, searchInTitle, params, count) {
 		var query, tagIndex, queries = [], excludeTags, includeTags;
 		if (searchFilters.tags && searchFilters.tags.values) {
 			excludeTags = searchFilters.tags.values.filter(function(tagValue) {
@@ -719,7 +724,7 @@ var storage = {};
 				query += " except " + queries.join(" except ");
 			}
 		} else
-			query = buildSearchPagesQuery(searchFilters, params);
+			query = buildSearchPagesQuery(searchFilters, searchInTitle, params);
 		if (count)
 			query = "select count(id) as count from (" + query + ")";
 		else
@@ -727,9 +732,9 @@ var storage = {};
 		return query;
 	}
 
-	storage.search = function(searchFilters, callback) {
+	storage.search = function(searchFilters, searchInTitle, callback) {
 		db.transaction(function(tx) {
-			var params = [], query = buildFullSearchPagesQuery(searchFilters, params);
+			var params = [], query = buildFullSearchPagesQuery(searchFilters, searchInTitle, params);
 			query += " order by";
 			if (searchFilters.sortBy) {
 				switch (searchFilters.sortBy.field) {
@@ -777,7 +782,7 @@ var storage = {};
 				}
 				params = [];
 				tx.executeSql(buildFullSearchPagesQuery(searchFilters, params, true), params, function(cbTx, result) {
-					count = result.rows.item(0).count;
+					count = result.rows.length ? result.rows.item(0).count : 0;
 					tx.executeSql("select page_id, tag from tags, pages_tags where id = tag_id", [], function(cbTx, result) {
 						var i, item, ret = [], tags = [];
 						for (i = 0; i < result.rows.length; i++) {

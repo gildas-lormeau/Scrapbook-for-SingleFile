@@ -52,6 +52,11 @@
 		bgPage.options.save();
 	}
 
+	function searchTitleButtonOnclick() {
+		bgPage.options.searchInTitle = searchTitleButton.value;
+		bgPage.options.save();
+	}
+
 	function importButtonOnclick() {
 		if (bgPage.process.importing)
 			bgPage.cancelImportDB();
@@ -121,7 +126,7 @@
 	this.initOptionsTab = function() {
 		askConfirmButton = document.getElementById("options-ask-confirm-button");
 		expandArchivesButton = document.getElementById("options-expand-archives-button");
-		// searchTitleButton = document.getElementById("options-search-title-button");
+		searchTitleButton = document.getElementById("options-search-title-button");
 		saveOnDiskButton = document.getElementById("options-save-archives-button");
 		importButton = document.getElementById("options-import-button");
 		openBgTabButton = document.getElementById("options-open-bgtab-button");
@@ -139,8 +144,8 @@
 		openBgTabButton.value = bgPage.options.openInBgTab;
 		expandArchivesButton.onchange = expandArchivesButtonOnclick;
 		expandArchivesButton.value = bgPage.options.expandNewArchive;
-		// searchTitleButton.onchange = searchTitleButtonOnclick;
-		// searchTitleButton.value = bgPage.getSearchTitle();
+		searchTitleButton.onchange = searchTitleButtonOnclick;
+		searchTitleButton.value = bgPage.options.searchInTitle;
 		saveOnDiskButton.onchange = saveOnDiskButtonOnclick;
 		saveOnDiskButton.value = bgPage.options.filesystemEnabled;
 		if (typeof requestFS == "undefined") {

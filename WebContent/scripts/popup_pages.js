@@ -500,7 +500,7 @@
 		allSelected = false;
 		location.hash = encodeURIComponent(JSON.stringify(searchFilters));
 
-		bgPage.storage.search(state.searchFilters, function(rows, tags, count) {
+		bgPage.storage.search(state.searchFilters, bgPage.options.searchInTitle, function(rows, tags, count) {
 			var i, link, start;
 			pageCount = count;
 			display(rows, tags);

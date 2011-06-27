@@ -34,12 +34,14 @@ var options = localStorage.options ? JSON.parse(localStorage.options) : {
 	askConfirmation : "yes",
 	expandNewArchive : "yes",
 	openInBgTab : "yes",
-	filesystemEnabled : ""
+	filesystemEnabled : "",
+	searchInTitle : ""
 };
 
 options.save = function() {
 	localStorage.options = JSON.stringify(options);
 };
+options.save();
 
 var notificationArchiving, timeoutNoResponse;
 
