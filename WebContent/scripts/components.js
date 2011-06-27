@@ -245,28 +245,28 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 			.createElement("span");
 
 	function removeElement() {
-		currentKeyword.resetElement();
 		currentKeyword.removeEventListener("keydown", onkeydown);
 		element.removeChild(currentKeyword);
 		currentKeyword = null;
-	}	
+	}
 
 	function decorateKeywordElement() {
 		var deleteElement = document.createElement("img"), keyword = currentKeyword;
-		
+
 		function keywordOnclick() {
 			if (element.onselect)
 				element.onselect(keyword.textContent);
 		}
-		
-		function deleteOnclick(){
+
+		function deleteOnclick() {
 			if (element.ondelete)
 				element.ondelete(keyword.textContent);
 			element.removeChild(keyword);
 			element.removeChild(deleteElement);
-			currentKeyword = null;			
+			currentKeyword = null;
+			plusElement.focus();
 		}
-		
+
 		currentKeyword.className = "keywords-input-keyword";
 		currentKeyword.tabIndex = "0";
 
@@ -279,7 +279,7 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		deleteElement.className = "keywords-input-delete-button clickable";
 		deleteElement.src = "../resources/delete.png";
 		deleteElement.tabIndex = "0";
-		
+
 		if (deleteTagTitle)
 			deleteElement.title = deleteTagTitle;
 		deleteElement.onclick = deleteOnclick;
@@ -295,12 +295,15 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		if (element.onadd)
 			element.onadd(currentKeyword.textContent);
 		currentKeyword = null;
+		plusElement.focus();
 	}
 
 	function onkeydown(event) {
-		if (event.keyIdentifier == "U+001B")
+		if (event.keyIdentifier == "U+001B") {
 			removeElement();
-		if (event.keyIdentifier == "Enter" || event.keyIdentifier == "U+001B") {
+			event.preventDefault();
+		}
+		if (event.keyIdentifier == "Enter") {
 			currentKeyword.removeEventListener("keydown", onkeydown);
 			if (currentKeyword.textContent)
 				validateElement();
@@ -335,7 +338,7 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		currentKeyword.title = "";
 		new ComboBox(currentKeyword);
 		currentKeyword.addEventListener("keydown", onkeydown);
-		currentKeyword.focus();		
+		currentKeyword.focus();
 	}
 
 	this.__proto__.datalistCount = this.__proto__.datalistCount || 0;
@@ -369,9 +372,11 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		}
 	});
 	plusElement.tabIndex = "0";
-	plusElement.addEventListener("keyup", function(event) {
-		if (event.keyIdentifier == "Enter")
+	plusElement.addEventListener("keydown", function(event) {
+		if (event.keyIdentifier == "Enter") {
 			onmousedown();
+			event.preventDefault();
+		}
 	}, false);
 }
 
@@ -544,7 +549,7 @@ function CollapserButton(element, contentElement, expanded, expandTitle, collaps
 				element.onenter(value);
 		}
 	}
-	
+
 	function toggleContent() {
 		value = (value == "expanded") ? "" : "expanded";
 		refresh();
