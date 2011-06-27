@@ -235,7 +235,7 @@ var storage = {};
 		};
 		fileReader.readAsBinaryString(file);
 	};
-	
+
 	storage.exportDB = function(onprogress, onfinish) {
 		function exportContent(rows, index) {
 			var id, content;
@@ -781,8 +781,8 @@ var storage = {};
 					});
 				}
 				params = [];
-				tx.executeSql(buildFullSearchPagesQuery(searchFilters, params, true), params, function(cbTx, result) {
-					count = result.rows.length ? result.rows.item(0).count : 0;
+				tx.executeSql(buildFullSearchPagesQuery(searchFilters, searchInTitle, params, true), params, function(cbTx, result) {
+					count = result.rows.item(0).count;
 					tx.executeSql("select page_id, tag from tags, pages_tags where id = tag_id", [], function(cbTx, result) {
 						var i, item, ret = [], tags = [];
 						for (i = 0; i < result.rows.length; i++) {
@@ -793,7 +793,7 @@ var storage = {};
 						for (i = 0; i < rows.length; i++)
 							tags.push(ret[rows[i].id]);
 						if (callback)
-							callback(rows, tags, searchFilters.limit != "all" ? Math.ceil(count / searchFilters.limit): 1);
+							callback(rows, tags, searchFilters.limit != "all" ? Math.ceil(count / searchFilters.limit) : 1);
 					});
 				});
 			});
