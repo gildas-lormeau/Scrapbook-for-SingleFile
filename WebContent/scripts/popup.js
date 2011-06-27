@@ -24,7 +24,6 @@
 
 	this.showTab = function(tab, callback) {
 		var loader = document.getElementById("loader");
-		lastArgs = null;
 		pagesLink.className = tabPages.className = "";
 		tabsLink.className = tabTabs.className = "";
 		tagsLink.className = tabTags.className = "";
