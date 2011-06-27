@@ -228,16 +228,16 @@
 			Basic configuration:
 		</div>
 		<div>
-			<div id="options-open-bgtab-container">
+			<div class="options-block-container">
 				<span class="label">Open archive in background tab</span>
 				<select id="options-open-bgtab-button">
 					<option value="yes">yes</option>
 					<option value="">no</option>							
 				</select>
 			</div>
-		</div>	
+		</div>
 		<div>
-			<div id="options-ask-confirm-container">
+			<div class="options-block-container">
 				<span class="label">Ask confirmation for multiple deletion</span>
 				<select id="options-ask-confirm-button">
 					<option value="yes">yes</option>
@@ -246,7 +246,7 @@
 			</div>
 		</div>
 		<div>
-			<div id="options-expand-archives-container">
+			<div class="options-block-container">
 				<span class="label">Expand automatically new archives info</span>
 				<select id="options-expand-archives-button">
 					<option value="yes">yes</option>
@@ -254,14 +254,25 @@
 				</select>
 			</div>
 		</div>
+		<!-- 
 		<div>
-			<div id="options-set-container">
+			<div class="options-block-container">
+				<span class="label">Search for content only in archives title</span>
+				<select id="options-search-title-button">
+					<option value="yes">yes</option>
+					<option value="">no</option>
+				</select>
+			</div>
+		</div>
+		 -->
+		<div>
+			<div class="options-block-container">
 				<span class="label">Set current filters as default filters</span>
 				<input id="options-set-button" type="button" value="OK">
 			</div>
 		</div>
 		<div>
-			<div id="options-reset-container">
+			<div class="options-block-container">
 				<span class="label">Reset default filters</span>
 				<input id="options-reset-button" type="button" value="OK">
 			</div>
@@ -270,7 +281,7 @@
 			Sandoxed filesystem configuration:
 		</div>
 		<div>
-			<div id="options-save-archives-container">
+			<div id="options-save-archives-container" class="options-block-container">
 				<span class="label">Save archives on sandboxed filesystem</span>
 				<select id="options-save-archives-button">
 					<option value="yes">yes</option>
@@ -279,13 +290,13 @@
 			</div>
 		</div>
 		<div>
-			<div id="options-import-container">
+			<div id="options-import-container" class="options-block-container">
 				<span class="label">Import archives from filesystem</span>
 				<input id="options-import-button" type="button" value="OK">
 			</div>
 		</div>
 		<div>
-			<div id="options-export-container">
+			<div id="options-export-container" class="options-block-container">
 				<span class="label">Export archives to filesystem</span>
 				<input id="options-export-button" type="button" value="OK">
 			</div>
@@ -294,13 +305,13 @@
 			Database export/import:
 		</div>
 		<div>
-			<div id="options-import-fromzip-container">
+			<div id="options-import-fromzip-container" class="options-block-container">
 			<span class="label">Import archives from a zip file</span>
 				<input type="file" id="options-import-fromzip-button">
 			</div>
 		</div>
 		<div>
-			<div id="options-export-tozip-container">
+			<div id="options-export-tozip-container" class="options-block-container">
 				<span class="label">Export progress</span>
 				<div id="options-export-tozip-button"></div>
 			</div>

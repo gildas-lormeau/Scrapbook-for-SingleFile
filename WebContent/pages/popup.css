@@ -646,8 +646,7 @@ ul a:visited,#pages-links a {
 	visibility: hidden;
 }
 
-#options-disable-sf-container,#options-ask-confirm-container,#options-expand-archives-container,#options-set-container,#options-reset-container,#options-save-archives-container,#options-import-container,#options-export-container,#options-export-tozip-container,#options-open-bgtab-container,#options-export-tozip-container,#options-import-fromzip-container
-	{
+.options-block-container {
 	display: block;
 	position: relative;
 	padding-left: 2px;
@@ -659,7 +658,7 @@ ul a:visited,#pages-links a {
 	margin-right: 15px;
 }
 
-#options-disable-sf-button,#options-ask-confirm-button,#options-expand-archives-button,#options-save-archives-button,#options-open-bgtab-button
+#options-disable-sf-button,#options-ask-confirm-button,#options-expand-archives-button,#options-save-archives-button,#options-open-bgtab-button,#options-search-title-button
 	{
 	position: absolute;
 	right: 2px;
