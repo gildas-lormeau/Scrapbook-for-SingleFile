@@ -3,9 +3,6 @@ html body {
 	margin-right: auto;
 	width: 600px;
 	background-color: #EEE;
-	border-radius: 8px;
-	border-style: solid;
-	border-width: 1px;
 }
 
 html {
@@ -16,16 +13,20 @@ html body>div {
 	background-color: white;
 	-webkit-box-shadow: #888 2px 2px 2px;
 	border-radius: 6px;
-	padding: 10px;
 	overflow: hidden;
-	position: relative;
+	padding: 10px;
+}
+
+#error,#firstuse {
+	padding-left: 20px;
+	padding-right: 20px;
 }
 
 html input[type="search"] {
 	width: 470px;
 }
 
-html #tab-pages.selected, html #tab-tabs.selected, html #tab-tags.selected, html #tab-options.selected
+html #tab-pages.selected,html #tab-tabs.selected,html #tab-tags.selected,html #tab-options.selected
 	{
 	max-height: 100%;
 }
@@ -63,7 +64,7 @@ html #tags-list li[id]:hover .title-input {
 }
 
 html #options-newtab {
-	display: none;	
+	display: none;
 }
 
 html .screen-mask {
@@ -73,7 +74,7 @@ html .screen-mask {
 	top: 0px;
 }
 
-html #pages-tags-filter, html #pages-url-filter {
+html #pages-tags-filter,html #pages-url-filter {
 	width: 500px;
 }
 
