@@ -64,25 +64,9 @@ var tabs = {
 	length : 0
 };
 
-function deletePages(checkedPages, callback) {
-	storage.deletePages(checkedPages, callback);
-}
-
-function setRating(id, rating) {
-	storage.setRating(id, rating);
-}
-
-function search(callback) {
-	storage.search(popupState.searchFilters, callback);
-}
-
 function resetDatabase() {
 	storage.reset();
 	localStorage.clear();
-}
-
-function getContent(id, callback) {
-	storage.getContent(id, callback);
 }
 
 function open(id, selected) {
@@ -146,46 +130,6 @@ function openLink(url) {
 	chrome.tabs.create({
 		url : url
 	});
-}
-
-function getPage(url, callback) {
-	storage.getPage(url, callback);
-}
-
-function addTag(pageId, tag, callback) {
-	storage.addTag(pageId, tag, callback);
-}
-
-function removeTag(pageId, id, callback) {
-	storage.removeTag(pageId, id, callback);
-}
-
-function getTags(callback) {
-	storage.getTags(popupState.searchedTags, callback);
-}
-
-function updateTagValue(oldValue, newValue) {
-	storage.updateTagValue(oldValue, newValue);
-}
-
-function deleteTags(tagIds, callback) {
-	storage.deleteTags(tagIds, callback);
-}
-
-function setTitle(id, title) {
-	storage.setTitle(id, title);
-}
-
-function getTagsCompletion(searchTags, callback) {
-	storage.getTagsCompletion(searchTags, callback);
-}
-
-function getTagCompletion(searchTag, pageId, callback) {
-	storage.getTagCompletion(searchTag, pageId, callback);
-}
-
-function addTags(tagValues, checkedPages, callback) {
-	storage.addTags(tagValues, checkedPages, callback);
 }
 
 function getSelectedTab(callback) {

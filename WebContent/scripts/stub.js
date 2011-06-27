@@ -39,7 +39,7 @@
 				});
 				return;
 			}
-			bgPage.getPage(currLink.href, function(id) {
+			bgPage.storage.getPage(currLink.href, function(id) {
 				bgPage.popupState.newPages[id] = false;
 				href = id ? "/pages/stub.html?" + id : currLink.href;
 				if (newWindow)
@@ -75,7 +75,7 @@
 			bgPage.resetLinkedElement();
 	}
 
-	chrome.extension.getBackgroundPage().getContent(archiveId, function(content, title) {
+	chrome.extension.getBackgroundPage().storage.getContent(archiveId, function(content, title) {
 		try {
 			window.chrome = null;
 			window.webkitRequestFileSystem = null;

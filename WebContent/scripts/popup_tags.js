@@ -37,7 +37,7 @@
 		});
 		if (selectedIds.length) {
 			if (bgPage.options.askConfirmation != "yes" || confirm("Do you really want to delete selected tags ?"))
-				bgPage.deleteTags(selectedIds, function() {
+				bgPage.storage.deleteTags(selectedIds, function() {
 					showTagsTab();
 				});
 		}
@@ -100,12 +100,12 @@
 				state.expandedTags[tagData.id] = value;
 			};
 			tagElement.onenter = function(value) {
-				bgPage.updateTagValue(tag, value);
+				bgPage.storage.updateTagValue(tag, value);
 				tag = value;
 			};
 			tagElement.ondelete = function() {
 				if (confirm("Do you really want to delete this tag ?"))
-					bgPage.deleteTags([ tagData.id ], function() {
+					bgPage.storage.deleteTags([ tagData.id ], function() {
 						showTagsTab();
 					});
 			};
@@ -143,7 +143,7 @@
 
 	function search(callback) {
 		state.searchedTags = searchInput.value ? searchInput.value.split(/\s+/) : null;
-		bgPage.getTags(function(usedTags, unusedTags) {
+		bgPage.storage.getTags(state.searchedTags, function(usedTags, unusedTags) {
 			display(usedTags, unusedTags);
 			if (callback)
 				callback();

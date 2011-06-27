@@ -25,7 +25,7 @@
 	function tagsInputOninput() {
 		var datalist = document.getElementById("pages-tags-filter-data"), select = document.createElement("select");
 		datalist.innerHTML = "";
-		bgPage.getTagsCompletion(tagsInput.values, function(tags) {
+		bgPage.storage.getTagsCompletion(tagsInput.values, function(tags) {
 			var i, optionElement;
 			datalist.appendChild(select);
 			for (i = 0; i < tags.length; i++) {
@@ -39,7 +39,7 @@
 	function tagInputOninput() {
 		var datalist = document.getElementById("pages-tag-data"), select = document.createElement("select");
 		datalist.innerHTML = "";
-		bgPage.getTagsCompletion(tagInput.values, function(tags) {
+		bgPage.storage.getTagsCompletion(tagInput.values, function(tags) {
 			var i, optionElement;
 			datalist.appendChild(select);
 			for (i = 0; i < tags.length; i++) {
@@ -171,7 +171,7 @@
 	function deleteButtonOnclick() {
 		if (checkedPages.length)
 			if (bgPage.options.askConfirmation != "yes" || confirm("Do you really want to delete selected archives ?"))
-				bgPage.deletePages(checkedPages, function() {
+				bgPage.storage.deletePages(checkedPages, function() {
 					checkedPages = [];
 					showPagesTab();
 				});
@@ -242,7 +242,7 @@
 	function tagOkButtonOnclick() {
 		var values = tagInput.values;
 		if (values.length)
-			bgPage.addTags(values, checkedPages, function() {
+			bgPage.storage.addTags(values, checkedPages, function() {
 				search(null, true);
 			});
 		tagMask.style.display = "none";
@@ -315,7 +315,7 @@
 				starsElement.onenter = function(value) {
 					stars = value;
 					refreshTitle();
-					bgPage.setRating(row.id, value);
+					bgPage.storage.setRating(row.id, value);
 				};
 				linkElement.href = "#";
 				linkElement.onclick = function() {
@@ -403,11 +403,11 @@
 				aElement.onenter = function(value) {
 					title = value;
 					refreshTitle();
-					bgPage.setTitle(row.id, value);
+					bgPage.storage.setTitle(row.id, value);
 				};
 				aElement.ondelete = function() {
 					if (confirm("Do you really want to delete this archive ?"))
-						bgPage.deletePages([ row.id ], function() {
+						bgPage.storage.deletePages([ row.id ], function() {
 							showPagesTab();
 						});
 				};
@@ -415,7 +415,7 @@
 				infoLine3Element.oninput = function(event) {
 					var input = event.target, data = document.getElementById(event.target.list);
 					data.innerHTML = "";
-					bgPage.getTagCompletion(input.textContent, row.id, function(tags) {
+					bgPage.storage.getTagCompletion(input.textContent, row.id, function(tags) {
 						var i, optionElement, select = document.createElement("select");
 						for (i = 0; i < tags.length; i++) {
 							optionElement = document.createElement("option");
@@ -426,7 +426,7 @@
 					});
 				};
 				infoLine3Element.onadd = function(value, values) {
-					bgPage.addTag(row.id, value, function() {
+					bgPage.storage.addTag(row.id, value, function() {
 						if (!rowTags) {
 							tags[i] = [];
 							rowTags = tags[i];
@@ -436,7 +436,7 @@
 					});
 				};
 				infoLine3Element.ondelete = function(value, values) {
-					bgPage.removeTag(row.id, value, function() {
+					bgPage.storage.removeTag(row.id, value, function() {
 						rowTags = rowTags.filter(function(v) {
 							return v != value;
 						});
@@ -500,7 +500,7 @@
 		allSelected = false;
 		location.hash = encodeURIComponent(JSON.stringify(searchFilters));
 
-		bgPage.search(function(rows, tags, count) {
+		bgPage.storage.search(state.searchFilters, function(rows, tags, count) {
 			var i, link, start;
 			pageCount = count;
 			display(rows, tags);
