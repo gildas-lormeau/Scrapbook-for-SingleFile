@@ -262,7 +262,6 @@ ul a:visited,#pages-links a {
 	height: 16px;
 	background-image: url(../resources/external_tab.png);
 	opacity: .5;
-	cursor: pointer;
 	margin-left: 5px;
 }
 
@@ -337,7 +336,6 @@ ul a:visited,#pages-links a {
 
 .pages-filter {
 	-webkit-transition: opacity 0.3s ease-out;
-	cursor: pointer;
 	opacity: 0.5;
 }
 
@@ -375,12 +373,10 @@ ul a:visited,#pages-links a {
 
 #pages-misc-rating-from-input,#pages-misc-rating-to-input {
 	width: 16px;
-	cursor: pointer;
 }
 
 #pages-expand-button {
 	width: 28px;
-	cursor: pointer;
 }
 
 #pages-options {
@@ -394,6 +390,10 @@ ul a:visited,#pages-links a {
 	-webkit-border-radius: 5px;
 }
 
+#pages-options>div {
+	cursor: default;
+}
+
 #pages-options a {
 	color: inherit;
 }
@@ -404,9 +404,9 @@ ul a:visited,#pages-links a {
 }
 
 #pages-select-button,#tabs-select-button,#tags-select-button {
-	margin-top: 2px;
-	margin-left: 6px;
-	cursor: pointer;
+	position: relative;
+	bottom: -4px;
+	left: 1px;
 }
 
 #pages-list .collapser-content div {
@@ -462,11 +462,6 @@ ul a:visited,#pages-links a {
 #pages-saveddate-container,#pages-readdate-container,#pages-misc-container,#pages-tags-container,#pages-url-container
 	{
 	margin-left: 20px;
-}
-
-#pages-limit-input,#pages-readdate-period-input select,#pages-saveddate-period-input select
-	{
-	cursor: pointer;
 }
 
 #pages-list .collapser-content a,.keywords-input-keyword {
@@ -651,7 +646,7 @@ ul a:visited,#pages-links a {
 	visibility: hidden;
 }
 
-#options-disable-sf-container,#options-ask-confirm-container,#options-expand-archives-container,#options-set-container,#options-reset-container,#options-save-archives-container,#options-import-container,#options-export-container,#options-export-tozip-container,#options-open-bgtab-container, #options-export-tozip-container, #options-import-fromzip-container
+#options-disable-sf-container,#options-ask-confirm-container,#options-expand-archives-container,#options-set-container,#options-reset-container,#options-save-archives-container,#options-import-container,#options-export-container,#options-export-tozip-container,#options-open-bgtab-container,#options-export-tozip-container,#options-import-fromzip-container
 	{
 	display: block;
 	position: relative;
