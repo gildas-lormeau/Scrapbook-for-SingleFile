@@ -41,7 +41,6 @@ var options = localStorage.options ? JSON.parse(localStorage.options) : {
 options.save = function() {
 	localStorage.options = JSON.stringify(options);
 };
-options.save();
 
 var notificationArchiving, timeoutNoResponse;
 
@@ -388,6 +387,8 @@ function notifyTabProgress(tabId, state, index, max) {
 
 setDefaultFilters();
 popupState.searchFilters.currentPage = 0;
+if (!localStorage.options)
+	options.save();
 
 chrome.extension.onRequestExternal.addListener(function(request, sender, sendResponse) {
 	setTimeoutNoResponse();
