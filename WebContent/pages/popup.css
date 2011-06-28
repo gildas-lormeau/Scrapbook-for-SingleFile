@@ -558,7 +558,8 @@ ul a:visited,#pages-links a {
 #pages-tag-input {
 	margin: 0px;
 	padding: 0px;
-	max-height: 250px;
+	max-height: 180px;
+	padding-bottom: 70px;
 	overflow-y: auto;
 }
 
