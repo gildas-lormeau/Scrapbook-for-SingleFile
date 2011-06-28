@@ -77,7 +77,8 @@
 			liElement.id = "tag." + tagData.id;
 			liElement.className = rowClass;
 			moreElement.className = "clickable";
-			new CollapserButton(moreElement, moreDivElement, state.expandedTags[tagData.id], "show only tag", "show all related archives");
+			new CollapserButton(moreElement, moreDivElement, tagData.id in usedTags && state.expandedTags[tagData.id], "show only tag",
+					"show all related archives");
 			cbElement.type = "checkbox";
 			cbElement.title = "select a tag to delete";
 			new TitleInput(tagElement, tag, "edit tag value \"" + tag + "\"", "delete \"" + tag + "\"");
