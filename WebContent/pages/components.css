@@ -75,6 +75,10 @@
 	margin-right: 5px;
 }
 
+.keywords-input-keyword-wrapper {
+	display: inline-block;
+}
+
 .title-input {
 	display: inline-block;
 	overflow: hidden;

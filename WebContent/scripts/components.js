@@ -242,7 +242,7 @@ function RatingInput(element, value) {
 
 function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, tagTitle) {
 	var timeoutBlur, currentKeyword, plusElement = document.createElement("img"), dataNewTag = document.createElement("datalist"), tagsLabelElement = document
-			.createElement("span");
+			.createElement("span"), currentValues = [];
 
 	function removeElement() {
 		currentKeyword.removeEventListener("keydown", onkeydown);
@@ -251,7 +251,7 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 	}
 
 	function decorateKeywordElement() {
-		var deleteElement = document.createElement("img"), keyword = currentKeyword;
+		var deleteElement = document.createElement("img"), keyword = currentKeyword, wrapper;
 
 		function keywordOnclick() {
 			if (element.onselect)
@@ -259,10 +259,12 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		}
 
 		function deleteOnclick() {
+			currentValues = currentValues.filter(function(v) {
+				return v != keyword.textContent;
+			});
 			if (element.ondelete)
 				element.ondelete(keyword.textContent);
-			element.removeChild(keyword);
-			element.removeChild(deleteElement);
+			element.removeChild(wrapper);
 			currentKeyword = null;
 			plusElement.focus();
 		}
@@ -287,11 +289,17 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 			if (event.keyIdentifier == "Enter")
 				deleteOnclick();
 		}, false);
-		element.insertBefore(deleteElement, plusElement);
+
+		wrapper = document.createElement("div");
+		wrapper.className = "keywords-input-keyword-wrapper";
+		wrapper.appendChild(keyword);
+		wrapper.appendChild(deleteElement);
+		element.insertBefore(wrapper, plusElement);
 	}
 
 	function validateElement() {
 		decorateKeywordElement();
+		currentValues.push(currentKeyword.textContent);
 		if (element.onadd)
 			element.onadd(currentKeyword.textContent);
 		currentKeyword = null;
@@ -351,7 +359,7 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 	element.appendChild(plusElement);
 	element.appendChild(dataNewTag);
 
-	if (values)
+	element.concat = function(values) {
 		values.forEach(function(value) {
 			currentKeyword = document.createElement("span");
 			currentKeyword.textContent = value;
@@ -359,7 +367,8 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 			element.insertBefore(currentKeyword, plusElement);
 			decorateKeywordElement();
 		});
-	currentKeyword = null;
+		currentKeyword = null;
+	};
 
 	plusElement.src = "../resources/plus.png";
 	plusElement.className = "keywords-input-plus-button  clickable";
@@ -378,6 +387,33 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 			event.preventDefault();
 		}
 	}, false);
+
+	element.__defineSetter__("values", function(values) {
+		Array.prototype.forEach.call(element.querySelectorAll(".keywords-input-keyword-wrapper"), function(wrapper) {
+			element.removeChild(wrapper);
+		});
+		values.forEach(function(value) {
+			currentKeyword = document.createElement("span");
+			currentKeyword.textContent = value;
+			currentKeyword.title = tagTitle;
+			element.insertBefore(currentKeyword, plusElement);
+			decorateKeywordElement();
+		});
+		currentKeyword = null;
+		currentValues = values;
+	}, true);
+
+	element.__defineGetter__("values", function() {
+		return currentValues;
+	}, true);
+
+	element.focus = function() {
+		plusElement.focus();
+	};
+
+	if (values)
+		element.values = values;
+	currentKeyword = null;
 }
 
 function TitleInput(element, value, editButtonTitle, deleteButtonTitle) {
