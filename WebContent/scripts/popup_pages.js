@@ -647,7 +647,7 @@
 		document.getElementById("pages-tag-ok-button").onclick = tagOkButtonOnclick;
 		document.getElementById("pages-tag-cancel-button").onclick = tagCancelButtonOnclick;
 
-		new KeywordsInput(tagInput, [], "shared tags:", "add a tag", "remove this tag", "filter this tag");
+		new KeywordsInput(tagInput, [], "shared tags:", "add a tag", "remove this tag", "");
 		tagInput.oninput = function(event) {
 			var input = event.target, data = document.getElementById(event.target.list);
 			data.innerHTML = "";
