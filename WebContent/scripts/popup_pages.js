@@ -230,10 +230,9 @@
 	}
 
 	function tagOkButtonOnclick() {
-		if (tagInput.values.length)
-			bgPage.storage.addTags(tagInput.initValues, tagInput.values, checkedPages, function() {
-				search(null, true);
-			});
+		bgPage.storage.addTags(tagInput.initValues, tagInput.values, checkedPages, function() {
+			search(null, true);
+		});
 		tagMask.style.display = "none";
 	}
 
