@@ -818,3 +818,7 @@ ul {
 #pages-list .collapser-button, #tags-list .collapser-button {
 	top: 0px;
 }
+
+.tags-row-unused {
+	cursor: default;
+}
