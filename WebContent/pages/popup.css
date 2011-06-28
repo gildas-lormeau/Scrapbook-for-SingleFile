@@ -96,11 +96,15 @@ ul a:visited,#pages-links a {
 .title-input {
 	width: 315px;
 	position: relative;
-	top: -2px;
+	top: -3px;
 }
 
 #pages-list li[id]:hover .title-input[contenteditable] {
 	width: 315px;
+}
+
+#tags-list li[id]:hover .title-input[contenteditable] {
+	width: 335px;
 }
 
 .collapser-button {
