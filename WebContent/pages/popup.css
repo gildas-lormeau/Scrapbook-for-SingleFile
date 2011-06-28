@@ -801,7 +801,7 @@ ul {
 	color: rgba(28, 32, 48, 1);
 }
 
-#pages-list .collapser-button,#pages-options .collapser-button {
+#pages-list .collapser-button,#pages-options .collapser-button, #tags-list .collapser-button {
 	width: 12px;
 	height: 12px;
 	margin-left: 2px;
@@ -810,6 +810,6 @@ ul {
 	background-position: 3px 1px;
 }
 
-#pages-list .collapser-button {
+#pages-list .collapser-button, #tags-list .collapser-button {
 	top: 0px;
 }
