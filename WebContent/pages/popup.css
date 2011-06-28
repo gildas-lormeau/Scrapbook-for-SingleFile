@@ -99,6 +99,10 @@ ul a:visited,#pages-links a {
 	top: -2px;
 }
 
+#pages-list li[id]:hover .title-input[contenteditable] {
+	width: 315px;
+}
+
 .collapser-button {
 	display: inline-block;
 	position: relative;
