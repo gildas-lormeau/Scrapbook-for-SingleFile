@@ -36,20 +36,6 @@
 		});
 	}
 
-	function tagInputOninput() {
-		var datalist = document.getElementById("pages-tag-data"), select = document.createElement("select");
-		datalist.innerHTML = "";
-		bgPage.storage.getTagsCompletion(tagInput.values, function(tags) {
-			var i, optionElement;
-			datalist.appendChild(select);
-			for (i = 0; i < tags.length; i++) {
-				optionElement = document.createElement("option");
-				optionElement.textContent = optionElement.value = tags[i];
-				select.appendChild(optionElement);
-			}
-		});
-	}
-
 	function expandInputOnchange(value) {
 		searchFilters.moreInfo = expandButton.value;
 		search();
@@ -183,9 +169,13 @@
 
 	function tagButtonOnclick() {
 		if (checkedPages.length) {
-			tagInput.value = "";
-			tagMask.style.display = "block";
-			tagInput.focus();
+			tagInput.values = [];
+			bgPage.storage.getSharedTags(checkedPages, function(tags) {
+				tagInput.values = tags;
+				tagInput.initValues = JSON.parse(JSON.stringify(tags));
+				tagMask.style.display = "block";
+				tagInput.focus();
+			});
 		}
 	}
 
@@ -240,9 +230,8 @@
 	}
 
 	function tagOkButtonOnclick() {
-		var values = tagInput.values;
-		if (values.length)
-			bgPage.storage.addTags(values, checkedPages, function() {
+		if (tagInput.values.length)
+			bgPage.storage.addTags(tagInput.initValues, tagInput.values, checkedPages, function() {
 				search(null, true);
 			});
 		tagMask.style.display = "none";
@@ -271,7 +260,8 @@
 					aElement.title = "open the archive\n\n- Title : " + title + (row.date ? "\n- Saved date : " + new Date(row.date).toLocaleDateString() : "")
 							+ "\n- Last read date : " + (row.read_date ? new Date(row.read_date).toLocaleDateString() : "-") + "\n- Rating : " + (stars / 100)
 							+ " star" + (stars > 100 || !stars ? "s" : "") + "\n- Size : " + Math.floor(row.size / (1024 * 1024) * 100) / 100
-							+ " MB\n- Tags : " + (rowTags ? rowTags.join(", ") : "-");
+							+ " MB\n- Tags : "
+							+ (/* rowTags ? rowTags.join(", ") : "-" */infoLine3Element.values.length ? infoLine3Element.values.join(", ") : "-");
 				}
 
 				aElement = document.createElement("a");
@@ -425,23 +415,11 @@
 						data.appendChild(select);
 					});
 				};
-				infoLine3Element.onadd = function(value, values) {
-					bgPage.storage.addTag(row.id, value, function() {
-						if (!rowTags) {
-							tags[i] = [];
-							rowTags = tags[i];
-						}
-						rowTags.push(value);
-						refreshTitle();
-					});
+				infoLine3Element.onadd = function(value) {
+					bgPage.storage.addTag(row.id, value, refreshTitle);
 				};
-				infoLine3Element.ondelete = function(value, values) {
-					bgPage.storage.removeTag(row.id, value, function() {
-						rowTags = rowTags.filter(function(v) {
-							return v != value;
-						});
-						refreshTitle();
-					});
+				infoLine3Element.ondelete = function(value) {
+					bgPage.storage.removeTag(row.id, value, refreshTitle);
 				};
 				infoLine3Element.onselect = function(value) {
 					expandSearchButton.value = "expanded";
@@ -668,9 +646,21 @@
 		document.getElementById("pages-misc-filter-link").onclick = filterMiscLinkOnclick;
 		document.getElementById("pages-tag-ok-button").onclick = tagOkButtonOnclick;
 		document.getElementById("pages-tag-cancel-button").onclick = tagCancelButtonOnclick;
-		new ComboBox(tagInput, "");
-		tagInput.oninput = tagInputOninput;
-		tagInput.onkeydown = tagInputOnkeydown;
+
+		new KeywordsInput(tagInput, [], "shared tags:", "add a tag", "remove this tag", "filter this tag");
+		tagInput.oninput = function(event) {
+			var input = event.target, data = document.getElementById(event.target.list);
+			data.innerHTML = "";
+			bgPage.storage.getFilteredTagCompletion(tagInput.values, input.textContent, function(tags) {
+				var i, optionElement, select = document.createElement("select");
+				for (i = 0; i < tags.length; i++) {
+					optionElement = document.createElement("option");
+					optionElement.textContent = optionElement.value = tags[i];
+					select.appendChild(optionElement);
+				}
+				data.appendChild(select);
+			});
+		};
 		if (searchFilters.text)
 			searchInput.value = searchFilters.text.join(" ");
 		if (searchFilters.url)
