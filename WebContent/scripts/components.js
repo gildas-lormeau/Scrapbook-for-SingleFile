@@ -32,7 +32,7 @@ function ComboBox(element, value) {
 
 	function displaySuggest() {
 		var value;
-		if (element.value && that.hasFocus && data && data.children[0]
+		if (that.hasFocus && data && data.children[0]
 				&& ((data.children[0].length == 1 && data.children[0].children[0].value != element.value) || (data.children[0].length > 1))) {
 			value = suggest.value;
 			suggest.innerHTML = data.children[0].innerHTML;
