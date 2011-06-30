@@ -244,8 +244,8 @@ ul a:visited,#pages-links a {
 
 #main {
 	position: relative;
-	height: 0px;
-	/*overflow: hidden;*/
+	display: none;
+	height: auto;	
 }
 
 #loader-content {

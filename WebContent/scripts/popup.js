@@ -48,7 +48,7 @@
 			showOptionsTab(callback);
 			break;
 		case "firstUse":
-			document.getElementById("main").style.height = "auto";
+			document.getElementById("main").style.display = "block";
 			if (loader)
 				loader.style.display = "none";
 			document.getElementById("firstuse").style.display = "block";
@@ -110,7 +110,7 @@
 				if (!displayed) {
 					loader.parentElement.removeChild(loader);
 					loader = null;
-					document.getElementById("main").style.height = "auto";
+					document.getElementById("main").style.display = "block";
 					displayed = true;
 				}
 			});
