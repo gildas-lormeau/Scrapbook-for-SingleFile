@@ -25,7 +25,17 @@
 	function tagsInputOninput() {
 		var datalist = document.getElementById("pages-tags-filter-data"), select = document.createElement("select");
 		datalist.innerHTML = "";
-		bgPage.storage.getTagsCompletion(tagsInput.values, function(tags) {
+
+		var i, tag, filteredTags = [], tags = tagsInput.values;
+		for (i = 0; i < tags.length; i++)
+			if (tags[i])
+				filteredTags.push(tags[i]);
+		var value = tagsInput.value.trim();
+		if (!value.length || value.charAt(value.length - 1) == ",")
+			tag = null;
+		else
+			tag = filteredTags.pop();
+		bgPage.storage.getTagsCompletion(filteredTags, tag, function(tags) {
 			var i, optionElement;
 			datalist.appendChild(select);
 			for (i = 0; i < tags.length; i++) {
@@ -572,6 +582,7 @@
 		group = [ sortByTitleLink, sortByDateLink, sortByRatingLink, sortBySizeLink, sortByReadDateLink, sortByUrlLink ];
 		new ComboBox(tagsInput, searchFilters.tags && searchFilters.tags.values ? searchFilters.tags.values.join(",") : "");
 		tagsInput.oninput = tagsInputOninput;
+		tagsInput.onfocus = tagsInputOninput;
 		if (document.documentElement.className == "newtab" && searchFilters.limit != "all")
 			searchFilters.limit = Math.max(searchFilters.limit, 20);
 		if (searchFilters.savedPeriod && searchFilters.savedPeriod.period)

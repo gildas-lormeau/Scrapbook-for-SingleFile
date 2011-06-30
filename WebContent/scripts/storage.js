@@ -537,32 +537,44 @@ var storage = {};
 		});
 	};
 
-	storage.getTagsCompletion = function(tags, callback) {
+	storage.getTagsCompletion = function(filteredTags, tag, callback) {
+		console.log("getTagsCompletion(", filteredTags, ",", tag, ")");
 		db.transaction(function(tx) {
-			var i, query, tag, filteredTags = [], params = [], excludeTag;
-			for (i = 0; i < tags.length; i++)
-				if (tags[i])
-					filteredTags.push(tags[i]);
-			tag = filteredTags.pop();
+			var i, query, params = [], excludeTag;
 			if (tag) {
 				excludeTag = tag.indexOf("-") == 0;
 				if (excludeTag)
 					tag = tag.substring(1);
 				if (tag.length) {
-					query = "select tag from tags where tag like '" + tag.replace(/'/g, "\\'") + "%'";
-					for (i = 0; i < filteredTags.length; i++) {
-						query += " and tag <> ?";
-						params.push(filteredTags[i].replace(/^-/g, ""));
-					}
-					tx.executeSql(query, params, function(cbTx, result) {
-						var i, ret = [];
-						for (i = 0; i < result.rows.length; i++)
-							ret.push(filteredTags.join(",") + (filteredTags.length ? "," : "") + (excludeTag ? "-" : "") + result.rows.item(i).tag);
-						callback(ret);
-					});
+					query = "select tag from tags where tag like '";
+					query += tag.replace(/'/g, "\\'") + "%' ";
 				}
-			} else if (callback)
-				callback([]);
+			} else
+				query = "select tag from tags where 1=1 ";
+			if (filteredTags.length) {
+				query += "and id in (";
+				query += "select tag_id from pages_tags where page_id in (";
+				for (i = 0; i < filteredTags.length; i++) {
+					query += "select page_id from pages_tags, tags where tags.id = pages_tags.tag_id and ";
+					query += "tag=?";
+					params.push(filteredTags[i].replace(/^-/g, ""));
+					if (i < filteredTags.length - 1)
+						query += " intersect ";
+				}
+				query += ") ";
+				for (i = 0; i < filteredTags.length; i++) {
+					query += "and tag<>? ";
+					params.push(filteredTags[i].replace(/^-/g, ""));
+				}
+				query += ")";
+			}
+			console.log(query);
+			tx.executeSql(query, params, function(cbTx, result) {
+				var i, ret = [];
+				for (i = 0; i < result.rows.length; i++)
+					ret.push(filteredTags.join(",") + (filteredTags.length ? "," : "") + (excludeTag ? "-" : "") + result.rows.item(i).tag);
+				callback(ret);
+			});
 		});
 	};
 
