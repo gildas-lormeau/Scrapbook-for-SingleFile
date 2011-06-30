@@ -538,7 +538,6 @@ var storage = {};
 	};
 
 	storage.getTagsCompletion = function(filteredTags, tag, callback) {
-		console.log("getTagsCompletion(", filteredTags, ",", tag, ")");
 		db.transaction(function(tx) {
 			var i, query, params = [], excludeTag;
 			if (tag) {
@@ -568,7 +567,6 @@ var storage = {};
 				}
 				query += ")";
 			}
-			console.log(query);
 			tx.executeSql(query, params, function(cbTx, result) {
 				var i, ret = [];
 				for (i = 0; i < result.rows.length; i++)
