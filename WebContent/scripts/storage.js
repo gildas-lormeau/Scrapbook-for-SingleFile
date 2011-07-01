@@ -166,7 +166,7 @@ var storage = {};
 			}
 			query += ")";
 			tx.executeSql(query, pageIds, function(cbTx, result) {
-				var content, i, keys;
+				var content = "", i, keys;
 				if (result.rows.length) {
 					keys = Object.keys(result.rows.item(0));
 					content = keys.join(",") + "\n";
@@ -176,7 +176,7 @@ var storage = {};
 							return '"' + (value ? String(value).replace(/"/, "\"") : "") + '"';
 						}).join(",") + "\n";
 				}
-				callback("");
+				callback(content);
 			}, function() {
 				callback("");
 			});
@@ -189,24 +189,25 @@ var storage = {};
 		function exportContent(pageIds, index) {
 			var content, name, id = pageIds[index];
 			if (index == pageIds.length) {
-				exportCSV("select id, title, url, date, read_date, idx, size, timestamp, read_timestamp, favico from pages where 1=1", "id=?", pageIds, function(
-						content) {
-					zipWorker.postMessage({
-						message : "add",
-						name : "pages.csv",
-						content : content
-					});
-					exportContent(pageIds, index + 1);
-				});
+				exportCSV("select id, title, url, date, read_date, idx, size, timestamp, read_timestamp, favico from pages where 1=1", "id=?", pageIds,
+						function(content) {
+							zipWorker.postMessage({
+								message : "add",
+								name : "pages.csv",
+								content : content
+							});
+							exportContent(pageIds, index + 1);
+						});
 			} else if (index == pageIds.length + 1)
-				exportCSV("select distinct id, tag from tags, pages_tags where pages_tags.tag_id = tags.id", "pages_tags.page_id=?", pageIds, function(content) {
-					zipWorker.postMessage({
-						message : "add",
-						name : "tags.csv",
-						content : content
-					});
-					exportContent(pageIds, index + 1);
-				});
+				exportCSV("select distinct id, tag from tags, pages_tags where pages_tags.tag_id = tags.id", "pages_tags.page_id=?", pageIds,
+						function(content) {
+							zipWorker.postMessage({
+								message : "add",
+								name : "tags.csv",
+								content : content
+							});
+							exportContent(pageIds, index + 1);
+						});
 			else if (index == pageIds.length + 2)
 				exportCSV("select page_id, tag_id from tags, pages_tags where pages_tags.tag_id = tags.id", "pages_tags.page_id=?", pageIds, function(content) {
 					zipWorker.postMessage({
