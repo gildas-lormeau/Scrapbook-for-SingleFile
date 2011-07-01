@@ -156,12 +156,67 @@ var storage = {};
 		return content.replace(/<meta[^>]*http-equiv\s*=\s*["']?content-type[^>]*>/gi, "").replace(/<meta[^>]*charset\s*=[^>]*>/gi, "");
 	}
 
+	function exportCSV(request, condition, pageIds, callback) {
+		db.transaction(function(tx) {
+			var i, query = request + " and (";
+			for (i = 0; i < pageIds.length; i++) {
+				query += " " + condition;
+				if (i < pageIds.length - 1)
+					query += " or";
+			}
+			query += ")";
+			tx.executeSql(query, pageIds, function(cbTx, result) {
+				var content, i, keys;
+				if (result.rows.length) {
+					keys = Object.keys(result.rows.item(0));
+					content = keys.join(",") + "\n";
+					for (i = 0; i < result.rows.length; i++)
+						content += keys.map(function(key) {
+							var value = result.rows.item(i)[key];
+							return '"' + (value ? String(value).replace(/"/, "\"") : "") + '"';
+						}).join(",") + "\n";
+				}
+				callback("");
+			}, function() {
+				callback("");
+			});
+		});
+	}
+
 	storage.exportToZip = function(pageIds, onprogress, onfinish) {
 		var query, zipWorker = new Worker("../scripts/jszip_worker.js"), exportIndex = 0;
 
 		function exportContent(pageIds, index) {
 			var content, name, id = pageIds[index];
-			if (index == pageIds.length)
+			if (index == pageIds.length) {
+				exportCSV("select id, title, url, date, read_date, idx, size, timestamp, read_timestamp, favico from pages where 1=1", "id=?", pageIds, function(
+						content) {
+					zipWorker.postMessage({
+						message : "add",
+						name : "pages.csv",
+						content : content
+					});
+					exportContent(pageIds, index + 1);
+				});
+			} else if (index == pageIds.length + 1)
+				exportCSV("select distinct id, tag from tags, pages_tags where pages_tags.tag_id = tags.id", "pages_tags.page_id=?", pageIds, function(content) {
+					zipWorker.postMessage({
+						message : "add",
+						name : "tags.csv",
+						content : content
+					});
+					exportContent(pageIds, index + 1);
+				});
+			else if (index == pageIds.length + 2)
+				exportCSV("select page_id, tag_id from tags, pages_tags where pages_tags.tag_id = tags.id", "pages_tags.page_id=?", pageIds, function(content) {
+					zipWorker.postMessage({
+						message : "add",
+						name : "pages_tags.csv",
+						content : content
+					});
+					exportContent(pageIds, index + 1);
+				});
+			else if (index == pageIds.length + 3)
 				zipWorker.postMessage({
 					message : "generate"
 				});
@@ -185,7 +240,7 @@ var storage = {};
 			}
 			if (data.message == "add") {
 				exportIndex++;
-				onprogress(exportIndex, pageIds.length);
+				onprogress(exportIndex, pageIds.length + 3);
 			}
 		};
 		zipWorker.postMessage({
