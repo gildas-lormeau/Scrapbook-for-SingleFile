@@ -173,7 +173,7 @@ var storage = {};
 					for (i = 0; i < result.rows.length; i++)
 						content += keys.map(function(key) {
 							var value = result.rows.item(i)[key];
-							return '"' + (value ? String(value).replace(/"/, "\"") : "") + '"';
+							return '"' + (value ? String(value).replace(/"/g, "\"") : "") + '"';
 						}).join(",") + "\n";
 				}
 				callback(content);
