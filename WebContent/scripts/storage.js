@@ -788,20 +788,17 @@ var storage = {};
 
 	storage.getTagCompletion = function(searchTag, pageId, callback) {
 		db.transaction(function(tx) {
-			var query, params = [];
-			if (searchTag) {
-				query = "select tag from tags";
-				query += " where tag like '" + searchTag.replace(/'/g, "\\'") + "%'";
-				query += " and tag not in (select tag from tags, pages_tags where tags.id = tag_id and page_id = ?)";
-				params.push(pageId);
-				tx.executeSql(query, params, function(cbTx, result) {
-					var i, ret = [];
-					for (i = 0; i < result.rows.length; i++)
-						ret.push(result.rows.item(i).tag);
-					callback(ret);
-				});
-			} else
-				callback([]);
+			var query = "select tag from tags where 1=1", params = [];
+			if (searchTag)
+				query += " and tag like '" + searchTag.replace(/'/g, "\\'") + "%'";				
+			query += " and tag not in (select tag from tags, pages_tags where tags.id = tag_id and page_id = ?)";
+			params.push(pageId);
+			tx.executeSql(query, params, function(cbTx, result) {
+				var i, ret = [];
+				for (i = 0; i < result.rows.length; i++)
+					ret.push(result.rows.item(i).tag);
+				callback(ret);
+			});
 		});
 	};
 
