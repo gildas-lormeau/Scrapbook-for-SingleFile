@@ -768,21 +768,19 @@ var storage = {};
 
 	storage.getFilteredTagCompletion = function(filteredTags, tag, callback) {
 		db.transaction(function(tx) {
-			var i, query, params = [];
-			if (tag && tag.length) {
-				query = "select tag from tags where tag like '" + tag.replace(/'/g, "\\'") + "%'";
-				for (i = 0; i < filteredTags.length; i++) {
-					query += " and tag <> ?";
-					params.push(filteredTags[i]);
-				}
-				tx.executeSql(query, params, function(cbTx, result) {
-					var i, ret = [];
-					for (i = 0; i < result.rows.length; i++)
-						ret.push(result.rows.item(i).tag);
-					callback(ret);
-				});
-			} else if (callback)
-				callback([]);
+			var i, query = "select tag from tags where 1=1", params = [];
+			if (tag && tag.length)
+				query += " and like '" + tag.replace(/'/g, "\\'") + "%'";
+			for (i = 0; i < filteredTags.length; i++) {
+				query += " and tag <> ?";
+				params.push(filteredTags[i]);
+			}
+			tx.executeSql(query, params, function(cbTx, result) {
+				var i, ret = [];
+				for (i = 0; i < result.rows.length; i++)
+					ret.push(result.rows.item(i).tag);
+				callback(ret);
+			});
 		});
 	};
 
@@ -790,7 +788,7 @@ var storage = {};
 		db.transaction(function(tx) {
 			var query = "select tag from tags where 1=1", params = [];
 			if (searchTag)
-				query += " and tag like '" + searchTag.replace(/'/g, "\\'") + "%'";				
+				query += " and tag like '" + searchTag.replace(/'/g, "\\'") + "%'";
 			query += " and tag not in (select tag from tags, pages_tags where tags.id = tag_id and page_id = ?)";
 			params.push(pageId);
 			tx.executeSql(query, params, function(cbTx, result) {
