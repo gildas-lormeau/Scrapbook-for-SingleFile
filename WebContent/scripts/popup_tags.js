@@ -20,7 +20,25 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, ulElement, selectAllButton, deleteButton, searchInput, allSelected;
+	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, ulElement, selectAllButton, deleteButton, filterButton, searchInput, allSelected;
+
+	function getSelectedTagIds() {
+		var selectedIds = [];
+		Array.prototype.forEach.call(document.querySelectorAll("#tab-tags input[type=checkbox]"), function(inputElement) {
+			if (inputElement.checked)
+				selectedIds.push(inputElement.parentElement.id.split("tag.")[1]);
+		});
+		return selectedIds;
+	}
+
+	function getSelectedTags() {
+		var selectedTags = [];
+		Array.prototype.forEach.call(document.querySelectorAll("#tab-tags input[type=checkbox]"), function(inputElement) {
+			if (inputElement.checked)
+				selectedTags.push(inputElement.parentElement.querySelector(".title-input").textContent);
+		});
+		return selectedTags;
+	}
 
 	function selectAllButtonOnclick() {
 		Array.prototype.forEach.call(document.querySelectorAll(".tags-row-used input[type=checkbox], .tags-row-unused input[type=checkbox]"), function(
@@ -30,17 +48,31 @@
 	}
 
 	function deleteButtonOnclick() {
-		var selectedIds = [];
-		Array.prototype.forEach.call(document.querySelectorAll("#tab-tags input[type=checkbox]"), function(inputElement) {
-			if (inputElement.checked)
-				selectedIds.push(inputElement.parentElement.id.split("tag.")[1]);
-		});
+		var selectedIds = getSelectedTagIds();
 		if (selectedIds.length) {
 			if (bgPage.options.askConfirmation != "yes" || confirm("Do you really want to delete selected tags ?"))
 				bgPage.storage.deleteTags(selectedIds, function() {
 					showTagsTab();
 				});
 		}
+	}
+
+	function filterButtonOnclick() {
+		var selectedTags = getSelectedTags();
+		if (selectedTags.length)
+			filterTags(getSelectedTags().join(","));
+	}
+
+	function filterTags(value) {
+		document.getElementById("pages-search-expand-button").value = "expanded";
+		document.getElementById("pages-tags-expand-button").value = "expanded";
+		document.getElementById("pages-saveddate-expand-button").value = "";
+		document.getElementById("pages-readdate-expand-button").value = "";
+		document.getElementById("pages-url-expand-button").value = "";
+		document.getElementById("pages-misc-expand-button").value = "";
+		document.getElementById("pages-search-input").value = "";
+		document.getElementById("pages-tags-filter").value = value;
+		showTab("pages");
 	}
 
 	function display(usedTags, unusedTags) {
@@ -86,15 +118,7 @@
 				tagElement.href = "#";
 				tagElement.title = "filter this tag in archives view";
 				tagElement.onclick = function() {
-					document.getElementById("pages-search-expand-button").value = "expanded";
-					document.getElementById("pages-tags-expand-button").value = "expanded";
-					document.getElementById("pages-saveddate-expand-button").value = "";
-					document.getElementById("pages-readdate-expand-button").value = "";
-					document.getElementById("pages-url-expand-button").value = "";
-					document.getElementById("pages-misc-expand-button").value = "";
-					document.getElementById("pages-search-input").value = "";
-					document.getElementById("pages-tags-filter").value = tag;
-					showTab("pages");
+					filterTags(tag);
 				};
 			}
 			moreElement.onenter = function(value) {
@@ -159,6 +183,7 @@
 	function getElements() {
 		selectAllButton = document.getElementById("tags-select-button");
 		deleteButton = document.getElementById("tags-delete-button");
+		filterButton = document.getElementById("tags-filter-button");
 		searchInput = document.getElementById("tags-search-input");
 		ulElement = document.getElementById("tags-list");
 	}
@@ -167,6 +192,7 @@
 		getElements();
 		selectAllButton.onclick = selectAllButtonOnclick;
 		deleteButton.onclick = deleteButtonOnclick;
+		filterButton.onclick = filterButtonOnclick;
 		searchInput.onchange = showTags;
 		document.getElementById("tags-form").onsubmit = showTags;
 		searchInput.value = state.searchedTags ? bgPage.popupState.searchedTags.join(" ") : "";
