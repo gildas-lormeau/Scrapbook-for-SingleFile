@@ -269,8 +269,7 @@
 					aElement.title = "open the archive\n\n- Title : " + title + (row.date ? "\n- Saved date : " + new Date(row.date).toLocaleDateString() : "")
 							+ "\n- Last read date : " + (row.read_date ? new Date(row.read_date).toLocaleDateString() : "-") + "\n- Rating : " + (stars / 100)
 							+ " star" + (stars > 100 || !stars ? "s" : "") + "\n- Size : " + Math.floor(row.size / (1024 * 1024) * 100) / 100
-							+ " MB\n- Tags : "
-							+ (/* rowTags ? rowTags.join(", ") : "-" */infoLine3Element.values.length ? infoLine3Element.values.join(", ") : "-");
+							+ " MB\n- Tags : " + (infoLine3Element.values.length ? infoLine3Element.values.join(", ") : "-");
 				}
 
 				aElement = document.createElement("a");
