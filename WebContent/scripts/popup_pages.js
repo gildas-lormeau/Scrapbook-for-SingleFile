@@ -40,7 +40,8 @@
 			datalist.appendChild(select);
 			for (i = 0; i < tags.length; i++) {
 				optionElement = document.createElement("option");
-				optionElement.textContent = optionElement.value = tags[i];
+				optionElement.textContent = tags[i].content;
+				optionElement.value = tags[i].value;
 				select.appendChild(optionElement);
 			}
 		});

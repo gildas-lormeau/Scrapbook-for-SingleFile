@@ -737,7 +737,10 @@ var storage = {};
 			tx.executeSql(query, params, function(cbTx, result) {
 				var i, ret = [];
 				for (i = 0; i < result.rows.length; i++)
-					ret.push(filteredTags.join(",") + (filteredTags.length ? "," : "") + (excludeTag ? "-" : "") + result.rows.item(i).tag);
+					ret.push({
+						content : result.rows.item(i).tag,
+						value : filteredTags.join(",") + (filteredTags.length ? "," : "") + (excludeTag ? "-" : "") + result.rows.item(i).tag
+					});
 				callback(ret);
 			});
 		});
