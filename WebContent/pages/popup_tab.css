@@ -32,7 +32,7 @@ html #tab-pages.selected,html #tab-tabs.selected,html #tab-tags.selected,html #t
 }
 
 html .title-input {
-	width: 510px;
+	width: 507px;
 }
 
 html #pages-list li[id]:hover .title-input {
@@ -52,11 +52,11 @@ html .pages-row-link-input {
 }
 
 html .tags-row-link {
-	width: 535px;
+	width: 532px;
 }
 
 html #tab-tags .title-input {
-	width: 535px;
+	width: 532px;
 }
 
 html #tags-list li[id]:hover .title-input {
@@ -80,4 +80,12 @@ html #pages-tags-filter,html #pages-url-filter {
 
 html .tags-row-link {
 	color: #5F7EC1 !important;
+}
+
+#pages-list li[id]:hover .title-input[contenteditable] {
+	width: 507px;
+}
+
+#tags-list li[id]:hover .title-input[contenteditable] {
+	width: 532px;
 }
