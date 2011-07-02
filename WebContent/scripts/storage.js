@@ -230,7 +230,7 @@ var storage = {};
 						content : removeMetaCharset(content)
 					});
 					exportContent(pageIds, index + 1);
-				});
+				}, false, true);
 		}
 
 		zipWorker.onmessage = function(event) {
@@ -250,8 +250,106 @@ var storage = {};
 		exportContent(pageIds, 0);
 	};
 
+	function importPagesCSV(content, importedPageIds, callback) {
+		var request = "update pages set title = ?, url = ?, date = ?, read_date = ?, idx = ?, size = ?, timestamp = ?, read_timestamp = ?, favico = ? where id = ?";
+
+		db.transaction(function(tx) {
+			var lines = content.split("\n"), header = lines.shift(), i = 0;
+
+			function processLine() {
+				if (i < lines.length) {
+					var data = JSON.parse("[" + lines[i].replace(/\\"/g, '\\"') + "]");
+					if (lines[i]) {
+						tx.executeSql(request, [ data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], importedPageIds[data[0]] ],
+								function() {
+									i++;
+									processLine();
+								});
+					} else {
+						i++;
+						processLine();
+					}
+				} else
+					callback();
+			}
+
+			processLine();
+		});
+	}
+
+	function importTagsCSV(content, callback) {
+		db.transaction(function(tx) {
+			var lines = content.split("\n"), header = lines.shift(), importedTagIds = {}, i = 0;
+
+			function processLine() {
+				if (i < lines.length) {
+					var data = JSON.parse("[" + lines[i].replace(/\\"/g, '\\"') + "]");
+					if (lines[i]) {
+						tx.executeSql("select id from tags where tag = ?", [ data[1] ], function(cbTx, result) {
+							if (!result.rows.length) {
+								tx.executeSql("insert into tags (tag) values (?)", [ data[1] ], function(cbTx, result) {
+									importedTagIds[data[0]] = result.insertId;
+									i++;
+									processLine();
+								});
+							} else {
+								importedTagIds[data[0]] = result.rows.item(0).id;
+								i++;
+								processLine();
+							}
+						});
+					} else {
+						i++;
+						processLine();
+					}
+				} else
+					callback(importedTagIds);
+			}
+
+			processLine();
+		});
+	}
+
+	function importPagesTagsCSV(content, importedPagesIds, importedTagIds, callback) {
+		db.transaction(function(tx) {
+			var lines = content.split("\n"), header = lines.shift(), i = 0;
+
+			function processLine() {
+				if (i < lines.length) {
+					var data = JSON.parse("[" + lines[i].replace(/\\"/g, '\\"') + "]");
+					if (lines[i]) {
+						tx.executeSql("insert into pages_tags (page_id, tag_id) values (?, ?)", [ importedPagesIds[data[0]], importedTagIds[data[1]] ],
+								function() {
+									i++;
+									processLine();
+								});
+					} else {
+						i++;
+						processLine();
+					}
+				} else
+					callback();
+			}
+
+			processLine();
+		});
+	}
+
 	storage.importFromZip = function(file, onprogress, onfinish) {
-		var fileReader = new FileReader(), index = 0, max = 0, unzipWorker = new Worker("../scripts/jsunzip.js");
+		var fileReader = new FileReader(), index = 0, max = 0, unzipWorker = new Worker("../scripts/jsunzip.js"), importedPagesIds = {}, importedTagIds = {};
+
+		function nextFile() {
+			if (index < max) {
+				onprogress(index, max);
+				unzipWorker.postMessage({
+					message : "getNextEntry"
+				});
+			} else {
+				unzipWorker.terminate();
+				onfinish();
+			}
+		}
+
 		fileReader.onloadend = function(event) {
 			var content = event.target.result;
 			unzipWorker.postMessage({
@@ -262,28 +360,35 @@ var storage = {};
 				var data = event.data;
 				if (data.message == "parse") {
 					max = data.entriesLength;
-					onprogress(index, max);
-					unzipWorker.postMessage({
-						message : "getNextEntry"
-					});
+					nextFile();
 				}
 				if (data.message == "getNextEntry") {
 					var fileReader = new FileReader();
 					fileReader.onloadend = function(event) {
 						index++;
-						onprogress(index, max);
-						storage.addContent(event.target.result, data.filename.replace(/.html?$/, "").replace(/ \(\d*\)$/, ""), null, null, function() {
-							onprogress(index, max);
-							if (index == max) {
-								unzipWorker.terminate();
-								onfinish();
-							} else
-								unzipWorker.postMessage({
-									message : "getNextEntry"
-								});
-						}, function() {
-							// TODO
-						});
+						if (data.filename == "pages.csv")
+							importPagesCSV(event.target.result, importedPagesIds, nextFile);
+						else if (data.filename == "tags.csv")
+							importTagsCSV(event.target.result, function(tagIds) {
+								importedTagIds = tagIds;
+								nextFile();
+							});
+						else if (data.filename == "pages_tags.csv")
+							importPagesTagsCSV(event.target.result, importedPagesIds, importedTagIds, nextFile);
+						else {
+							var archiveFilename = data.filename.replace(/.html?$/, "");
+							var archiveIdMatch = archiveFilename.match(/ \((\d*)\)$/);
+							if (archiveIdMatch)
+								var archiveId = archiveIdMatch[1];
+							archiveFilename = archiveFilename.replace(/ \(\d*\)$/, "");
+							storage.addContent(event.target.result, data.filename.replace(/.html?$/, "").replace(/ \(\d*\)$/, ""), null, null, function(id) {
+								if (archiveId)
+									importedPagesIds[archiveId] = id;
+								nextFile();
+							}, function() {
+								// TODO
+							});
+						}
 					};
 					fileReader.readAsText(data.file, "UTF-8");
 				}
@@ -340,10 +445,11 @@ var storage = {};
 		});
 	};
 
-	storage.getContent = function(id, callback, forceUseDatabase) {
+	storage.getContent = function(id, callback, forceUseDatabase, dontSetReadDate) {
 		db.transaction(function(tx) {
 			var date = new Date();
-			tx.executeSql("update pages set read_date = ?, read_timestamp = ? where id = ?", [ date.toString(), date.getTime(), id ], function() {
+
+			function getContent() {
 				if (fs && !forceUseDatabase)
 					fs.root.getFile(id + ".html", null, function(fileEntry) {
 						var fileReader = new FileReader();
@@ -363,7 +469,7 @@ var storage = {};
 							fileReader.readAsText(file, "UTF-8");
 						});
 					}, function() {
-						storage.getContent(id, callback, true);
+						storage.getContent(id, callback, true, dontSetReadDate);
 					});
 				else
 					tx.executeSql("select pages_contents.content, title from pages, pages_contents where pages_contents.id = pages.id and pages.id = ?",
@@ -371,7 +477,12 @@ var storage = {};
 								if (callback)
 									callback(result.rows.item(0).content, result.rows.item(0).title);
 							});
-			});
+			}
+
+			if (dontSetReadDate)
+				getContent();
+			else
+				tx.executeSql("update pages set read_date = ?, read_timestamp = ? where id = ?", [ date.toString(), date.getTime(), id ], getContent);
 		});
 	};
 
