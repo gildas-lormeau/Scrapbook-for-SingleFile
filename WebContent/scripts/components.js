@@ -347,19 +347,18 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		currentKeyword.title = "";
 		new ComboBox(currentKeyword);
 		currentKeyword.addEventListener("keydown", onkeydown);
+		currentKeyword.onfocus = function(e) {
+			element.oninput(e);
+		};
 		currentKeyword.focus();
 	}
 
 	this.__proto__.datalistCount = this.__proto__.datalistCount || 0;
-
 	dataNewTag.id = "keywords-input-datalist-" + this.__proto__.datalistCount++;
-
 	tagsLabelElement.textContent = tagsLabel;
-
 	element.appendChild(tagsLabelElement);
 	element.appendChild(plusElement);
 	element.appendChild(dataNewTag);
-
 	element.concat = function(values) {
 		values.forEach(function(value) {
 			currentKeyword = document.createElement("span");
@@ -370,7 +369,6 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		});
 		currentKeyword = null;
 	};
-
 	plusElement.src = "../resources/plus.png";
 	plusElement.className = "keywords-input-plus-button  clickable";
 	if (addTagtitle)
