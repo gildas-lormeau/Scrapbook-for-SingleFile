@@ -341,6 +341,7 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		currentKeyword.className = "keywords-input-newkeyword";
 		element.insertBefore(currentKeyword, plusElement);
 		new ElementInput(currentKeyword);
+		dataNewTag.innerHTML = "";
 		currentKeyword.setAttribute("list", dataNewTag.id);
 		currentKeyword.list = dataNewTag.id;
 		currentKeyword.title = "";
