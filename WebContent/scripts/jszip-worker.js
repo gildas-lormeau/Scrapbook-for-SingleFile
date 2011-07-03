@@ -17,7 +17,7 @@ onmessage = function(event) {
 			name : data.name
 		});
 	}
-	if (data.message == "generate") {		
+	if (data.message == "generate") {
 		postMessage({
 			message : "generate",
 			zip : JSZip.instance.generate(true)

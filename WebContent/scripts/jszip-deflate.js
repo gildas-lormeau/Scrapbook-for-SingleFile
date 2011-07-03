@@ -49,7 +49,7 @@ if (!JSZip) {
 	var zip_HASH_BITS = 14;
 	// for BIG_MEM
 	// var zip_LIT_BUFSIZE = 0x8000;
-	// var zip_HASH_BITS = 15;	
+	// var zip_HASH_BITS = 15;
 	if (zip_LIT_BUFSIZE > zip_INBUFSIZ)
 		alert("error: zip_INBUFSIZ is too small");
 	if ((zip_WSIZE << 1) > (1 << zip_BITS))
@@ -440,7 +440,6 @@ if (!JSZip) {
 				continue;
 			}
 
-
 			/*
 			 * The check at best_len-1 can be removed because it will be made again later. (This heuristic is not always a win.) It is not
 			 * necessary to compare scan[2] and match[2] since they are always equal when the other bytes match, given that the hash keys
@@ -608,7 +607,6 @@ if (!JSZip) {
 				zip_block_start = zip_strstart;
 			}
 
-
 			/*
 			 * Make sure that we always have enough lookahead, except at the end of the input file. We need MAX_MATCH bytes for the next
 			 * match, plus MIN_MATCH bytes to insert the string following the next match.
@@ -700,7 +698,6 @@ if (!JSZip) {
 				zip_lookahead--;
 			}
 
-
 			/*
 			 * Make sure that we always have enough lookahead, except at the end of the input file. We need MAX_MATCH bytes for the next
 			 * match, plus MIN_MATCH bytes to insert the string following the next match.
@@ -730,7 +727,6 @@ if (!JSZip) {
 			zip_match_available = 0;
 		}
 
-
 		zip_complete = false;
 	};
 
@@ -749,7 +745,6 @@ if (!JSZip) {
 				return 0;
 			}
 		}
-
 
 		if ((n = zip_qcopy(buff, off, buff_size)) == buff_size)
 			return buff_size;
@@ -792,7 +787,6 @@ if (!JSZip) {
 				zip_reuse_queue(p);
 			}
 		}
-
 
 		if (n == buff_size)
 			return n;
@@ -913,7 +907,6 @@ if (!JSZip) {
 			zip_static_dtree[n].dl = 5;
 			zip_static_dtree[n].fc = zip_bi_reverse(n, 5);
 		}
-
 
 		// Initialize the first block of the first file:
 		zip_init_block();
@@ -1077,7 +1070,6 @@ if (!JSZip) {
 			next_code[bits] = code;
 		}
 
-
 		/*
 		 * Check that the bit counts in bl_count are consistent. The last code must be all ones.
 		 */
@@ -1124,7 +1116,6 @@ if (!JSZip) {
 			} else
 				tree[n].dl = 0;
 		}
-
 
 		/*
 		 * The pkzip format requires that at least one distance code exists, and that at least one bit should be sent even if there is only
@@ -1258,7 +1249,6 @@ if (!JSZip) {
 			min_count = 3;
 		}
 
-
 		for (n = 0; n <= max_code; n++) {
 			curlen = nextlen;
 			nextlen = tree[n + 1].dl;
@@ -1352,7 +1342,6 @@ if (!JSZip) {
 			zip_send_bits(zip_bl_tree[zip_bl_order[rank]].dl, 3);
 		}
 
-
 		// send the literal tree
 		zip_send_tree(zip_dyn_ltree, lcodes - 1);
 
@@ -1429,7 +1418,6 @@ if (!JSZip) {
 			zip_send_all_trees(zip_l_desc.max_code + 1, zip_d_desc.max_code + 1, max_blindex + 1);
 			zip_compress_block(zip_dyn_ltree, zip_dyn_dtree);
 		}
-
 
 		zip_init_block();
 
