@@ -183,7 +183,7 @@ var storage = {};
 	}
 
 	storage.exportToZip = function(pageIds, onprogress, onfinish) {
-		var query, zipWorker = new Worker("../scripts/jszip_worker.js"), exportIndex = 0;
+		var query, zipWorker = new Worker("../scripts/jszip-worker.js"), exportIndex = 0;
 
 		function exportContent(pageIds, index) {
 			var content, name, id = pageIds[index];
