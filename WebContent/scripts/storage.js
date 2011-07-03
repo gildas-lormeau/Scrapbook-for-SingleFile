@@ -24,29 +24,19 @@ var storage = {};
 
 	var DATA_SIZE = 1073741824;
 
+	var reqPages = "create table if not exists pages (id integer primary key asc autoincrement, title varchar(2048), url varchar(2048), date varchar(128), timestamp integer, idx integer, favico blob, read_date varchar(128), read_timestamp integer, size integer)";
+	var reqTags = "create table if not exists tags (id integer primary key asc autoincrement, tag varchar(128))";
+	var reqPagesTags = "create table if not exists pages_tags (page_id integer, tag_id integer)";
+	var reqPagesContents = "create table if not exists pages_contents (id integer, content blob)";
+	var reqPagesTexts = "create table if not exists pages_texts (id integer, text blob)";
+
 	var db, fs, BBuilder = window.BlobBuilder || window.WebKitBlobBuilder, requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
 	function useFilesystem() {
 		return options.filesystemEnabled == "yes" && typeof requestFS != "undefined";
 	}
 
-	function openFileSystem() {
-		if (typeof requestFS != "undefined")
-			requestFS(true, DATA_SIZE, function(filesystem) {
-				fs = filesystem;
-			}, function() {
-				options.filesystemEnabled = "";
-			});
-	}
-
-	function init() {
-		var reqPages = "create table if not exists pages (id integer primary key asc autoincrement, title varchar(2048), url varchar(2048), date varchar(128), timestamp integer, idx integer, favico blob, read_date varchar(128), read_timestamp integer, size integer)";
-		var reqTags = "create table if not exists tags (id integer primary key asc autoincrement, tag varchar(128))";
-		var reqPagesTags = "create table if not exists pages_tags (page_id integer, tag_id integer)";
-		var reqPagesContents = "create table if not exists pages_contents (id integer, content blob)";
-		var reqPagesTexts = "create table if not exists pages_texts (id integer, text blob)";
-
-		db = openDatabase("ScrapBook for SingleFile", "1.0", "scrapbook", DATA_SIZE);
+	function createDatabase() {
 		db.transaction(function(tx) {
 			tx.executeSql(reqPages);
 			tx.executeSql(reqTags);
@@ -54,8 +44,17 @@ var storage = {};
 			tx.executeSql(reqPagesContents);
 			tx.executeSql(reqPagesTexts);
 		});
+	}
 
-		openFileSystem();
+	function init() {
+		db = openDatabase("ScrapBook for SingleFile", "1.0", "scrapbook", DATA_SIZE);
+		createDatabase();
+		if (typeof requestFS != "undefined")
+			requestFS(true, DATA_SIZE, function(filesystem) {
+				fs = filesystem;
+			}, function() {
+				options.filesystemEnabled = "";
+			});
 	}
 
 	function updateIndexFile() {
@@ -336,7 +335,7 @@ var storage = {};
 	}
 
 	storage.importFromZip = function(file, onprogress, onfinish) {
-		var fileReader = new FileReader(), index = 0, max = 0, unzipWorker = new Worker("../scripts/jsunzip.js"), importedPagesIds = {}, importedTagIds = {};
+		var fileReader = new FileReader(), index = 0, max = 0, unzipWorker = new Worker("../scripts/jsunzip-worker.js"), importedPagesIds = {}, importedTagIds = {};
 
 		function nextFile() {
 			if (index < max) {
@@ -1200,23 +1199,60 @@ var storage = {};
 		});
 	};
 
-	storage.reset = function() {
-		var rootReader;
+	storage.reset = function(callback) {
 		db.transaction(function(tx) {
-			tx.executeSql("drop table pages");
-			tx.executeSql("drop table tags");
-			tx.executeSql("drop table pages_tags");
-			tx.executeSql("drop table pages_contents");
-			tx.executeSql("drop table pages_texts");
+			function initCallback() {
+				createDatabase();
+				callback();
+			}
+
+			function dropPagesTexts() {
+				tx.executeSql("drop table pages_texts", dropPagesContents, dropPagesContents);
+			}
+
+			function dropPagesContents() {
+				tx.executeSql("drop table pages_contents", dropPagesTags, dropPagesTags);
+			}
+
+			function dropPagesTags() {
+				tx.executeSql("drop table pages_tags", dropTags, dropTags);
+			}
+
+			function dropTags() {
+				tx.executeSql("drop table tags", dropPages, dropPages);
+			}
+
+			function dropPages() {
+				tx.executeSql("drop table pages", deleteFS, deleteFS);
+			}
+
+			function deleteFS() {
+				var rootReader;
+				if (fs) {
+					rootReader = fs.root.createReader("/");
+					rootReader.readEntries(function(entries) {
+						var i = 0;
+
+						function removeNextEntry() {
+							function next() {
+								i++;
+								removeNextEntry();
+							}
+
+							if (i < entries.length)
+								entries[i].remove(next, next);
+							else
+								initCallback();
+						}
+
+						removeNextEntry();
+					}, initCallback);
+				} else
+					initCallback();
+			}
+
+			dropPagesTexts();
 		});
-		if (fs) {
-			rootReader = fs.root.createReader("/");
-			rootReader.readEntries(function(entries) {
-				var i;
-				for (i = 0; i < entries.length; i++)
-					entries[i].remove();
-			});
-		}
 	};
 
 	init();
