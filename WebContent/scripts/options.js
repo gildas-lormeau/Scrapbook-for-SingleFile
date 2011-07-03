@@ -24,9 +24,8 @@ function load() {
 
 function reset() {
 	if (confirm("Do you really want to delete the database ? All your archives will be lost!")) {
-		bgPage.resetDatabase();
-		setTimeout(function() {
-			alert("Please restart chrome");
-		}, 3000);
+		bgPage.resetDatabase(function() {
+			alert("Database has been reseted");			
+		});
 	}
 }
