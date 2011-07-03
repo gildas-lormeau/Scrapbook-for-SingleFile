@@ -262,6 +262,18 @@
 
 	function display(rows, tags) {
 		var i, tempElement = document.createElement("ul");
+
+		function dateLinkElementOnclick(timestamp, expandSearchButton, expandDateButton, periodInput) {
+			var date = new Date(timestamp);
+			expandSearchButton.value = "expanded";
+			expandDateButton.value = "expanded";
+			periodInput.setPeriod("user");
+			periodInput.fromDate = date;
+			periodInput.toDate = date;
+			search();
+			return false;
+		}
+
 		for (i = 0; i < rows.length; i++) {
 			(function(row, rowTags) {
 				var liElement, cbElement, aElement, favicoElement, moreElement, moreDivElement, starsElement, linkElement, dateLabelElement, dateLinkElement, readDateLabelElement, readDateLinkElement, sizeLabelElement, infoLine1Element, infoLine2Element, infoLine3Element, stars = row.idx || 0, title = row.title;
@@ -332,14 +344,7 @@
 					dateLinkElement.textContent = getDateStr(row.timestamp);
 					dateLinkElement.title = "filter this saved date";
 					dateLinkElement.onclick = function() {
-						var date = new Date(row.timestamp);
-						expandSearchButton.value = "expanded";
-						expandSavedDateButton.value = "expanded";
-						savedPeriodInput.setPeriod("user");
-						savedPeriodInput.fromDate = date;
-						savedPeriodInput.toDate = date;
-						search();
-						return false;
+						return dateLinkElementOnclick(row.timestamp, expandSearchButton, expandSavedDateButton, savedPeriodInput);
 					};
 					readDateLinkElement.href = "#";
 					readDateLinkElement.className = "pages-date-link-input";
@@ -347,14 +352,7 @@
 						readDateLinkElement.textContent = getDateStr(row.read_timestamp);
 						readDateLinkElement.title = "filter this last read date";
 						readDateLinkElement.onclick = function() {
-							var date = new Date(row.read_timestamp);
-							expandSearchButton.value = "expanded";
-							expandReadDateButton.value = "expanded";
-							readPeriodInput.setPeriod("user");
-							readPeriodInput.fromDate = date;
-							readPeriodInput.toDate = date;
-							search();
-							return false;
+							return dateLinkElementOnclick(row.read_timestamp, expandSearchButton, expandReadDateButton, readPeriodInput);
 						};
 					} else {
 						readDateLinkElement.textContent = "unread";
