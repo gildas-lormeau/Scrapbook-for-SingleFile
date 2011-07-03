@@ -11,6 +11,8 @@ h4 {
 	margin-top: 2px;
 	margin-bottom: 5px;
 	padding: 5px;
+	border-bottom: solid 2px #CCC;
+	padding-bottom: 10px;
 }
 
 h4 a {
@@ -263,7 +265,7 @@ ul a:visited,#pages-links a {
 #options-container {
 	position: absolute;
 	right: 0px;
-	bottom: 5px;
+	top: 2px;
 }
 
 #options-newtab {

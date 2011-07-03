@@ -65,9 +65,11 @@ var tabs = {
 	length : 0
 };
 
-function resetDatabase() {
-	storage.reset();
-	localStorage.clear();
+function resetDatabase(callback) {
+	storage.reset(function(succeed) {
+		localStorage.clear();
+		callback(succeed);
+	});
 }
 
 function open(id, selected) {
