@@ -89,3 +89,7 @@ html .tags-row-link {
 #tags-list li[id]:hover .title-input[contenteditable] {
 	width: 532px;
 }
+
+.sortby-link {
+	padding-left: 20px;
+}

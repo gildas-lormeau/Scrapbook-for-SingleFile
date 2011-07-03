@@ -826,3 +826,9 @@ ul {
 .tags-row-unused {
 	cursor: default;
 }
+
+#pages-sortby-links {
+	display: inline-block;
+	position: absolute;
+	right: 0px;
+}
