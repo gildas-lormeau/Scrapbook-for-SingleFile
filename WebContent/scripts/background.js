@@ -400,8 +400,6 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 		notifyTabProgress(request.tabId, 1, request.tabIndex, request.tabMaxIndex);
 	else if (request.processEnd) {
 		notifyTabProgress(request.tabId, 2);
-		if (tabs.length == 0)
-			onProcessEnd();
 		storage.addContent(request.content, request.title, request.url, request.favicoData, function(id) {
 			if (options.expandNewArchive == "yes")
 				popupState.newPages[id] = true;
@@ -409,5 +407,7 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 			webkitNotifications.createHTMLNotification('notificationFileError.html').show();
 		});
 		sendResponse({});
+		if (tabs.length == 0)
+			onProcessEnd();
 	}
 });
