@@ -128,7 +128,7 @@ var storage = {};
 				fs.root.getFile(id + ".html", null, function(fileEntry) {
 					var fileReader = new FileReader();
 					fileReader.onload = function(evt) {
-						content = evt.target.result;
+						content = removeNullChar(evt.target.result);
 						db.transaction(function(tx) {
 							tx.executeSql("insert into pages_contents (id, content) values (?,?)", [ id, content ], function() {
 								fileEntry.remove(importNextContent, importNextContent);
@@ -1108,11 +1108,16 @@ var storage = {};
 		});
 	};
 
+	function removeNullChar(content) {
+		return replace(/(\x00)/g, "");
+	}
+
 	function addContent(favicoData, url, title, content, text, callback, onFileErrorCallback, forceUseDatabase) {
+		content = removeNullChar(content);
 		db.transaction(function(tx) {
 			var date = new Date();
-			tx.executeSql("insert into pages (favico, url, title, date, timestamp, size) values (?, ?, ?, ?, ?, length(?))", [ favicoData, url, title,
-					date.toString(), date.getTime(), content ], function(cbTx, result) {
+			tx.executeSql("insert into pages (favico, url, title, date, timestamp, size) values (?, ?, ?, ?, ?, ?)", [ favicoData, url, title, date.toString(),
+					date.getTime(), content.length ], function(cbTx, result) {
 				var id = result.insertId;
 
 				function onFileError(e) {
