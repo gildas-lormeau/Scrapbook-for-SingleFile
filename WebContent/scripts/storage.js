@@ -1109,7 +1109,7 @@ var storage = {};
 	};
 
 	function removeNullChar(content) {
-		return replace(/(\x00)/g, "");
+		return content.replace(/(\x00)/g, "");
 	}
 
 	function addContent(favicoData, url, title, content, text, callback, onFileErrorCallback, forceUseDatabase) {
