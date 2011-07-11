@@ -36,7 +36,9 @@ var options = localStorage.options ? JSON.parse(localStorage.options) : {
 	openInBgTab : "yes",
 	filesystemEnabled : "",
 	searchInTitle : ""
-};
+}, linkedElement;
+
+
 
 options.save = function() {
 	localStorage.options = JSON.stringify(options);
@@ -45,7 +47,7 @@ options.save = function() {
 var notificationArchiving, timeoutNoResponse;
 
 var popupState = {
-	firstUse : localStorage.defautSearchFilters == null,
+	firstUse : !!localStorage.defautSearchFilters,
 	searchFilters : JSON.parse(JSON.stringify(localStorage.defautSearchFilters ? JSON.parse(localStorage.defautSearchFilters) : DEFAULT_SEARCH_FILTERS)),
 	searchedTabs : "",
 	searchedTags : "",
@@ -392,6 +394,32 @@ popupState.searchFilters.currentPage = 0;
 if (!localStorage.options)
 	options.save();
 
+chrome.omnibox.setDefaultSuggestion({
+	description : "Scrapbook for SingleFile : search an archive"
+});
+
+chrome.omnibox.onInputChanged.addListener(function(text, suggestCallback) {
+	if (text)
+		storage.search({
+			text : text		
+		}, options.searchInTitle, function(rows, tags, count) {
+			var i, suggestions = [];
+			for (i = 0; i < rows.length; i++)
+				suggestions.push({
+					content : "page/" + rows[i].id,
+					description : rows[i].title.replace(/[<>]/g, "")
+				});
+			
+			suggestCallback(suggestions);
+		});
+});
+
+chrome.omnibox.onInputEntered.addListener(function(text, suggestCallback) {
+	var id = text.split("/")[1];
+	if (id)
+		open(id);
+});
+
 chrome.extension.onRequestExternal.addListener(function(request, sender, sendResponse) {
 	setTimeoutNoResponse();
 	if (request.processStart)
@@ -407,7 +435,7 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 			webkitNotifications.createHTMLNotification('notificationFileError.html').show();
 		});
 		sendResponse({});
-		if (tabs.length == 0)
+		if (!tabs.length)
 			onProcessEnd();
 	}
 });

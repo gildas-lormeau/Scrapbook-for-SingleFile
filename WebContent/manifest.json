@@ -13,6 +13,9 @@
 	    "default_title": "View Scrapbook",
 	    "default_popup": "pages/popup.html"
 	},
-	"permissions" : ["tabs", "unlimitedStorage", "notifications"],
-	"minimum_chrome_version" : "7"
+	"permissions" : ["tabs", "unlimitedStorage", "notifications", "omnibox"],
+	"minimum_chrome_version" : "7",
+    "omnibox" : { 
+        "keyword" : "sb" 
+    }
 }
