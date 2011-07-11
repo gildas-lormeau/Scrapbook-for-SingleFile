@@ -1001,7 +1001,7 @@ var storage = {};
 			} else
 				query += " pages.id desc";
 			var currentPage = searchFilters.currentPage || 0;
-			if (searchFilters.limit != "all")
+			if (searchFilters.limit && searchFilters.limit != "all")
 				query += " limit " + (searchFilters.limit * currentPage) + ", " + searchFilters.limit;
 			// console.log(query, params);
 			tx.executeSql(query, params, function(cbTx, result) {
