@@ -47,7 +47,7 @@ options.save = function() {
 var notificationArchiving, timeoutNoResponse;
 
 var popupState = {
-	firstUse : !!localStorage.defautSearchFilters,
+	firstUse : !localStorage.defautSearchFilters,
 	searchFilters : JSON.parse(JSON.stringify(localStorage.defautSearchFilters ? JSON.parse(localStorage.defautSearchFilters) : DEFAULT_SEARCH_FILTERS)),
 	searchedTabs : "",
 	searchedTags : "",
