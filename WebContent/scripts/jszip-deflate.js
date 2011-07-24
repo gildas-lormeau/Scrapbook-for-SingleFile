@@ -349,7 +349,7 @@ if (!JSZip) {
 	var zip_read_buff = function(buff, offset, n) {
 		var i;
 		for (i = 0; i < n && zip_deflate_pos < zip_deflate_data.length; i++)
-			buff[offset + i] = zip_deflate_data.charCodeAt(zip_deflate_pos++) & 0xff;
+			buff[offset + i] = zip_deflate_data[zip_deflate_pos++] & 0xff;
 		return i;
 	};
 
@@ -1596,26 +1596,19 @@ if (!JSZip) {
 		}
 	};
 
-	var zip_deflate = function(str, level) {
-		var i, j;
-
-		zip_deflate_data = str;
+	var zip_deflate = function(dataArray, level) {
+		var i;
+		zip_deflate_data = dataArray;
 		zip_deflate_pos = 0;
 		if (typeof level == "undefined")
 			level = zip_DEFAULT_LEVEL;
 		zip_deflate_start(level);
-
 		var buff = new Array(1024);
 		var aout = [];
-		while ((i = zip_deflate_internal(buff, 0, buff.length)) > 0) {
-			var cbuf = new Array(i);
-			for (j = 0; j < i; j++) {
-				cbuf[j] = String.fromCharCode(buff[j]);
-			}
-			aout[aout.length] = cbuf.join("");
-		}
+		while ((i = zip_deflate_internal(buff, 0, buff.length)) > 0)
+			aout = aout.concat(buff);
 		zip_deflate_data = null; // G.C.
-		return aout.join("");
+		return aout;
 	};
 
 	//

@@ -9,18 +9,18 @@ importScripts('jszip-deflate.js');
 onmessage = function(event) {
 	var data = event.data;
 	if (data.message == "new")
-		JSZip.instance = new JSZip("DEFLATE", true);
+		JSZip.instance = new JSZip(data.compress ? "DEFLATE" : "STORE");
 	if (data.message == "add") {
-		JSZip.instance.add(data.name, data.content);
 		postMessage({
 			message : "add",
-			name : data.name
+			name : data.name,
+			arrayBuffer : JSZip.instance.add(data.name, data.content)
 		});
 	}
-	if (data.message == "generate") {
+	if (data.message == "generateEndFile") {
 		postMessage({
-			message : "generate",
-			zip : JSZip.instance.generate(true)
+			message : "generateEndFile",
+			arrayBuffer : JSZip.instance.generateEndFile()
 		});
 	}
 };

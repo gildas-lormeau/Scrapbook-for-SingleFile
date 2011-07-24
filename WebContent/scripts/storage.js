@@ -23,6 +23,7 @@ var storage = {};
 (function() {
 
 	var DATA_SIZE = 1073741824;
+	var TMP_DATA_SIZE = 1024 * 1024 * 1024;
 
 	var reqPages = "create table if not exists pages (id integer primary key asc autoincrement, title varchar(2048), url varchar(2048), date varchar(128), timestamp integer, idx integer, favico blob, read_date varchar(128), read_timestamp integer, size integer)";
 	var reqTags = "create table if not exists tags (id integer primary key asc autoincrement, tag varchar(128))";
@@ -30,7 +31,7 @@ var storage = {};
 	var reqPagesContents = "create table if not exists pages_contents (id integer, content blob)";
 	var reqPagesTexts = "create table if not exists pages_texts (id integer, text blob)";
 
-	var db, fs, BBuilder = window.BlobBuilder || window.WebKitBlobBuilder, requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
+	var db, fs, tmpfs, BBuilder = window.BlobBuilder || window.WebKitBlobBuilder, requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
 	function useFilesystem() {
 		return options.filesystemEnabled == "yes" && typeof requestFS != "undefined";
@@ -49,12 +50,18 @@ var storage = {};
 	function init() {
 		db = openDatabase("ScrapBook for SingleFile", "1.0", "scrapbook", DATA_SIZE);
 		createDatabase();
-		if (typeof requestFS != "undefined")
+		if (typeof requestFS != "undefined") {
 			requestFS(true, DATA_SIZE, function(filesystem) {
 				fs = filesystem;
 			}, function() {
 				options.filesystemEnabled = "";
 			});
+			requestFS(TEMPORARY, TMP_DATA_SIZE, function(filesystem) {
+				tmpfs = filesystem;
+			}, function() {
+				options.filesystemEnabled = "";
+			});
+		}
 	}
 
 	function updateIndexFile() {
@@ -151,198 +158,134 @@ var storage = {};
 		});
 	};
 
-	function removeMetaCharset(content) {
-		return content.replace(/<meta[^>]*http-equiv\s*=\s*["']?content-type[^>]*>/gi, "").replace(/<meta[^>]*charset\s*=[^>]*>/gi, "");
+	function getValidFileName(fileName) {
+		return fileName.replace(/[\\\/:\*\?\"><|]/gi, "").trim();
 	}
 
-	function exportCSV(request, condition, pageIds, callback) {
-		db.transaction(function(tx) {
-			var i, query = request + " and (";
-			for (i = 0; i < pageIds.length; i++) {
-				query += " " + condition;
-				if (i < pageIds.length - 1)
-					query += " or";
-			}
-			query += ")";
-			tx.executeSql(query, pageIds, function(cbTx, result) {
-				var content = "", i, keys;
-				if (result.rows.length) {
-					keys = Object.keys(result.rows.item(0));
-					content = keys.join(",") + "\n";
-					for (i = 0; i < result.rows.length; i++)
-						content += keys.map(function(key) {
-							var value = result.rows.item(i)[key];
-							return '"' + (value ? String(value).replace(/"/g, "\"") : "") + '"';
-						}).join(",") + "\n";
-				}
-				callback(content);
-			}, function() {
-				callback("");
-			});
-		});
-	}
-
-	storage.exportToZip = function(pageIds, onprogress, onfinish) {
+	storage.exportToZip = function(pageIds, filename, compress, onprogress, onfinish) {
 		var query, zipWorker = new Worker("../scripts/jszip-worker.js"), exportIndex = 0;
 
-		function exportContent(pageIds, index) {
-			var content, name, id = pageIds[index];
-			if (index == pageIds.length) {
-				exportCSV("select id, title, url, date, read_date, idx, size, timestamp, read_timestamp, favico from pages where 1=1", "id=?", pageIds,
-						function(content) {
-							zipWorker.postMessage({
-								message : "add",
-								name : "pages.csv",
-								content : content
-							});
-							exportContent(pageIds, index + 1);
-						});
-			} else if (index == pageIds.length + 1)
-				exportCSV("select distinct id, tag from tags, pages_tags where pages_tags.tag_id = tags.id", "pages_tags.page_id=?", pageIds,
-						function(content) {
-							zipWorker.postMessage({
-								message : "add",
-								name : "tags.csv",
-								content : content
-							});
-							exportContent(pageIds, index + 1);
-						});
-			else if (index == pageIds.length + 2)
-				exportCSV("select page_id, tag_id from tags, pages_tags where pages_tags.tag_id = tags.id", "pages_tags.page_id=?", pageIds, function(content) {
-					zipWorker.postMessage({
-						message : "add",
-						name : "pages_tags.csv",
-						content : content
-					});
-					exportContent(pageIds, index + 1);
-				});
-			else if (index == pageIds.length + 3)
-				zipWorker.postMessage({
-					message : "generate"
-				});
-			else
-				storage.getContent(id, function(content, title) {
-					name = (title.replace(/[\\\/:\*\?\"><|]/gi, "").trim() || "Untitled") + " (" + id + ").html";
-					zipWorker.postMessage({
-						message : "add",
-						name : name,
-						content : removeMetaCharset(content)
-					});
-					exportContent(pageIds, index + 1);
-				}, false, true);
+		function cleanFilesystem(callback) {
+			rootReader = tmpfs.root.createReader("/");
+			rootReader.readEntries(function(entries) {
+				var i = 0;
+
+				function removeNextEntry() {
+					function next() {
+						i++;
+						removeNextEntry();
+					}
+
+					if (i < entries.length)
+						entries[i].remove(next, next);
+					else
+						callback();
+				}
+
+				removeNextEntry();
+			}, callback);
 		}
 
-		zipWorker.onmessage = function(event) {
-			var data = event.data;
-			if (data.message == "generate") {
-				zipWorker.terminate();
-				onfinish(data.zip);
-			}
-			if (data.message == "add") {
-				exportIndex++;
-				onprogress(exportIndex, pageIds.length + 3);
-			}
-		};
-		zipWorker.postMessage({
-			message : "new"
+		function exportContent(pageIds) {
+			var id = pageIds[exportIndex];
+			storage.getContent(id, function(content, title) {
+				var newDoc, commentNode, name;
+				name = (title.replace(/[\\\/:\*\?\"><|]/gi, "").trim() || "Untitled") + " (" + id + ").html";
+				newDoc = document.implementation.createHTMLDocument();
+				newDoc.open();
+				newDoc.writeln(content);
+				newDoc.close();
+				commentNode = newDoc.documentElement.firstChild;
+				db.transaction(function(tx) {
+					var query = "select title, read_date, idx, timestamp, read_timestamp from pages where id=?";
+					tx.executeSql(query, [ id ], function(cbTx, result) {
+						var pageMetadata, tags = [];
+						if (result.rows.length)
+							pageMetadata = result.rows.item(0);
+						var query = "select tag from tags, pages_tags where pages_tags.tag_id = tags.id and pages_tags.page_id=?";
+						tx.executeSql(query, [ id ], function(cbTx, result) {
+							var i, blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM), fileReader;
+							if (result.rows.length)
+								for (i = 0; i < result.rows.length; i++)
+									tags.push(result.rows.item(i).tag);
+							if (pageMetadata)
+								commentNode.textContent += " page info: " + JSON.stringify(pageMetadata) + "\n";
+							commentNode.textContent += " tags: " + JSON.stringify(tags) + "\n";
+							v.set([ 0xEF, 0xBB, 0xBF ]);
+							blobBuilder.append(BOM);
+							blobBuilder.append(getDoctype(newDoc));
+							blobBuilder.append(newDoc.documentElement.outerHTML);
+							fileReader = new FileReader();
+							fileReader.onloadend = function(event) {
+								zipWorker.postMessage({
+									message : "add",
+									name : name,
+									content : event.target.result
+								});
+							};
+							fileReader.readAsArrayBuffer(blobBuilder.getBlob());
+						});
+					}, function() {
+						//
+					});
+				});
+			}, false, true);
+		}
+		cleanFilesystem(function() {
+			tmpfs.root.getFile(getValidFileName(filename), {
+				create : true
+			}, function(fileEntry) {
+				fileEntry.createWriter(function(fileWriter) {
+					zipWorker.onmessage = function(event) {
+						var data = event.data, blobBuilder = new BBuilder();
+						blobBuilder.append(data.arrayBuffer);
+						if (data.message == "add") {
+							exportIndex++;
+							fileWriter.onwrite = function() {
+								if (exportIndex == pageIds.length)
+									zipWorker.postMessage({
+										message : "generateEndFile"
+									});
+								else
+									exportContent(pageIds, exportIndex);
+							};
+							fileWriter.write(blobBuilder.getBlob());
+							onprogress(exportIndex, pageIds.length);
+						} else if (data.message == "generateEndFile") {
+							fileWriter.onwrite = function() {
+								zipWorker.terminate();
+								onfinish(fileEntry.toURL());
+							};
+							fileWriter.write(blobBuilder.getBlob());
+						}
+					};
+					zipWorker.postMessage({
+						message : "new",
+						compress : compress
+					});
+					exportContent(pageIds, 0);
+					onprogress(exportIndex, pageIds.length);
+				});
+			});
 		});
-		exportContent(pageIds, 0);
 	};
 
-	function importPagesCSV(content, importedPageIds, callback) {
-		var request = "update pages set title = ?, url = ?, date = ?, read_date = ?, idx = ?, size = ?, timestamp = ?, read_timestamp = ?, favico = ? where id = ?";
-
-		db.transaction(function(tx) {
-			var lines = content.split("\n"), header = lines.shift(), i = 0;
-
-			function processLine() {
-				if (i < lines.length) {
-					var data = JSON.parse("[" + lines[i].replace(/\\"/g, '\\"') + "]");
-					if (lines[i]) {
-						tx.executeSql(request, [ data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], importedPageIds[data[0]] ],
-								function() {
-									i++;
-									processLine();
-								});
-					} else {
-						i++;
-						processLine();
-					}
-				} else
-					callback();
-			}
-
-			processLine();
-		});
-	}
-
-	function importTagsCSV(content, callback) {
-		db.transaction(function(tx) {
-			var lines = content.split("\n"), header = lines.shift(), importedTagIds = {}, i = 0;
-
-			function processLine() {
-				if (i < lines.length) {
-					var data = JSON.parse("[" + lines[i].replace(/\\"/g, '\\"') + "]");
-					if (lines[i]) {
-						tx.executeSql("select id from tags where tag = ?", [ data[1] ], function(cbTx, result) {
-							if (!result.rows.length) {
-								tx.executeSql("insert into tags (tag) values (?)", [ data[1] ], function(cbTx, result) {
-									importedTagIds[data[0]] = result.insertId;
-									i++;
-									processLine();
-								});
-							} else {
-								importedTagIds[data[0]] = result.rows.item(0).id;
-								i++;
-								processLine();
-							}
-						});
-					} else {
-						i++;
-						processLine();
-					}
-				} else
-					callback(importedTagIds);
-			}
-
-			processLine();
-		});
-	}
-
-	function importPagesTagsCSV(content, importedPagesIds, importedTagIds, callback) {
-		db.transaction(function(tx) {
-			var lines = content.split("\n"), header = lines.shift(), i = 0;
-
-			function processLine() {
-				if (i < lines.length) {
-					var data = JSON.parse("[" + lines[i].replace(/\\"/g, '\\"') + "]");
-					if (lines[i]) {
-						tx.executeSql("insert into pages_tags (page_id, tag_id) values (?, ?)", [ importedPagesIds[data[0]], importedTagIds[data[1]] ],
-								function() {
-									i++;
-									processLine();
-								});
-					} else {
-						i++;
-						processLine();
-					}
-				} else
-					callback();
-			}
-
-			processLine();
-		});
-	}
-
 	storage.importFromZip = function(file, onprogress, onfinish) {
-		var fileReader = new FileReader(), index = 0, max = 0, unzipWorker = new Worker("../scripts/jsunzip-worker.js"), importedPagesIds = {}, importedTagIds = {};
+		var fileReader = new FileReader(), index = 0, entry, unzipWorker = new Worker("../scripts/jsunzip-worker.js");
 
 		function nextFile() {
-			if (index < max) {
-				onprogress(index, max);
-				unzipWorker.postMessage({
-					message : "getNextEntry"
-				});
+			if (index < entries.length) {
+				onprogress(index, entries.length);
+				entry = entries[index];
+				if (/\.html$|\.htm$/i.test(entry.filename)) {
+					unzipWorker.postMessage({
+						message : "getEntryData",
+						index : index
+					});
+				} else {
+					index++;
+					nextFile();
+				}
 			} else {
 				unzipWorker.terminate();
 				onfinish();
@@ -352,48 +295,44 @@ var storage = {};
 		fileReader.onloadend = function(event) {
 			var content = event.target.result;
 			unzipWorker.postMessage({
-				message : "parse",
+				message : "setContent",
 				content : content
 			});
+
 			unzipWorker.onmessage = function(event) {
 				var data = event.data;
-				if (data.message == "parse") {
-					max = data.entriesLength;
+				if (data.message == "setContent") {
+					unzipWorker.postMessage({
+						message : "getEntries"
+					});
+				}
+				if (event.data.message == "getEntries") {
+					entries = event.data.entries;
 					nextFile();
 				}
-				if (data.message == "getNextEntry") {
+				if (data.message == "getEntryData") {
 					var fileReader = new FileReader();
 					fileReader.onloadend = function(event) {
+						var archiveFilename, archiveIdMatch, archiveId;
 						index++;
-						if (data.filename == "pages.csv")
-							importPagesCSV(event.target.result, importedPagesIds, nextFile);
-						else if (data.filename == "tags.csv")
-							importTagsCSV(event.target.result, function(tagIds) {
-								importedTagIds = tagIds;
-								nextFile();
-							});
-						else if (data.filename == "pages_tags.csv")
-							importPagesTagsCSV(event.target.result, importedPagesIds, importedTagIds, nextFile);
-						else {
-							var archiveFilename = data.filename.replace(/.html?$/, "");
-							var archiveIdMatch = archiveFilename.match(/ \((\d*)\)$/);
-							if (archiveIdMatch)
-								var archiveId = archiveIdMatch[1];
-							archiveFilename = archiveFilename.replace(/ \(\d*\)$/, "");
-							storage.addContent(event.target.result, data.filename.replace(/.html?$/, "").replace(/ \(\d*\)$/, ""), null, null, function(id) {
-								if (archiveId)
-									importedPagesIds[archiveId] = id;
-								nextFile();
-							}, function() {
-								// TODO
-							});
-						}
+						archiveFilename = entry.filename.replace(/.html?$/, "");
+						archiveIdMatch = archiveFilename.match(/ \((\d*)\)$/);
+						if (archiveIdMatch)
+							archiveId = archiveIdMatch[1];
+						archiveFilename = archiveFilename.replace(/ \(\d*\)$/, "");
+						storage.addContent(event.target.result, entry.filename.replace(/.html?$/, "").replace(/ \(\d*\)$/, ""), null, null, function(id) {
+							nextFile();
+						}, function() {
+							// TODO
+						});
 					};
-					fileReader.readAsText(data.file, "UTF-8");
+					var blobBuilder = new BBuilder();
+					blobBuilder.append(event.data.data);
+					fileReader.readAsText(blobBuilder.getBlob(), "UTF-8");
 				}
 			};
 		};
-		fileReader.readAsBinaryString(file);
+		fileReader.readAsArrayBuffer(file);
 	};
 
 	storage.exportDB = function(onprogress, onfinish) {
@@ -523,7 +462,25 @@ var storage = {};
 		});
 	};
 
-	storage.updatePage = function(id, content, forceUseDatabase) {
+	function getDoctype(doc) {
+		var docType = doc.doctype, docTypeStr;
+		if (docType) {
+			docTypeStr = "<!DOCTYPE " + docType.nodeName;
+			if (docType.publicId) {
+				docTypeStr += " PUBLIC \"" + docType.publicId + "\"";
+				if (docType.systemId)
+					docTypeStr += " \"" + docType.systemId + "\"";
+			} else if (docType.systemId)
+				docTypeStr += " SYSTEM \"" + docType.systemId + "\"";
+			if (docType.internalSubset)
+				docTypeStr += " [" + docType.internalSubset + "]";
+			return docTypeStr + ">\n";
+		}
+		return "";
+	}
+
+	storage.updatePage = function(id, doc, forceUseDatabase) {
+		var content = getDoctype(doc) + doc.documentElement.outerHTML;
 		if (fs && !forceUseDatabase) {
 			fs.root.getFile(id + ".html", null, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
@@ -532,12 +489,12 @@ var storage = {};
 					blobBuilder.append(BOM);
 					blobBuilder.append(content);
 					fileWriter.onerror = function(e) {
-						storage.updatePage(id, content, true);
+						storage.updatePage(id, doc, true);
 					};
 					fileWriter.write(blobBuilder.getBlob());
 				});
 			}, function() {
-				storage.updatePage(id, content, true);
+				storage.updatePage(id, doc, true);
 			});
 		} else {
 			db.transaction(function(tx) {
@@ -1112,12 +1069,13 @@ var storage = {};
 		return content.replace(/(\x00)/g, "");
 	}
 
-	function addContent(favicoData, url, title, content, text, callback, onFileErrorCallback, forceUseDatabase) {
+	function addContent(favicoData, url, title, content, text, timestamp, readDate, readDateTs, idx, tags, callback, onFileErrorCallback, forceUseDatabase) {
+		var query = "insert into pages (favico, url, title, date, timestamp, size, read_date, read_timestamp, idx) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		content = removeNullChar(content);
 		db.transaction(function(tx) {
 			var date = new Date();
-			tx.executeSql("insert into pages (favico, url, title, date, timestamp, size) values (?, ?, ?, ?, ?, ?)", [ favicoData, url, title, date.toString(),
-					date.getTime(), content.length ], function(cbTx, result) {
+			tx.executeSql(query, [ favicoData, url, title, date.toString(), timestamp || date.getTime(), content.length, readDate || "", readDateTs || "",
+					idx || "" ], function(cbTx, result) {
 				var id = result.insertId;
 
 				function onFileError(e) {
@@ -1125,16 +1083,18 @@ var storage = {};
 						onFileErrorCallback(id);
 					db.transaction(function(tx) {
 						tx.executeSql("delete from pages where id = ?", [ id ], function() {
-							addContent(favicoData, url, title, content, text, callback, onFileErrorCallback, true);
+							addContent(favicoData, url, title, content, text, timestamp, readDate, readDateTs, idx, tags, callback, onFileErrorCallback, true);
 						});
 					});
 				}
 
-				function insertPageText() {
-					db.transaction(function(tx) {
-						tx.executeSql("insert into pages_texts (id, text) values (?, ?)", [ id, text ], function() {
-							if (callback)
-								callback(id);
+				function finishUpdate() {
+					storage.addTags([], tags, [ id ], function() {
+						db.transaction(function(tx) {
+							tx.executeSql("insert into pages_texts (id, text) values (?, ?)", [ id, text ], function() {
+								if (callback)
+									callback(id);
+							});
 						});
 					});
 				}
@@ -1151,20 +1111,21 @@ var storage = {};
 							fileWriter.onerror = onFileError;
 							fileWriter.onwrite = function(e) {
 								updateIndexFile();
-								insertPageText();
+								finishUpdate();
 							};
 							fileWriter.write(blobBuilder.getBlob());
 						});
 					}, onFileError);
 				} else
-					tx.executeSql("insert into pages_contents (id, content) values (?, ?)", [ id, content ], insertPageText);
+					tx.executeSql("insert into pages_contents (id, content) values (?, ?)", [ id, content ], finishUpdate);
 			});
 		});
 	}
 
 	storage.addContent = function(content, title, url, favicoData, callback, onFileErrorCallback) {
 		var EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
-		var newDoc = document.implementation.createHTMLDocument(), length, domain, domainArray, node, urlArray;
+		var titleLength, domain, domainArray, node, urlArray, timestamp, pageInfo, pageInfoArray, tagsArray, newDoc = document.implementation
+				.createHTMLDocument();
 		newDoc.open();
 		newDoc.writeln(content);
 		newDoc.close();
@@ -1172,30 +1133,51 @@ var storage = {};
 			favicoData = newDoc.querySelector('link[href][rel="shortcut icon"], link[href][rel="icon"], link[href][rel="apple-touch-icon"]');
 			favicoData = favicoData ? favicoData.href : EMPTY_IMAGE_DATA;
 		}
-		if (!url) {
-			node = newDoc.documentElement.childNodes[0];
-			if (node && node.nodeType == Node.COMMENT_NODE && node.textContent.indexOf("SingleFile") != -1) {
+
+		var readDate, readDateTs, idx, tags = [];
+
+		node = newDoc.documentElement.childNodes[0];
+		if (node && node.nodeType == Node.COMMENT_NODE && node.textContent.indexOf("SingleFile") != -1) {
+			if (!url) {
 				urlArray = node.textContent.match(/url:(.*)/);
 				if (urlArray)
 					url = urlArray[1].trim();
 			}
+			pageInfoArray = node.textContent.match(/ page info: (.*)/);
+			if (pageInfoArray) {
+				var pageInfo = JSON.parse(pageInfoArray[1]);
+				node.textContent = node.textContent.replace(/ page info: (.*)\n/, "");
+				timestamp = pageInfo.timestamp;
+				title = pageInfo.title;
+				readDate = pageInfo.read_date;
+				readDateTs = pageInfo.read_date_timestamp;
+				idx = pageInfo.idx;
+			}
+
+			tagsArray = node.textContent.match(/ tags: (.*)/);
+			if (tagsArray) {
+				tags = JSON.parse(tagsArray[1]);
+				node.textContent = node.textContent.replace(/ tags: (.*)\n/, "");
+			}
 		}
+
 		title = (title || "").trim();
-		length = title.length;
+		titleLength = title.length;
 		url = url ? url.match(/[^#]*/)[0] : "about:blank";
 		domainArray = url.match(/\/\/([^\/]*)/);
 		if (domainArray)
 			domain = domainArray[1];
-		if (!length)
+		if (!titleLength)
 			title = url.match(/\/\/(.*)/)[1];
 		else if (title.indexOf(" ") == -1 && domain) {
-			if (length)
+			if (titleLength)
 				title += " (";
 			title += domain;
-			if (length)
+			if (titleLength)
 				title += ")";
 		}
-		addContent(favicoData, url, title, content, newDoc.body.innerText.replace(/\s+/g, " "), callback, onFileErrorCallback);
+		addContent(favicoData, url, title, getDoctype(newDoc) + newDoc.documentElement.outerHTML, newDoc.body.innerText.replace(/\s+/g, " "), timestamp,
+				readDate, readDateTs, idx, tags, callback, onFileErrorCallback);
 	};
 
 	storage.setRating = function(id, rating) {

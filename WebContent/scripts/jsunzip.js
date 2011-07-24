@@ -1,55 +1,49 @@
-(function(GLOBAL) {
-	var JSUnzip = function(fileContents) {
-		this.fileContents = new JSUnzip.BigEndianBinaryStream(fileContents);
-	};
-	GLOBAL.JSUnzip = JSUnzip;
-	JSUnzip.MAGIC_NUMBER = 0x04034b50;
+(function(globalObject) {
 
-	// from http://www.webtoolkit.info/javascript-url-decode-encode.html
-	function utf8_decode(utftext) {
-		var string = "";
-		var i = 0;
-		var c = c1 = c2 = 0;
+	var MAGIC_NUMBER = 0x04034b50;
 
+	function JSUnzip() {
+	}
+
+	function decodeUTF8(utftext) {
+		var str = "", i = 0, c = c1 = c2 = 0;
 		while (i < utftext.length) {
-
 			c = utftext.charCodeAt(i);
-
 			if (c < 128) {
-				string += String.fromCharCode(c);
+				str += String.fromCharCode(c);
 				i++;
 			} else if ((c > 191) && (c < 224)) {
 				c2 = utftext.charCodeAt(i + 1);
-				string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+				str += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
 				i += 2;
 			} else {
 				c2 = utftext.charCodeAt(i + 1);
 				c3 = utftext.charCodeAt(i + 2);
-				string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+				str += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
 				i += 3;
 			}
-
 		}
-
-		return string;
+		return str;
 	}
 
 	JSUnzip.prototype = {
-		readEntries : function() {
-			if (!this.isZipFile()) {
-				throw new Error("File is not a Zip file.");
-			}
+		setContent : function(content) {
+			this.fileContents = new JSUnzip.BigEndianBinaryStream(content);
+		},
 
-			this.entries = [];
-			var e = new JSUnzip.ZipEntry(this.fileContents);
-			while ("fileName" in e) {
-				this.entries.push(e);
-				e = new JSUnzip.ZipEntry(this.fileContents);
+		getEntries : function() {
+			if (this.isZipFile()) {
+				this.entries = [];
+				var e = new JSUnzip.ZipEntry(this.fileContents);
+				while ("fileName" in e) {
+					this.entries.push(e);
+					e = new JSUnzip.ZipEntry(this.fileContents);
+				}
 			}
 		},
 
 		isZipFile : function() {
-			return this.fileContents.getByteRangeAsNumber(0, 4) === JSUnzip.MAGIC_NUMBER;
+			return this.fileContents.getByteRangeAsNumber(0, 4) === MAGIC_NUMBER;
 		}
 	};
 
@@ -57,45 +51,41 @@
 		var dataOffsetStart;
 
 		this.signature = binaryStream.getNextBytesAsNumber(4);
-		if (this.signature !== JSUnzip.MAGIC_NUMBER) {
+		if (this.signature !== MAGIC_NUMBER)
 			return;
-		}
 
 		this.versionNeeded = binaryStream.getNextBytesAsNumber(2);
 		this.bitFlag = binaryStream.getNextBytesAsNumber(2);
 		this.compressionMethod = binaryStream.getNextBytesAsNumber(2);
 		this.timeBlob = binaryStream.getNextBytesAsNumber(4);
 
-		if (this.isEncrypted()) {
+		if (this.isEncrypted())
 			throw "File contains encrypted entry. Not supported.";
-		}
 
-		if (this.isUsingBit3TrailingDataDescriptor()) {
+		if (this.isUsingBit3TrailingDataDescriptor())
 			throw "File is using bit 3 trailing data descriptor. Not supported.";
-		}
 
 		this.crc32 = binaryStream.getNextBytesAsNumber(4);
 		this.compressedSize = binaryStream.getNextBytesAsNumber(4);
 		this.uncompressedSize = binaryStream.getNextBytesAsNumber(4);
 
-		if (this.isUsingZip64()) {
+		if (this.isUsingZip64())
 			throw "File is using Zip64 (4gb+ file size). Not supported";
-		}
 
 		this.fileNameLength = binaryStream.getNextBytesAsNumber(2);
 		this.extraFieldLength = binaryStream.getNextBytesAsNumber(2);
 
 		this.fileName = binaryStream.getNextBytesAsString(this.fileNameLength);
 
-		if (this.isUsingUtf8()) {
-			this.fileName = utf8_decode(this.fileName);
-		}
+		if (this.isUsingUtf8())
+			this.fileName = decodeUTF8(this.fileName);
 
 		this.extra = binaryStream.getNextBytesAsString(this.extraFieldLength);
 
 		dataOffsetStart = binaryStream.currentByteIndex;
+
 		this.getData = function() {
-			return binaryStream.getByteRangeAsString(dataOffsetStart, this.compressedSize);
+			return binaryStream.getByteRange(dataOffsetStart, this.compressedSize);
 		};
 
 		binaryStream.currentByteIndex += this.compressedSize;
@@ -120,22 +110,18 @@
 	};
 
 	JSUnzip.BigEndianBinaryStream = function(stream) {
-		this.stream = stream;
-		this.resetByteIndex();
+		this.int8Array = new Uint8Array(stream);
+		this.currentByteIndex = 0;
 	};
 
 	JSUnzip.BigEndianBinaryStream.prototype = {
-		// The index of the current byte, used when we step through the byte
-		// with getNextBytesAs*.
-		resetByteIndex : function() {
-			this.currentByteIndex = 0;
+
+		getByteRange : function(index, steps) {
+			return this.int8Array.subarray(index, index + steps);
 		},
 
-		// TODO: Other similar JS libs does charCodeAt(index) & 0xff. Grok
-		// why, and do that here if neccesary. So far, I've never gotten a
-		// char code higher than 255.
 		getByteAt : function(index) {
-			return this.stream.charCodeAt(index);
+			return this.int8Array[index];
 		},
 
 		getNextBytesAsNumber : function(steps) {
@@ -172,14 +158,17 @@
 			return result;
 		}
 	};
+
+	globalObject.JSUnzip = JSUnzip;
+
 }(this));
 
-(function(GLOBAL) {
+(function(globalObject) {
 
 	/*
 	 * Modified version by Gildas Lormeau.
 	 * 
-	 * Returns array of int instead of string.
+	 * JSInflate.inflate returns an ArrayBuffer object instead of a String object.
 	 */
 
 	/*
@@ -222,16 +211,11 @@
 	var zip_MASK_BITS = new Array(0x0000, 0x0001, 0x0003, 0x0007, 0x000f, 0x001f, 0x003f, 0x007f, 0x00ff, 0x01ff, 0x03ff, 0x07ff, 0x0fff, 0x1fff, 0x3fff,
 			0x7fff, 0xffff);
 	// Tables for deflate from PKZIP's appnote.txt.
+	/*
+	 * note: see note #13 above about the 258 in this list.
+	 */
 	var zip_cplens = new Array( // Copy lengths for literal codes 257..285
-	3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0); /*
-																																 * note: see
-																																 * note #13
-																																 * above
-																																 * about the
-																																 * 258 in
-																																 * this
-																																 * list.
-																																 */
+	3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0);
 	var zip_cplext = new Array( // Extra bits for literal codes 257..285
 	0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, 99, 99); // 99==invalid
 	var zip_cpdist = new Array( // Copy offsets for distance codes 0..29
@@ -479,7 +463,7 @@
 	function zip_GET_BYTE() {
 		if (zip_inflate_data.length == zip_inflate_pos)
 			return -1;
-		return zip_inflate_data.charCodeAt(zip_inflate_pos++) & 0xff;
+		return zip_inflate_data[zip_inflate_pos++];
 	}
 
 	function zip_NEEDBITS(n) {
@@ -889,66 +873,22 @@
 	}
 
 	var JSInflate = {};
-	if (typeof (module) == "object") {
-		module.exports = JSInflate;
-		var fs = require("fs");
-	} else {
-		GLOBAL.JSInflate = JSInflate;
-	}
 
-	JSInflate.inflate = function(data) {
-		var out, buff;
-		var i, j;
-
+	JSInflate.inflate = function(data, uncompressedSize) {
+		var arrayBuffer = new ArrayBuffer(uncompressedSize), uint8Array = new Uint8Array(arrayBuffer), index = 0, buff = [], length;
+		buff.length = 1024;
 		zip_inflate_start();
 		zip_inflate_data = data;
 		zip_inflate_pos = 0;
-
-		buff = new Array(1024);
-		out = [];
-
-		while ((i = zip_inflate_internal(buff, 0, buff.length)) > 0) {
-			for (j = 0; j < i; j++)
-				out.push(buff[j]);
+		while ((length = zip_inflate_internal(buff, 0, buff.length)) > 0) {
+			buff.length = length;
+			uint8Array.set(buff, index);
+			index += length;
 		}
 		zip_inflate_data = null; // G.C.
-		return out;
+		return arrayBuffer;
 	};
 
-	function write_inflated_internal(ws, buff) {
-		var bytesInflated = zip_inflate_internal(buff, 0, buff.length);
-		if (bytesInflated > 0) {
-			var out = "";
-			for (j = 0; j < bytesInflated; j++) {
-				out += String.fromCharCode(buff[j]);
-			}
-			ws.write(out);
-		}
-		return bytesInflated;
-	}
+	globalObject.JSInflate = JSInflate;
 
-	JSInflate.inflateStream = function(data, unzipFile, callback) {
-		var out, buff, bytesWritten;
-
-		zip_inflate_start();
-		zip_inflate_data = data;
-		zip_inflate_pos = 0;
-		bytesWritten = 0;
-
-		var ws = fs.createWriteStream(unzipFile);
-		buff = new Array(1024);
-		var bytesInflated = 0;
-
-		ws.on('drain', function() {
-			bytesInflated = write_inflated_internal(ws, buff);
-			if (bytesInflated > 0) {
-				bytesWritten += bytesInflated;
-			} else {
-				zip_inflate_data = null;
-				callback(bytesWritten);
-			}
-		});
-
-		bytesWritten += write_inflated_internal(ws, buff);
-	};
 }(this));

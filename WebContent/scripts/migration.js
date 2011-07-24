@@ -22,3 +22,18 @@
 	}
 })();
 // ---
+
+//--- migration code from version 0.1.0 to 0.1.+ ---
+(function() {
+	var options;
+	
+	if (localStorage.options) {
+		options = JSON.parse(localStorage.options);
+		if (typeof options.compress == "undefined") {
+			options.compress = "yes";
+			localStorage.options = JSON.stringify(options);
+		}
+	}
+})();
+// ---
+

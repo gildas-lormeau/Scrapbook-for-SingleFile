@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, searchTitleButton, saveOnDiskButton, importButton, exportButton, exportToZipButton, importFromZipButton, openBgTabButton;
+	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, searchTitleButton, saveOnDiskButton, importButton, exportButton, exportToZipButton, importFromZipButton, openBgTabButton, compressButton;
 
 	var requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
@@ -74,6 +74,11 @@
 	function importFromZipButtonOnclick() {
 		importFromZipButton.disabled = true;
 		bgPage.importFromZip(event.target.files[0]);
+	}
+
+	function compressButtonOnclick() {
+		bgPage.options.compress = compressButton.value;
+		bgPage.options.save();
 	}
 
 	function notifyProgress(state, buttonElement, altButtonElement) {
@@ -133,6 +138,7 @@
 		exportButton = document.getElementById("options-export-button");
 		exportToZipButton = document.getElementById("options-export-tozip-button");
 		importFromZipButton = document.getElementById("options-import-fromzip-button");
+		compressButton = document.getElementById("options-compress-button");
 		document.getElementById("options-set-button").onclick = setButtonOnclick;
 		document.getElementById("options-reset-button").onclick = resetButtonOnclick;
 		importButton.onclick = importButtonOnclick;
@@ -148,6 +154,8 @@
 		searchTitleButton.value = bgPage.options.searchInTitle;
 		saveOnDiskButton.onchange = saveOnDiskButtonOnclick;
 		saveOnDiskButton.value = bgPage.options.filesystemEnabled;
+		compressButton.onchange = compressButtonOnclick;
+		compressButton.value = bgPage.options.compress;
 		if (typeof requestFS == "undefined") {
 			document.getElementById("options-save-archives-container").style.display = "none";
 			document.getElementById("options-import-container").style.display = "none";

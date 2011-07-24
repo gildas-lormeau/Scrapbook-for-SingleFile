@@ -35,10 +35,9 @@ var options = localStorage.options ? JSON.parse(localStorage.options) : {
 	expandNewArchive : "yes",
 	openInBgTab : "yes",
 	filesystemEnabled : "",
-	searchInTitle : ""
+	searchInTitle : "",
+	compress : "yes"
 }, linkedElement;
-
-
 
 options.save = function() {
 	localStorage.options = JSON.stringify(options);
@@ -97,27 +96,10 @@ function openPages(checkedPages) {
 	});
 }
 
-function getDoctype(doc) {
-	var docType = doc.doctype, docTypeStr;
-	if (docType) {
-		docTypeStr = "<!DOCTYPE " + docType.nodeName;
-		if (docType.publicId) {
-			docTypeStr += " PUBLIC \"" + docType.publicId + "\"";
-			if (docType.systemId)
-				docTypeStr += " \"" + docType.systemId + "\"";
-		} else if (docType.systemId)
-			docTypeStr += " SYSTEM \"" + docType.systemId + "\"";
-		if (docType.internalSubset)
-			docTypeStr += " [" + docType.internalSubset + "]";
-		return docTypeStr + ">\n";
-	}
-	return "";
-}
-
 function updatePage() {
 	var element = linkedElement;
 	resetLinkedElement();
-	storage.updatePage(element.archiveId, getDoctype(element.archiveDoc) + element.archiveDoc.documentElement.outerHTML);
+	storage.updatePage(element.archiveId, element.archiveDoc);
 }
 
 function resetLinkedElement() {
@@ -287,7 +269,7 @@ function exportDB() {
 	});
 }
 
-function exportToZip(checkedPages) {
+function exportToZip(checkedPages, filename) {
 	var notificationExporting;
 
 	process.exportingToZip = {
@@ -299,7 +281,7 @@ function exportToZip(checkedPages) {
 	setTimeout(function() {
 		notificationExporting.cancel();
 	}, 3000);
-	storage.exportToZip(checkedPages, function(index, max) {
+	storage.exportToZip(checkedPages, filename, options.compress == "yes", function(index, max) {
 		process.exportingToZip = {
 			index : index,
 			max : max
@@ -307,7 +289,7 @@ function exportToZip(checkedPages) {
 		notifyViews(function(extensionPage) {
 			extensionPage.notifyExportToZipProgress();
 		});
-	}, function(file) {
+	}, function(url) {
 		var notificationExportOK;
 		process.exportingToZip = null;
 		notifyViews(function(extensionPage) {
@@ -315,7 +297,7 @@ function exportToZip(checkedPages) {
 		});
 		notificationExporting.cancel();
 		chrome.tabs.create({
-			url : webkitURL.createObjectURL(file),
+			url : url,
 			selected : false
 		});
 		notificationExportOK = webkitNotifications.createHTMLNotification('notificationExportOK.html');
@@ -401,7 +383,7 @@ chrome.omnibox.setDefaultSuggestion({
 chrome.omnibox.onInputChanged.addListener(function(text, suggestCallback) {
 	if (text)
 		storage.search({
-			text : text		
+			text : text
 		}, options.searchInTitle, function(rows, tags, count) {
 			var i, suggestions = [];
 			for (i = 0; i < rows.length; i++)
@@ -409,7 +391,7 @@ chrome.omnibox.onInputChanged.addListener(function(text, suggestCallback) {
 					content : "page/" + rows[i].id,
 					description : rows[i].title.replace(/[<>]/g, "")
 				});
-			
+
 			suggestCallback(suggestions);
 		});
 });

@@ -191,9 +191,13 @@
 	}
 
 	function exportButtonOnclick() {
+		var filename;
 		if (checkedPages.length) {
-			exportButton.disabled = true;
-			bgPage.exportToZip(checkedPages);
+			filename = prompt("Filename:", "Web archives - " + (new Date()).toDateString() + ".zip");
+			if (filename) {
+				exportButton.disabled = true;
+				bgPage.exportToZip(checkedPages, filename);
+			}
 		}
 	}
 

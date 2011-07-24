@@ -1,24 +1,5 @@
 /*
-
-JSZip - A Javascript class for generating Zip files
-<http://jszip.stuartk.co.uk>
-
-(c) 2009 Stuart Knightley <stuart [at] stuartk.co.uk>
-Licenced under the GPLv3 and the MIT licences
-
-
-Modifications from Gildas Lormeau <gildas.lormeau [at] gmail.com>:
-- removed unused code to match extension needs: removed methods should be handled by a upper layer
-- major code refactoring
-- compatible only with Webkit (because of WebKitBlobBuilder function use)
-- added utf8 support for filenames
-- get zip content in a Blob object
-
-Usage:
-   zip = new JSZip();
-   zip.add("hello.txt", "Hello, World!").add("tempfile", "nothing");   
-   binaryZip = zip.generate();
-
+ * A low-level Javascript class for generating Zip files inspired from <http://jszip.stuartk.co.uk> (c) 2009 Stuart Knightley <stuart [at] stuartk.co.uk>
  */
 var JSZip;
 
@@ -30,7 +11,6 @@ var JSZip;
 		this.compression = (compression || "STORE").toUpperCase();
 		this.files = [];
 		this.fileNames = [];
-		this.blobBuilder = new WebKitBlobBuilder();
 		this.datalength = 0;
 	};
 
@@ -40,10 +20,10 @@ var JSZip;
 	 * @param name The name of the file
 	 * @param data The file data (raw encoded)
 	 * @param options Object with optional binary (boolean), directory (boolean) and compressionLevel (Number) attributes
-	 * @return this JSZip object
+	 * @return ArrayBuffer object
 	 */
 	JSZip.prototype.add = function(name, data, options) {
-		var dosTime, dosDate, compression, compressedData, utf8Name, header, contentHeader, date = new Date();
+		var dosTime, dosDate, compression, compressedData, utf8Name, header, contentHeader, date = new Date(), dataArray, compressedDataLength, arrayBuffer, uint8Array;
 		if (this.files[name])
 			throw name + " file already exists";
 		options = options || {};
@@ -57,13 +37,13 @@ var JSZip;
 		dosDate = dosDate | (date.getMonth() + 1);
 		dosDate = dosDate << 5;
 		dosDate = dosDate | date.getDate();
-		if (!options.binary)
-			data = "\xEF\xBB\xBF" + utf8encode(data);
 		compression = JSZip.compressions[this.compression];
-		compressedData = compression.compress(data, options.compressionLevel || 6);
+		dataArray = new Uint8Array(data);
+		compressedData = compression.compress(dataArray, options.compressionLevel || 6);
+		compressedDataLength = compressedData.length;
 		utf8Name = utf8encode(name);
-		header = "\x0A\x00\x00\x08" + compression.magic + decToHex(dosTime, 2) + decToHex(dosDate, 2) + decToHex(crc32(data), 4)
-				+ decToHex(compressedData.length, 4) + decToHex(data.length, 4) + decToHex(utf8Name.length, 2) + "\x00\x00";
+		header = "\x0A\x00\x00\x08" + compression.magic + decToHex(dosTime, 2) + decToHex(dosDate, 2) + decToHex(crc32(dataArray), 4)
+				+ decToHex(compressedDataLength, 4) + decToHex(dataArray.length, 4) + decToHex(utf8Name.length, 2) + "\x00\x00";
 		this.fileNames.push(name);
 		this.files[name] = {
 			header : header,
@@ -72,19 +52,21 @@ var JSZip;
 			offset : this.datalength
 		};
 		contentHeader = "\x50\x4b\x03\x04" + header + utf8Name;
-		appendString(this, contentHeader);
-		appendString(this, compressedData);
-		this.datalength += contentHeader.length + compressedData.length;
-		return this;
+		arrayBuffer = new ArrayBuffer(contentHeader.length + compressedDataLength);
+		uint8Array = new Uint8Array(arrayBuffer);
+		appendString(uint8Array, contentHeader);
+		uint8Array.set(compressedData, contentHeader.length);
+		this.datalength += contentHeader.length + compressedDataLength;
+		return arrayBuffer;
 	};
 
 	/**
-	 * Generate the zip file
+	 * Generate the end file
 	 * 
-	 * @return the Blob object
+	 * @return the ArrayBuffer object
 	 */
-	JSZip.prototype.generate = function() {
-		var i, name, file, dirRecord, centralDirectorySize = 0, fileNamesLength = this.fileNames.length, zipLength = this.datalength;
+	JSZip.prototype.generateEndFile = function() {
+		var i, name, file, dirRecord, dirRecords = "", fileNamesLength = this.fileNames.length, arrayBuffer, uint8Array;
 		for (i = 0; i < fileNamesLength; i++) {
 			name = this.fileNames[i], file = this.files[name];
 			dirRecord = "\x50\x4b\x01\x02" +
@@ -96,17 +78,19 @@ var JSZip;
 			"\x00\x00" +
 			// internal file attributes
 			"\x00\x00" + (file.directory ? "\x10\x00\x00\x00" : "\x00\x00\x00\x00") + decToHex(file.offset, 4) + file.utf8Name;
-			centralDirectorySize += dirRecord.length;
-			appendString(this, dirRecord);
+			dirRecords += dirRecord;
 		}
 		// end of central dir signature
 		centralDirSignature = "\x50\x4b\x05\x06" +
 		// number of this disk
 		"\x00\x00" +
 		// number of the disk with the start of the central directory
-		"\x00\x00" + decToHex(fileNamesLength, 2) + decToHex(fileNamesLength, 2) + decToHex(centralDirectorySize, 4) + decToHex(zipLength, 4) + "\x00\x00";
-		appendString(this, centralDirSignature);
-		return this.blobBuilder.getBlob();
+		"\x00\x00" + decToHex(fileNamesLength, 2) + decToHex(fileNamesLength, 2) + decToHex(dirRecords.length, 4) + decToHex(this.datalength, 4) + "\x00\x00";
+		arrayBuffer = new ArrayBuffer(dirRecords.length + centralDirSignature.length);
+		uint8Array = new Uint8Array(arrayBuffer);
+		appendString(uint8Array, dirRecords);
+		appendString(uint8Array, centralDirSignature, dirRecords.length);
+		return arrayBuffer;
 	};
 
 	JSZip.compressions = {
@@ -142,14 +126,14 @@ var JSZip;
 			3020668471, 3272380065, 1510334235, 755167117 ];
 
 	// Utility functions
-	function appendString(self, data) {
+	function appendString(uint8Array, data, index) {
 		var i, length, arrayBuffer, uint8;
 		length = data.length;
 		arrayBuffer = new ArrayBuffer(length);
 		uint8 = new Uint8Array(arrayBuffer);
 		for (i = 0; i < length; i++)
 			uint8[i] = data.charCodeAt(i) & 0xFF;
-		self.blobBuilder.append(arrayBuffer);
+		uint8Array.set(uint8, index || 0);
 	}
 
 	function decToHex(dec, bytes) {
@@ -161,11 +145,11 @@ var JSZip;
 		return hex;
 	}
 
-	function crc32(str) { // inspired from http://www.webtoolkit.info/
-		var i, length = str.length, crc = -1;
+	function crc32(dataArray) {
+		var i, length = dataArray.length, crc = -1;
 		if (length) {
 			for (i = 0; i < length; i++)
-				crc = (crc >>> 8) ^ table[(crc ^ str.charCodeAt(i)) & 0xFF];
+				crc = (crc >>> 8) ^ table[(crc ^ dataArray[i]) & 0xFF];
 			return crc ^ (-1);
 		} else
 			return "\x00\x00\x00\x00";
