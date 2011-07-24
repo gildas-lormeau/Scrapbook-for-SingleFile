@@ -196,6 +196,8 @@
 		searchInput.onchange = showTags;
 		document.getElementById("tags-form").onsubmit = showTags;
 		searchInput.value = state.searchedTags ? bgPage.popupState.searchedTags.join(" ") : "";
+		if (location.search.indexOf("newtab") != -1)			
+			searchInput.setAttribute("x-webkit-speech");
 	};
 
 	this.showTagsTab = function(callback) {

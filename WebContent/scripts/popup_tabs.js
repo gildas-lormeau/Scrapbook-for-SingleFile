@@ -106,6 +106,8 @@
 		searchInput.onchange = showTabs;
 		document.getElementById("tabs-form").onsubmit = showTabs;
 		searchInput.value = state.searchedTabs ? bgPage.popupState.searchedTabs.join(" ") : "";
+		if (location.search.indexOf("newtab") != -1)			
+			searchInput.setAttribute("x-webkit-speech");
 	};
 
 	this.notifyTabProgress = function(tabId, state, index, max) {

@@ -585,8 +585,8 @@
 		new ComboBox(tagsInput, searchFilters.tags && searchFilters.tags.values ? searchFilters.tags.values.join(",") : "");
 		tagsInput.oninput = tagsInputOninput;
 		tagsInput.onfocus = tagsInputOninput;
-		if (document.documentElement.className == "newtab" && searchFilters.limit != "all")
-			searchFilters.limit = Math.max(searchFilters.limit, 20);
+		if (location.search.indexOf("newtab") != -1)			
+			searchInput.setAttribute("x-webkit-speech");
 		if (searchFilters.savedPeriod && searchFilters.savedPeriod.period)
 			new PeriodInput(savedPeriodInput, searchFilters.savedPeriod.period, searchFilters.savedPeriod.from, searchFilters.savedPeriod.to, "from: ", "to: ",
 					"all", "", "today", "this week", "this month", "user defined");
