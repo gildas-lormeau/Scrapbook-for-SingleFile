@@ -18,7 +18,6 @@
  *   along with ZipTabs.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 importScripts('jsunzip.js');
 
 (function() {
@@ -62,16 +61,23 @@ importScripts('jsunzip.js');
 		}
 
 		if (data.message == "getEntryData") {
-			var zipEntry = unzipper.entries[data.index], zipData, uncompressedData;
+			var zipEntry = unzipper.entries[data.index], zipData, uncompressedData, blobBuilder = this.BlobBuilder ? new BlobBuilder()
+					: new WebKitBlobBuilder();
 			if (zipEntry) {
-				zipData = zipEntry.getData();
-				uncompressedData = zipEntry.compressionMethod == 0 ? zipData : zipEntry.compressionMethod == 8 ? JSInflate.inflate(zipData,
-						zipEntry.uncompressedSize) : null;
+				zipData = zipEntry.getData(zipEntry.compressionMethod == 0);
+				blobBuilder.append(zipEntry.compressionMethod == 0 ? zipData : zipEntry.compressionMethod == 8 ? JSInflate.inflate(zipData,
+						zipEntry.uncompressedSize) : null);
+				uncompressedData = blobBuilder.getBlob();
+				/*
+				 * uncompressedData = zipEntry.compressionMethod == 0 ? zipData : zipEntry.compressionMethod == 8 ?
+				 * JSInflate.inflate(zipData, zipEntry.uncompressedSize) : null;
+				 */
 			}
 			postMessage({
 				message : "getEntryData",
 				index : data.index,
-				data : uncompressedData
+				/* data : uncompressedData */
+				blob : uncompressedData
 			});
 		}
 

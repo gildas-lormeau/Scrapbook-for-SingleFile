@@ -348,8 +348,9 @@ if (!JSZip) {
 	 */
 	var zip_read_buff = function(buff, offset, n) {
 		var i;
+		/* for (i = 0; i < n && zip_deflate_pos < zip_deflate_data.length; i++) buff[offset + i] = zip_deflate_data[zip_deflate_pos++] */
 		for (i = 0; i < n && zip_deflate_pos < zip_deflate_data.length; i++)
-			buff[offset + i] = zip_deflate_data[zip_deflate_pos++] & 0xff;
+			buff[offset + i] = zip_deflate_data.charCodeAt(zip_deflate_pos++);
 		return i;
 	};
 

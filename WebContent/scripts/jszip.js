@@ -23,7 +23,7 @@ var JSZip;
 	 * @return ArrayBuffer object
 	 */
 	JSZip.prototype.add = function(name, data, options) {
-		var dosTime, dosDate, compression, compressedData, utf8Name, header, contentHeader, date = new Date(), dataArray, compressedDataLength, arrayBuffer, uint8Array;
+		var dosTime, dosDate, compression, compressedData, utf8Name, header, contentHeader, date = new Date(), /* dataArray, */compressedDataLength, arrayBuffer, uint8Array;
 		if (this.files[name])
 			throw name + " file already exists";
 		options = options || {};
@@ -38,12 +38,17 @@ var JSZip;
 		dosDate = dosDate << 5;
 		dosDate = dosDate | date.getDate();
 		compression = JSZip.compressions[this.compression];
-		dataArray = new Uint8Array(data);
-		compressedData = compression.compress(dataArray, options.compressionLevel || 6);
+		/* dataArray = new Uint8Array(data); */
+		/* compressedData = compression.compress(dataArray, options.compressionLevel || 6); */
+		compressedData = compression.compress(data, options.compressionLevel || 6);
 		compressedDataLength = compressedData.length;
 		utf8Name = utf8encode(name);
-		header = "\x0A\x00\x00\x08" + compression.magic + decToHex(dosTime, 2) + decToHex(dosDate, 2) + decToHex(crc32(dataArray), 4)
-				+ decToHex(compressedDataLength, 4) + decToHex(dataArray.length, 4) + decToHex(utf8Name.length, 2) + "\x00\x00";
+		/*
+		 * header = "\x0A\x00\x00\x08" + compression.magic + decToHex(dosTime, 2) + decToHex(dosDate, 2) + decToHex(crc32(dataArray), 4) +
+		 * decToHex(compressedDataLength, 4) + decToHex(dataArray.length, 4) + decToHex(utf8Name.length, 2) + "\x00\x00";
+		 */
+		header = "\x0A\x00\x00\x08" + compression.magic + decToHex(dosTime, 2) + decToHex(dosDate, 2) + decToHex(crc32(data), 4)
+				+ decToHex(compressedDataLength, 4) + decToHex(data.length, 4) + decToHex(utf8Name.length, 2) + "\x00\x00";
 		this.fileNames.push(name);
 		this.files[name] = {
 			header : header,
@@ -55,7 +60,10 @@ var JSZip;
 		arrayBuffer = new ArrayBuffer(contentHeader.length + compressedDataLength);
 		uint8Array = new Uint8Array(arrayBuffer);
 		appendString(uint8Array, contentHeader);
-		uint8Array.set(compressedData, contentHeader.length);
+		if (this.compression == "STORE")
+			appendString(uint8Array, compressedData, contentHeader.length);
+		else
+			uint8Array.set(compressedData, contentHeader.length);
 		this.datalength += contentHeader.length + compressedDataLength;
 		return arrayBuffer;
 	};
@@ -148,8 +156,11 @@ var JSZip;
 	function crc32(dataArray) {
 		var i, length = dataArray.length, crc = -1;
 		if (length) {
+			// -- BEGIN : chrome 14 --
+			/* for (i = 0; i < length; i++) crc = (crc >>> 8) ^ table[(crc ^ dataArray[i]) & 0xFF]; */
+			// -- END : chrome 14 --
 			for (i = 0; i < length; i++)
-				crc = (crc >>> 8) ^ table[(crc ^ dataArray[i]) & 0xFF];
+				crc = (crc >>> 8) ^ table[(crc ^ dataArray.charCodeAt(i)) & 0xFF];
 			return crc ^ (-1);
 		} else
 			return "\x00\x00\x00\x00";

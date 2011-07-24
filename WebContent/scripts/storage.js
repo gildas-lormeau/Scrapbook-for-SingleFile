@@ -223,7 +223,8 @@ var storage = {};
 									content : event.target.result
 								});
 							};
-							fileReader.readAsArrayBuffer(blobBuilder.getBlob());
+							// fileReader.readAsArrayBuffer(blobBuilder.getBlob());
+							fileReader.readAsBinaryString(blobBuilder.getBlob());
 						});
 					}, function() {
 						//
@@ -237,8 +238,8 @@ var storage = {};
 			}, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
 					zipWorker.onmessage = function(event) {
-						var data = event.data, blobBuilder = new BBuilder();
-						blobBuilder.append(data.arrayBuffer);
+						var data = event.data/* , blobBuilder = new BBuilder() */;
+						/* blobBuilder.append(data.arrayBuffer); */
 						if (data.message == "add") {
 							exportIndex++;
 							fileWriter.onwrite = function() {
@@ -249,14 +250,14 @@ var storage = {};
 								else
 									exportContent(pageIds, exportIndex);
 							};
-							fileWriter.write(blobBuilder.getBlob());
+							fileWriter.write(data.blob/* blobBuilder.getBlob() */);
 							onprogress(exportIndex, pageIds.length);
 						} else if (data.message == "generateEndFile") {
 							fileWriter.onwrite = function() {
 								zipWorker.terminate();
 								onfinish(fileEntry.toURL());
 							};
-							fileWriter.write(blobBuilder.getBlob());
+							fileWriter.write(data.blob/* blobBuilder.getBlob() */);
 						}
 					};
 					zipWorker.postMessage({
@@ -326,13 +327,16 @@ var storage = {};
 							// TODO
 						});
 					};
-					var blobBuilder = new BBuilder();
-					blobBuilder.append(event.data.data);
-					fileReader.readAsText(blobBuilder.getBlob(), "UTF-8");
+					/*
+					 * var blobBuilder = new BBuilder(); blobBuilder.append(event.data.data); fileReader.readAsText(blobBuilder.getBlob(),
+					 * "UTF-8");
+					 */
+					fileReader.readAsText(event.data.blob, "UTF-8");
 				}
 			};
 		};
-		fileReader.readAsArrayBuffer(file);
+		// fileReader.readAsArrayBuffer(file);
+		fileReader.readAsBinaryString(file);
 	};
 
 	storage.exportDB = function(onprogress, onfinish) {

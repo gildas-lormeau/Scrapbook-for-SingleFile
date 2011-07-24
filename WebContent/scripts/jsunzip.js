@@ -84,8 +84,10 @@
 
 		dataOffsetStart = binaryStream.currentByteIndex;
 
-		this.getData = function() {
-			return binaryStream.getByteRange(dataOffsetStart, this.compressedSize);
+		this.getData = function(isUTF8) {
+			return isUTF8 ? decodeUTF8(binaryStream.getByteRangeAsString(dataOffsetStart, this.compressedSize)) : binaryStream.getByteRangeAsString(
+					dataOffsetStart, this.compressedSize);
+			// return binaryStream.getByteRange(dataOffsetStart, this.compressedSize);
 		};
 
 		binaryStream.currentByteIndex += this.compressedSize;
@@ -110,18 +112,20 @@
 	};
 
 	JSUnzip.BigEndianBinaryStream = function(stream) {
-		this.int8Array = new Uint8Array(stream);
+		// this.int8Array = new Uint8Array(stream);
+		this.stream = stream;
 		this.currentByteIndex = 0;
 	};
 
 	JSUnzip.BigEndianBinaryStream.prototype = {
 
-		getByteRange : function(index, steps) {
-			return this.int8Array.subarray(index, index + steps);
-		},
+		/*
+		 * getByteRange : function(index, steps) { // return this.int8Array.subarray(index, index + steps); },
+		 */
 
 		getByteAt : function(index) {
-			return this.int8Array[index];
+			return this.stream.charCodeAt(index);
+			// return this.int8Array[index];
 		},
 
 		getNextBytesAsNumber : function(steps) {
@@ -463,7 +467,8 @@
 	function zip_GET_BYTE() {
 		if (zip_inflate_data.length == zip_inflate_pos)
 			return -1;
-		return zip_inflate_data[zip_inflate_pos++];
+		return zip_inflate_data.charCodeAt(zip_inflate_pos++);
+		// return zip_inflate_data[zip_inflate_pos++];
 	}
 
 	function zip_NEEDBITS(n) {
