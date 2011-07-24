@@ -90,6 +90,10 @@
 					selected : true
 				});
 			};
+			newTabLink.onkeyup = function(event) {
+				if (event.keyIdentifier == "Enter")
+					newTabLink.onclick();
+			};
 			document.getElementById("firstuse-tabs-link").onclick = function() {
 				showTab("tabs");
 			};
