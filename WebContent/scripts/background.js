@@ -43,7 +43,7 @@ options.save = function() {
 	localStorage.options = JSON.stringify(options);
 };
 
-var notificationArchiving, timeoutNoResponse;
+var notificationArchiving, timeoutNoResponse, timeoutSearch;
 
 var popupState = {
 	firstUse : !localStorage.defautSearchFilters,
@@ -381,19 +381,26 @@ chrome.omnibox.setDefaultSuggestion({
 });
 
 chrome.omnibox.onInputChanged.addListener(function(text, suggestCallback) {
-	if (text)
-		storage.search({
-			text : text
-		}, options.searchInTitle, function(rows, tags, count) {
-			var i, suggestions = [];
-			for (i = 0; i < rows.length; i++)
-				suggestions.push({
-					content : "page/" + rows[i].id,
-					description : rows[i].title.replace(/[<>]/g, "")
-				});
-
-			suggestCallback(suggestions);
-		});
+	if (text) {
+		if (timeoutSearch)
+			clearTimeout(timeoutSearch);
+		timeoutSearch = setTimeout(function() {
+			storage.search({
+				text : text.split(" ")
+			}, true, function(rows, tags, count) {
+				var description, i, suggestions = [];
+				for (i = 0; i < rows.length; i++) {
+					description = rows[i].title.replace(/[<>&]/g, "");
+					suggestions.push({
+						content : "page/" + rows[i].id,
+						description : description
+					});
+				}
+				suggestCallback(suggestions);
+			});
+			timeoutSearch = null;
+		}, 500);
+	}
 });
 
 chrome.omnibox.onInputEntered.addListener(function(text, suggestCallback) {
