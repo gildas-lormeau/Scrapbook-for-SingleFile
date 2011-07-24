@@ -248,6 +248,7 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		currentKeyword.removeEventListener("keydown", onkeydown);
 		element.removeChild(currentKeyword);
 		currentKeyword = null;
+		plusElement.focus();
 	}
 
 	function decorateKeywordElement() {
@@ -346,7 +347,7 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 		currentKeyword.list = dataNewTag.id;
 		currentKeyword.title = "";
 		new ComboBox(currentKeyword);
-		currentKeyword.addEventListener("keydown", onkeydown);
+		currentKeyword.onkeydown = onkeydown;
 		currentKeyword.onfocus = function(e) {
 			element.oninput(e);
 		};
@@ -388,6 +389,8 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 	}, false);
 
 	element.__defineSetter__("values", function(values) {
+		if (currentKeyword)
+			currentKeyword.resetElement();
 		Array.prototype.forEach.call(element.querySelectorAll(".keywords-input-keyword-wrapper"), function(wrapper) {
 			element.removeChild(wrapper);
 		});
@@ -397,7 +400,7 @@ function KeywordsInput(element, values, tagsLabel, addTagtitle, deleteTagTitle, 
 			currentKeyword.title = tagTitle;
 			element.insertBefore(currentKeyword, plusElement);
 			decorateKeywordElement();
-		});
+		});		
 		currentKeyword = null;
 		currentValues = values;
 	}, true);
