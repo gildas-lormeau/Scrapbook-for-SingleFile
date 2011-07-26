@@ -118,6 +118,8 @@ var storage = {};
 	}
 
 	storage.importDB = function(onprogress, onfinish) {
+		var cancelImport = false;
+
 		function importContent(rows, index) {
 			var id, content;
 
@@ -125,7 +127,8 @@ var storage = {};
 				importContent(rows, index + 1);
 			}
 
-			if (index == rows.length) {
+			if (index == rows.length || cancelImport) {
+				cancelImport = false;
 				if (index)
 					updateIndexFile();
 				onfinish();
@@ -156,6 +159,9 @@ var storage = {};
 				onfinish();
 			});
 		});
+		return function() {
+			cancelImport = true;
+		};
 	};
 
 	function getValidFileName(fileName) {
@@ -340,6 +346,8 @@ var storage = {};
 	};
 
 	storage.exportDB = function(onprogress, onfinish) {
+		var cancelExport = false;
+
 		function exportContent(rows, index) {
 			var id, content;
 
@@ -347,7 +355,8 @@ var storage = {};
 				exportContent(rows, index + 1);
 			}
 
-			if (index == rows.length) {
+			if (index == rows.length || cancelExport) {
+				cancelExport = false;
 				if (index)
 					updateIndexFile();
 				onfinish();
@@ -385,6 +394,9 @@ var storage = {};
 				onfinish();
 			});
 		});
+		return function() {
+			cancelExport = true;
+		};
 	};
 
 	storage.getContent = function(id, callback, forceUseDatabase, dontSetReadDate) {

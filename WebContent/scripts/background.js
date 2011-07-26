@@ -229,44 +229,50 @@ function notifyViews(notifyHandler) {
 function importDB() {
 	process.importing = {
 		index : 0,
-		max : 0
-	};
-	storage.importDB(function(index, max) {
-		process.importing = {
-			index : index,
-			max : max
-		};
-		notifyViews(function(extensionPage) {
-			extensionPage.notifyImportProgress();
-		});
-	}, function() {
-		process.importing = null;
-		notifyViews(function(extensionPage) {
-			if (extensionPage.notifyImportProgress)
+		max : 0,
+		cancel : storage.importDB(function(index, max) {
+			process.importing.index = index;
+			process.importing.max = max;
+			notifyViews(function(extensionPage) {
 				extensionPage.notifyImportProgress();
-		});
-	});
+			});
+		}, function() {
+			process.importing = null;
+			notifyViews(function(extensionPage) {
+				if (extensionPage.notifyImportProgress)
+					extensionPage.notifyImportProgress();
+			});
+		})
+	};
+}
+
+function cancelImportDB() {
+	process.importing.cancel();
+	process.importing = null;
 }
 
 function exportDB() {
 	process.exporting = {
 		index : 0,
-		max : 0
+		max : 0,
+		cancel : storage.exportDB(function(index, max) {
+			process.exporting.index = index;
+			process.exporting.max = max;
+			notifyViews(function(extensionPage) {
+				extensionPage.notifyExportProgress();
+			});
+		}, function() {
+			process.exporting = null;
+			notifyViews(function(extensionPage) {
+				extensionPage.notifyExportProgress();
+			});
+		})
 	};
-	storage.exportDB(function(index, max) {
-		process.exporting = {
-			index : index,
-			max : max
-		};
-		notifyViews(function(extensionPage) {
-			extensionPage.notifyExportProgress();
-		});
-	}, function() {
-		process.exporting = null;
-		notifyViews(function(extensionPage) {
-			extensionPage.notifyExportProgress();
-		});
-	});
+}
+
+function cancelExportDB() {
+	process.exporting.cancel();
+	process.exporting = null;
 }
 
 function exportToZip(checkedPages, filename) {
@@ -342,14 +348,6 @@ function importFromZip(file) {
 			notificationImportOK.cancel();
 		}, 3000);
 	});
-}
-
-function cancelImportDB() {
-	process.importing = null;
-}
-
-function cancelExportDB() {
-	process.exporting = null;
 }
 
 function notifyTabProgress(tabId, state, index, max) {
