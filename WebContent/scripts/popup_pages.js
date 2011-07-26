@@ -283,8 +283,8 @@
 				var liElement, cbElement, aElement, favicoElement, moreElement, moreDivElement, starsElement, linkElement, dateLabelElement, dateLinkElement, readDateLabelElement, readDateLinkElement, sizeLabelElement, infoLine1Element, infoLine2Element, infoLine3Element, stars = row.idx || 0, title = row.title;
 
 				function refreshTitle() {
-					aElement.title = "open the archive\n\n- Title : " + title + (row.date ? "\n- Saved date : " + new Date(row.date).toLocaleDateString() : "")
-							+ "\n- Last read date : " + (row.read_date ? new Date(row.read_date).toLocaleDateString() : "-") + "\n- Rating : " + (stars / 100)
+					aElement.title = "open the archive\n\n- Title : " + title + "\n- Saved date : " + new Date(row.timestamp).toLocaleDateString()
+							+ "\n- Last read date : " + (row.read_timestamp ? new Date(row.read_timestamp).toLocaleDateString() : "-") + "\n- Rating : " + (stars / 100)
 							+ " star" + (stars > 100 || !stars ? "s" : "") + "\n- Size : " + Math.floor(row.size / (1024 * 1024) * 100) / 100
 							+ " MB\n- Tags : " + (infoLine3Element.values.length ? infoLine3Element.values.join(", ") : "-");
 				}
@@ -585,7 +585,7 @@
 		new ComboBox(tagsInput, searchFilters.tags && searchFilters.tags.values ? searchFilters.tags.values.join(",") : "");
 		tagsInput.oninput = tagsInputOninput;
 		tagsInput.onfocus = tagsInputOninput;
-		if (location.search.indexOf("newtab") != -1)			
+		if (location.search.indexOf("newtab") != -1)
 			searchInput.setAttribute("x-webkit-speech");
 		if (searchFilters.savedPeriod && searchFilters.savedPeriod.period)
 			new PeriodInput(savedPeriodInput, searchFilters.savedPeriod.period, searchFilters.savedPeriod.from, searchFilters.savedPeriod.to, "from: ", "to: ",

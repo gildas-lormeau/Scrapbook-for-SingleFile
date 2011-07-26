@@ -25,7 +25,7 @@ var storage = {};
 	var DATA_SIZE = 1073741824;
 	var TMP_DATA_SIZE = 1024 * 1024 * 1024;
 
-	var reqPages = "create table if not exists pages (id integer primary key asc autoincrement, title varchar(2048), url varchar(2048), date varchar(128), timestamp integer, idx integer, favico blob, read_date varchar(128), read_timestamp integer, size integer)";
+	var reqPages = "create table if not exists pages (id integer primary key asc autoincrement, title varchar(2048), url varchar(2048), timestamp integer, idx integer, favico blob, read_timestamp integer, size integer)";
 	var reqTags = "create table if not exists tags (id integer primary key asc autoincrement, tag varchar(128))";
 	var reqPagesTags = "create table if not exists pages_tags (page_id integer, tag_id integer)";
 	var reqPagesContents = "create table if not exists pages_contents (id integer, content blob)";
@@ -148,7 +148,7 @@ var storage = {};
 				newDoc.close();
 				commentNode = newDoc.documentElement.firstChild;
 				db.transaction(function(tx) {
-					var query = "select title, read_date, idx, timestamp, read_timestamp from pages where id=?";
+					var query = "select title, timestamp, read_timestamp, idx from pages where id=?";
 					tx.executeSql(query, [ id ], function(cbTx, result) {
 						var pageMetadata, tags = [];
 						if (result.rows.length)
@@ -379,7 +379,7 @@ var storage = {};
 			if (dontSetReadDate)
 				getContent();
 			else
-				tx.executeSql("update pages set read_date = ?, read_timestamp = ? where id = ?", [ date.toString(), date.getTime(), id ], getContent);
+				tx.executeSql("update pages set read_timestamp = ? where id = ?", [ date.getTime(), id ], getContent);
 		});
 	};
 
@@ -885,7 +885,7 @@ var storage = {};
 		if (count)
 			query = "select count(id) as count from (" + query + ")";
 		else
-			query = "select pages.id as id, favico, title, url, date, idx, timestamp, read_date, read_timestamp, size from pages where id in (" + query + ")";
+			query = "select pages.id as id, favico, title, url, idx, timestamp, read_timestamp, size from pages where id in (" + query + ")";
 		return query;
 	}
 
@@ -929,10 +929,8 @@ var storage = {};
 						id : item.id,
 						title : item.title,
 						url : item.url,
-						date : item.date,
 						idx : item.idx,
 						timestamp : item.timestamp,
-						read_date : item.read_date,
 						read_timestamp : item.read_timestamp,
 						size : item.size
 					});
@@ -1025,13 +1023,12 @@ var storage = {};
 		return content.replace(/(\x00)/g, "");
 	}
 
-	function addContent(favicoData, url, title, content, text, timestamp, readDate, readDateTs, idx, tags, callback, onFileErrorCallback, forceUseDatabase) {
-		var query = "insert into pages (favico, url, title, date, timestamp, size, read_date, read_timestamp, idx) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	function addContent(favicoData, url, title, content, text, timestamp, readDateTs, idx, tags, callback, onFileErrorCallback, forceUseDatabase) {
+		var query = "insert into pages (favico, url, title, timestamp, size, read_timestamp, idx) values (?, ?, ?, ?, ?, ?, ?)";
 		content = removeNullChar(content);
 		db.transaction(function(tx) {
-			var date = new Date();
-			tx.executeSql(query, [ favicoData, url, title, date.toString(), timestamp || date.getTime(), content.length, readDate || "", readDateTs || "",
-					idx || "" ], function(cbTx, result) {
+			var today = new Date();
+			tx.executeSql(query, [ favicoData, url, title, timestamp || today.getTime(), content.length, readDateTs || "", idx || "" ], function(cbTx, result) {
 				var id = result.insertId;
 
 				function onFileError(e) {
@@ -1039,7 +1036,7 @@ var storage = {};
 						onFileErrorCallback(id);
 					db.transaction(function(tx) {
 						tx.executeSql("delete from pages where id = ?", [ id ], function() {
-							addContent(favicoData, url, title, content, text, timestamp, readDate, readDateTs, idx, tags, callback, onFileErrorCallback, true);
+							addContent(favicoData, url, title, content, text, timestamp, readDateTs, idx, tags, callback, onFileErrorCallback, true);
 						});
 					});
 				}
@@ -1077,7 +1074,7 @@ var storage = {};
 
 	storage.addContent = function(content, title, url, favicoData, callback, onFileErrorCallback) {
 		var EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
-		var titleLength, domain, domainArray, node, urlArray, timestamp, pageInfo, pageInfoArray, tagsArray, newDoc = document.implementation
+		var titleLength, domain, domainArray, node, urlArray, timestamp, readDateTs, idx, tags = [], pageInfo, pageInfoArray, tagsArray, newDoc = document.implementation
 				.createHTMLDocument();
 		newDoc.open();
 		newDoc.writeln(content);
@@ -1086,9 +1083,6 @@ var storage = {};
 			favicoData = newDoc.querySelector('link[href][rel="shortcut icon"], link[href][rel="icon"], link[href][rel="apple-touch-icon"]');
 			favicoData = favicoData ? favicoData.href : EMPTY_IMAGE_DATA;
 		}
-
-		var readDate, readDateTs, idx, tags = [];
-
 		node = newDoc.documentElement.childNodes[0];
 		if (node && node.nodeType == Node.COMMENT_NODE && node.textContent.indexOf("SingleFile") != -1) {
 			if (!url) {
@@ -1102,7 +1096,6 @@ var storage = {};
 				node.textContent = node.textContent.replace(/ page info: (.*)\n/, "");
 				timestamp = pageInfo.timestamp;
 				title = pageInfo.title;
-				readDate = pageInfo.read_date;
 				readDateTs = pageInfo.read_date_timestamp;
 				idx = pageInfo.idx;
 			}
@@ -1130,7 +1123,7 @@ var storage = {};
 				title += ")";
 		}
 		addContent(favicoData, url, title, getDoctype(newDoc) + newDoc.documentElement.outerHTML, newDoc.body.innerText.replace(/\s+/g, " "), timestamp,
-				readDate, readDateTs, idx, tags, callback, onFileErrorCallback);
+				readDateTs, idx, tags, callback, onFileErrorCallback);
 	};
 
 	storage.setRating = function(id, rating) {
