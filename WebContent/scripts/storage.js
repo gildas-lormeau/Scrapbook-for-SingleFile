@@ -64,59 +64,6 @@ var storage = {};
 		}
 	}
 
-	function updateIndexFile() {
-		var rootReader, doc = document.implementation.createHTMLDocument();
-
-		function createIndex() {
-			fs.root.getFile("index.html", {
-				create : true
-			}, function(fileEntry) {
-				fileEntry.createWriter(function(fileWriter) {
-					var blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
-					v.set([ 0xEF, 0xBB, 0xBF ]);
-					blobBuilder.append(BOM);
-					blobBuilder.append("<!DOCTYPE html>\n" + doc.documentElement.outerHTML);
-					fileWriter.write(blobBuilder.getBlob());
-				});
-			});
-		}
-
-		doc.title = "Scrapbook archives";
-		rootReader = fs.root.createReader("/");
-		db.transaction(function(tx) {
-			tx.executeSql("select id, title from pages order by id desc", [], function(cbTx, result) {
-				var i, item, metaData = {};
-				for (i = 0; i < result.rows.length; i++) {
-					item = result.rows.item(i);
-					metaData[item.id] = {
-						title : item.title
-					};
-				}
-				rootReader.readEntries(function(entries) {
-					var i, fileEntry, id, link, ul, li, title;
-					ul = doc.createElement("ul");
-					for (i = 0; i < entries.length; i++) {
-						fileEntry = entries[i];
-						id = fileEntry.name.split(".html")[0];
-						if (id != "index") {
-							link = doc.createElement("a");
-							link.textContent = metaData[id] ? metaData[id].title : "Empty title - " + id;
-							link.href = fileEntry.name;
-							li = doc.createElement("li");
-							li.appendChild(link);
-							ul.appendChild(li);
-						}
-					}
-					title = doc.createElement("h4");
-					title.textContent = "Saved archives :";
-					doc.body.appendChild(title);
-					doc.body.appendChild(ul);
-					createIndex();
-				});
-			});
-		});
-	}
-
 	storage.importDB = function(onprogress, onfinish) {
 		var cancelImport = false;
 
@@ -129,8 +76,6 @@ var storage = {};
 
 			if (index == rows.length || cancelImport) {
 				cancelImport = false;
-				if (index)
-					updateIndexFile();
 				onfinish();
 			} else {
 				onprogress(index, rows.length);
@@ -357,8 +302,6 @@ var storage = {};
 
 			if (index == rows.length || cancelExport) {
 				cancelExport = false;
-				if (index)
-					updateIndexFile();
 				onfinish();
 			} else {
 				onprogress(index, rows.length);
@@ -1063,10 +1006,7 @@ var storage = {};
 									var i, rootReader;
 									for (i = 0; i < pageIds.length; i++) {
 										fs.root.getFile(pageIds[i] + ".html", null, function(fileEntry) {
-											fileEntry.remove(function() {
-												if (i == pageIds.length - 1)
-													updateIndexFile();
-											});
+											fileEntry.remove();
 										});
 									}
 								}
@@ -1125,10 +1065,7 @@ var storage = {};
 							blobBuilder.append(BOM);
 							blobBuilder.append(content);
 							fileWriter.onerror = onFileError;
-							fileWriter.onwrite = function(e) {
-								updateIndexFile();
-								finishUpdate();
-							};
+							fileWriter.onwrite = finishUpdate;
 							fileWriter.write(blobBuilder.getBlob());
 						});
 					}, onFileError);
