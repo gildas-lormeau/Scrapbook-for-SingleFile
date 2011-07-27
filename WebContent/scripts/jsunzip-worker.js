@@ -61,8 +61,7 @@ importScripts('jsunzip.js');
 		}
 
 		if (data.message == "getEntryData") {
-			var zipEntry = unzipper.entries[data.index], zipData, uncompressedData, blobBuilder = this.BlobBuilder ? new BlobBuilder()
-					: new WebKitBlobBuilder();
+			var zipEntry = unzipper.entries[data.index], zipData, uncompressedData, blobBuilder = new (this.BlobBuilder || this.WebKitBlobBuilder)();
 			if (zipEntry) {
 				zipData = zipEntry.getData(zipEntry.compressionMethod == 0);
 				blobBuilder.append(zipEntry.compressionMethod == 0 ? zipData : zipEntry.compressionMethod == 8 ? JSInflate.inflate(zipData,

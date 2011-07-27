@@ -7,7 +7,7 @@ importScripts('jszip-deflate.js');
  * author: Gildas Lormeau
  */
 onmessage = function(event) {
-	var data = event.data, blobBuilder = this.BlobBuilder ? new BlobBuilder() : new WebKitBlobBuilder();
+	var data = event.data, blobBuilder = new (this.BlobBuilder || this.WebKitBlobBuilder)();
 	if (data.message == "new")
 		JSZip.instance = new JSZip(data.compress ? "DEFLATE" : "STORE");
 	if (data.message == "add") {
