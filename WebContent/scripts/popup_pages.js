@@ -284,8 +284,8 @@
 
 				function refreshTitle() {
 					aElement.title = "open the archive\n\n- Title : " + title + "\n- Saved date : " + new Date(row.timestamp).toLocaleDateString()
-							+ "\n- Last read date : " + (row.read_timestamp ? new Date(row.read_timestamp).toLocaleDateString() : "-") + "\n- Rating : " + (stars / 100)
-							+ " star" + (stars > 100 || !stars ? "s" : "") + "\n- Size : " + Math.floor(row.size / (1024 * 1024) * 100) / 100
+							+ "\n- Last read date : " + (row.read_timestamp ? new Date(row.read_timestamp).toLocaleDateString() : "-") + "\n- Rating : "
+							+ (stars / 100) + " star" + (stars > 100 || !stars ? "s" : "") + "\n- Size : " + Math.floor(row.size / (1024 * 1024) * 100) / 100
 							+ " MB\n- Tags : " + (infoLine3Element.values.length ? infoLine3Element.values.join(", ") : "-");
 				}
 
@@ -389,12 +389,10 @@
 				aElement.href = "#";
 				new TitleInput(aElement, row.title, "edit title", "delete archive");
 				aElement.onclick = function() {
-					if (bgPage.linkedElement) {
-						bgPage.linkedElement.link.href = row.url;
-						bgPage.updatePage();
-						window.close();
-					} else
-						bgPage.open(row.id, bgPage.options.openInBgTab != "yes");
+					/*
+					 * if (bgPage.linkedElement) { bgPage.linkedElement.link.href = row.url; bgPage.updatePage(); window.close(); } else
+					 */
+					bgPage.open(row.id);
 					return false;
 				};
 				moreElement.onenter = function(value) {
@@ -438,10 +436,10 @@
 					tagsInput.value = value;
 					search();
 				};
-				if (bgPage.linkedElement)
-					aElement.title = "associate the selected link with this archive";
-				else
-					refreshTitle();
+				/*
+				 * if (bgPage.linkedElement) aElement.title = "associate the selected link with this archive"; else
+				 */
+				refreshTitle();
 			})(rows[i], tags[i]);
 		}
 		tempElement.id = ulElement.id;

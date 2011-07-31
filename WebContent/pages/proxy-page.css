@@ -1,0 +1,28 @@
+.scrapbook-toolbox {
+	position: fixed;
+	top: 0px;
+	right: 0px;
+	width: 630px;
+	height: 24px;
+	z-index: 9007199254740992;
+	background-color: white;
+	border-width: 0px;
+	box-shadow: 2px 2px 2px #ccc;
+}
+
+.scrapbook-colorpicker {
+	position: fixed;
+	top: 30px;
+	left: 0px;
+	width: 150px;
+	height: 130px;
+	z-index: 9007199254740992;
+	background-color: white;
+	border-color: gray;
+	border-width: 0px;
+	box-shadow: 2px 2px 2px #ccc;
+}
+
+.scrapbook-toolbox.collapsed {
+	width: 12px;
+}

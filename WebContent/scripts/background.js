@@ -33,11 +33,10 @@ var SINGLE_FILE_ID = dev ? "onlinihoegnbbcmeeocfeplgbkmoidla" /* "oabofdibacblkh
 var options = localStorage.options ? JSON.parse(localStorage.options) : {
 	askConfirmation : "yes",
 	expandNewArchive : "yes",
-	openInBgTab : "yes",
 	filesystemEnabled : "",
 	searchInTitle : "",
 	compress : "yes"
-}, linkedElement;
+}/* , linkedElement */;
 
 options.save = function() {
 	localStorage.options = JSON.stringify(options);
@@ -74,8 +73,10 @@ function resetDatabase(callback) {
 }
 
 function open(id, selected) {
+	if (popupState.newPages[id])
+		popupState.newPages[id] = false;
 	chrome.tabs.create({
-		url : "pages/stub.html?" + id,
+		url : "pages/proxy.html?" + id,
 		selected : selected
 	});
 }
@@ -92,26 +93,18 @@ function openPages(checkedPages) {
 		if (index)
 			open(id, false);
 		else
-			open(id, options.openInBgTab != "yes");
+			open(id, true);
 	});
 }
 
-function updatePage() {
-	var element = linkedElement;
-	resetLinkedElement();
-	storage.updatePage(element.archiveId, element.archiveDoc);
-}
-
-function resetLinkedElement() {
-	linkedElement.link.style.backgroundColor = null;
-	linkedElement = null;
-}
-
-function setLinkedElement(element) {
-	linkedElement = element;
-	linkedElement.link.style.backgroundColor = "green";
-	tab = "pages";
-}
+/*
+ * function updatePage() { var element = linkedElement; resetLinkedElement(); storage.updatePage(element.archiveId, element.archiveDoc); }
+ * 
+ * 
+ * function resetLinkedElement() { linkedElement.link.style.backgroundColor = null; linkedElement = null; }
+ * 
+ * function setLinkedElement(element) { linkedElement = element; linkedElement.link.style.backgroundColor = "green"; tab = "pages"; }
+ */
 
 function openLink(url) {
 	chrome.tabs.create({
@@ -405,6 +398,10 @@ chrome.omnibox.onInputEntered.addListener(function(text, suggestCallback) {
 	var id = text.split("/")[1];
 	if (id)
 		open(id);
+});
+
+chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+	storage.updatePage(request.archiveId, request.content);
 });
 
 chrome.extension.onRequestExternal.addListener(function(request, sender, sendResponse) {

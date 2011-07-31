@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, searchTitleButton, saveOnDiskButton, importButton, exportButton, exportToZipButton, importFromZipButton, openBgTabButton, compressButton;
+	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, searchTitleButton, saveOnDiskButton, importButton, exportButton, exportToZipButton, importFromZipButton, compressButton;
 
 	var requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
@@ -30,11 +30,6 @@
 
 	function resetButtonOnclick() {
 		bgPage.resetDefaultFilters();
-	}
-
-	function openBgTabButtonOnclick() {
-		bgPage.options.openInBgTab = openBgTabButton.value;
-		bgPage.options.save();
 	}
 
 	function askConfirmButtonOnclick() {
@@ -134,7 +129,6 @@
 		searchTitleButton = document.getElementById("options-search-title-button");
 		saveOnDiskButton = document.getElementById("options-save-archives-button");
 		importButton = document.getElementById("options-import-button");
-		openBgTabButton = document.getElementById("options-open-bgtab-button");
 		exportButton = document.getElementById("options-export-button");
 		exportToZipButton = document.getElementById("options-export-tozip-button");
 		importFromZipButton = document.getElementById("options-import-fromzip-button");
@@ -146,8 +140,6 @@
 		askConfirmButton.onchange = askConfirmButtonOnclick;
 		importFromZipButton.onchange = importFromZipButtonOnclick;
 		askConfirmButton.value = bgPage.options.askConfirmation;
-		openBgTabButton.onchange = openBgTabButtonOnclick;
-		openBgTabButton.value = bgPage.options.openInBgTab;
 		expandArchivesButton.onchange = expandArchivesButtonOnclick;
 		expandArchivesButton.value = bgPage.options.expandNewArchive;
 		searchTitleButton.onchange = searchTitleButtonOnclick;

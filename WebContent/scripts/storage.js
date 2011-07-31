@@ -438,8 +438,7 @@ var storage = {};
 		return "";
 	}
 
-	storage.updatePage = function(id, doc, forceUseDatabase) {
-		var content = getDoctype(doc) + doc.documentElement.outerHTML;
+	storage.updatePage = function(id, content, forceUseDatabase) {
 		if (fs && !forceUseDatabase) {
 			fs.root.getFile(id + ".html", null, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
@@ -448,12 +447,12 @@ var storage = {};
 					blobBuilder.append(BOM);
 					blobBuilder.append(content);
 					fileWriter.onerror = function(e) {
-						storage.updatePage(id, doc, true);
+						storage.updatePage(id, content, true);
 					};
 					fileWriter.write(blobBuilder.getBlob());
 				});
 			}, function() {
-				storage.updatePage(id, doc, true);
+				storage.updatePage(id, content, true);
 			});
 		} else {
 			db.transaction(function(tx) {

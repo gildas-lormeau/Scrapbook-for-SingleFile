@@ -23,10 +23,10 @@
 })();
 // ---
 
-//--- migration code from version 0.1.0 to 0.1.+ ---
+// --- migration code from version 0.1.0 to 0.1.+ ---
 (function() {
 	var options;
-	
+
 	if (localStorage.options) {
 		options = JSON.parse(localStorage.options);
 		if (typeof options.compress == "undefined") {
@@ -37,3 +37,16 @@
 })();
 // ---
 
+// --- migration code from version 0.1.1 to 0.1.2+ ---
+(function() {
+	var options;
+
+	if (localStorage.options) {
+		options = JSON.parse(localStorage.options);
+		if (typeof options.openInBgTab != "undefined") {
+			delete options.openInBgTab;
+			localStorage.options = JSON.stringify(options);
+		}
+	}
+})();
+// ---

@@ -1,0 +1,41 @@
+body {
+	margin: 0px;
+}
+
+.slide-input {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	width: 15px;
+	height: 120px;
+}
+
+.picker-input {
+	position: absolute;
+	top: 5px;
+	left: 5px;
+	width: 120px;
+	height: 120px;
+	cursor: crosshair;
+}
+
+.picker-indicator-input {
+	width: 5px;
+	height: 5px;
+	border: 2px solid darkBlue;
+	border-radius: 4px;
+	opacity: .5;
+	background-color: white;
+	position: absolute;
+}
+
+.slide-indicator-input {
+	width: 15px;
+	height: 2px;
+	left: -2px;
+	opacity: .6;
+	border: 2px solid darkBlue;
+	border-radius: 2px;
+	background-color: white;
+	position: absolute;
+}
