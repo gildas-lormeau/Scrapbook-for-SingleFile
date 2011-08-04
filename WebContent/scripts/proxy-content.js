@@ -17,10 +17,13 @@
  *   You should have received a copy of the GNU Lesser General Public License
  *   along with Scrapbook for SingleFile.  If not, see <http://www.gnu.org/licenses/>.
  */
+(function() {
 
-var archiveId = Number(location.search.split('?')[1]);
+	var archiveId = Number(location.search.split('?')[1]);
 
-addEventListener("message", function(event) {
-	event.data.archiveId = archiveId;
-	chrome.extension.sendRequest(event.data);
-}, false);
+	addEventListener("message", function(event) {
+		event.data.archiveId = archiveId;
+		chrome.extension.sendRequest(event.data);
+	}, false);
+
+})();
