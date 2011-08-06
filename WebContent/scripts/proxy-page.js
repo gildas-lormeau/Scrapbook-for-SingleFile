@@ -139,14 +139,17 @@
 			element.style.zIndex = 9007199254740992;
 			element.setAttribute("onmousedown", "(" + (function() {
 				var element = event.target;
-				while (element.className != "scrapbook-note")
-					element = element.parentElement;
-				if (document.body.lastChild != element)
-					document.body.appendChild(element);
+				if (element.className != "scrapbook-note-close" && element.className != "scrapbook-note-pin") {
+					while (element.className != "scrapbook-note")
+						element = element.parentElement;
+					if (document.body.lastChild != element)
+						document.body.appendChild(element);
+				}
 			}).toString() + ")()");
 		}
 
 		function initPinElement() {
+			pin.className = "scrapbook-note-pin";
 			pin.title = "Unpin";
 			pin.style.backgroundImage = "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sIBBUNKJHJLfYAAAGOSURBVDjL5ZPJLwMBFMa/2cx0UNEI0dDWEkNIUaUhsURciISEQxPiQOLkyEX8FQ5EuHBGJE6OEgexxF4tJaq2NlNRqjWm03HqQW1xk3jH973vl7wN+B/hqLKNePp7nYeWmp5EjfzJvA3kZDXXjWkjoqCvr5x1WGyDvwKkAzzxEJQJSQNlZY3KNBomdk1Cb1wnEg2uwhKK9d+3syR5R+t1WralYTH27EsBy0M6D+Ll6BhkRbmau7xAAgCdCOD12QNpfW1ThCQj5gvjdW0dUAEQKhihWA1bLYgxjBSv/wCguKRk1R9E1HMGQpMOheIh3/pAcCw4r39DdZ9PhUJPl1+2sAUwxrrGGVqn61NcThB5+bi/vkGqUPASXZzPzQHEb4doBWTp4spL1wqqYjAh7HAh1WQCtXcwmWj+FHBqrhlKbm0aVW4CUYjiqmIuQ/DIAVmXYf9sS+8A+2ZrN19aMi49RiLi3FJn1t5mE63Epjlb9aUkBoZ/vDhna4fX3WUP7BiKrPHcCTjmNEmr/bt/8gbi940I+j5U9QAAAABJRU5ErkJggg==)";
 			pin.style.position = "absolute";
@@ -174,6 +177,7 @@
 		}
 
 		function initCloseElement() {
+			close.className = "scrapbook-note-close";
 			close.title = "Delete";
 			close.style.backgroundImage = "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAB3RJTUUH1woQCDkQxGYFbwAAAAlwSFlzAAAewQAAHsEBw2lUUwAAAARnQU1BAACxjwv8YQUAAAHaSURBVHja3VJBa9RAFP5mJroxm3TdrR4sgojHFaGIvVvBo3gWlGr9CUrFXyD4KwQR/A1KD4VW8NBTrnWr6XazLVvbjW4mmcyML9sqG1v17oOXSd7M982X7z1gIqy1/0y5sOhNfrMKwZOlw5eXL3BSZAuLsIWCUQW8t2/GNV45IcTh+vTZX8FGKSR37p5AoPUlIrGWc5s/etz+WZYPHrZBNR4EdvBh7eaYKFf4eus2r/7C0nOLWg225NrdhZHp1fJGxnkoGlNwGg1k0RZkHDOT52guv4NTIchzQwo4CwIwz4PNZAjGwH0fTjAFGUXIerE2qgS/H2MqBNnOzg3uuh95kgineRbCdQFjKDXkl890c18Xo9HcudWVX5iKB+7rV+s6TefUYGCgNLC5CXQ6pTeQvdgcgdcnMRUFR8OQMc44dAGQ22MFBfkgOC/3fj9eUZDeu9+myQjFGY9ABJ6ZobwwJqiRgcIRYX/2evvPCqwNHQKf8j2k29uQ/T4ZppjbbPH6+WnopA61vx9uXb7CLnY2jiuwZBY9kHZ7Zas09dq3StW/d7t6uPGJRoGXLYUlT4jkuAJ1MJzXo3RZDQ+MLbQ/vboiy3p8bdZPoujb6SAQcm9v3m21QCv+k/gB4NkSwe3cC88AAAAASUVORK5CYII=)";
 			close.style.position = "absolute";
