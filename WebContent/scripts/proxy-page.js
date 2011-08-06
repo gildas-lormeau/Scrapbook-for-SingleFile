@@ -65,6 +65,7 @@
 			if (callback)
 				callback(value);
 		});
+		colorFrame.style["-webkit-user-select"] = "none";
 		colorFrame.hidden = true;
 		value = 0;
 		return {
