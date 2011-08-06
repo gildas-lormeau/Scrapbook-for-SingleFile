@@ -46,7 +46,7 @@
 		colorFrame.classList.add("scrapbook-editor");
 		colorFrame.classList.add("scrapbook-colorpicker");
 		link.rel = "stylesheet";
-		link.href = scrapbook.path + "/pages/proxy-colorpicker.css";
+		link.href = scrapbook_path + "/pages/proxy-colorpicker.css";
 		doc.head.appendChild(link);
 		colorInput.classList.add("color");
 		colorInput.hidden = true;
@@ -95,7 +95,7 @@
 
 	function initDocument() {
 		document.body.setAttribute("onmousemove", "(" + (function() {
-			var note = scrapbook.currentNote;
+			var note = window.scrapbook_currentNote;
 			if (note) {
 				if (document.body.style["-webkit-user-select"] != "none")
 					document.body.style["-webkit-user-select"] = "none";
@@ -104,7 +104,7 @@
 				note.origX = event.clientX;
 				note.origY = event.clientY;
 			} else {
-				note = scrapbook.currentGrip;
+				note = window.scrapbook_currentGrip;
 				if (note) {
 					document.body.style["-webkit-user-select"] = "none";
 					note.target.style.width = note.target.offsetWidth + (event.clientX - (note.origX || 0)) + 'px';
@@ -116,8 +116,8 @@
 			}
 		}).toString() + ")()");
 		document.body.setAttribute("onmouseup", "(" + (function() {
-			scrapbook.currentNote = null;
-			scrapbook.currentGrip = null;
+			window.scrapbook_currentNote = null;
+			window.scrapbook_currentGrip = null;
 		}).toString() + ")()");
 	}
 
@@ -198,7 +198,7 @@
 			grip.setAttribute("onmousedown", "(" + (function() {
 				var note = event.target.parentElement;
 				if (event.target.parentElement.className == "scrapbook-note") {
-					scrapbook.currentNote = {
+					window.scrapbook_currentNote = {
 						target : note,
 						origX : event.clientX,
 						origY : event.clientY
@@ -237,7 +237,7 @@
 			resize.style.height = "16px";
 			resize.style.cursor = "se-resize";
 			resize.setAttribute("onmousedown", "(" + (function() {
-				scrapbook.currentGrip = {
+				window.scrapbook_currentGrip = {
 					target : event.target.nextSibling,
 					origX : event.clientX,
 					origY : event.clientY
@@ -378,7 +378,7 @@
 		doc = frame.contentDocument;
 		doc.body.classList.add("collapsed");
 		link.rel = "stylesheet";
-		link.href = scrapbook.path + "/pages/proxy-toolbox.css";
+		link.href = scrapbook_path + "/pages/proxy-toolbox.css";
 		doc.head.appendChild(link);
 		container.classList.add("main-buttons");
 		doc.body.appendChild(container);

@@ -109,7 +109,7 @@
 		blobBuilder.append(BOM);
 		blobBuilder.append(content);
 		blobBuilder.append("<link rel='stylesheet' class='scrapbook-editor' href='" + chrome.extension.getURL("pages/proxy-page.css") + "'></link>");
-		blobBuilder.append("<script class='scrapbook-editor'>var scrapbook = { path : \"" + chrome.extension.getURL("") + "\" };</script>");
+		blobBuilder.append("<script class='scrapbook-editor'>var scrapbook_path = \"" + chrome.extension.getURL("") + "\";</script>");
 		blobBuilder.append("<iframe id='scrapbook-background' class='scrapbook-editor' hidden src='" + chrome.extension.getURL("pages/proxy-content.html"  + "?" + archiveId) + "'></iframe>");
 		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/color-picker.js") + "'></script>");
 		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/proxy-page.js") + "'></script>");
