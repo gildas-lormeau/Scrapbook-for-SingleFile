@@ -401,7 +401,18 @@ chrome.omnibox.onInputEntered.addListener(function(text, suggestCallback) {
 });
 
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-	storage.updatePage(request.archiveId, request.content);
+	if (request.saveArchive)
+		storage.updatePage(request.archiveId, request.content);
+	if (request.gefaultStyle) {
+		var i, style = getComputedStyle(document.getElementById("basic-div")), divStyle = {};
+		for (i = 0; i < style.length; i++) {
+			divStyle[style[i]] = style[style[i]];
+		}
+		delete divStyle["width"];
+		delete divStyle["-webkit-perspective-origin"];
+		delete divStyle["-webkit-transform-origin"];
+		sendResponse(JSON.stringify(divStyle));
+	}
 });
 
 chrome.extension.onRequestExternal.addListener(function(request, sender, sendResponse) {

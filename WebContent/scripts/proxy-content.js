@@ -26,4 +26,13 @@
 		chrome.extension.sendRequest(event.data);
 	}, false);
 
+	chrome.extension.sendRequest({
+		gefaultStyle : true
+	}, function(style) {
+		parent.postMessage(JSON.stringify({
+			sefaultStyle : true,
+			defaultStyle: style
+		}), "*");
+	});
+
 })();
