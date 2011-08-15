@@ -193,7 +193,6 @@
 							entry.crc32 = data.view.getUint32(index + 16, true);
 							entry.compressedSize = data.view.getUint32(index + 20, true);
 							entry.uncompressedSize = data.view.getUint32(index + 24, true);
-
 							if (entry.compressedSize === 0xFFFFFFFF || entry.uncompressedSize === 0xFFFFFFFF) {
 								terminate(entry, "File is using Zip64 (4gb+ file size).", callback);
 								return;
@@ -327,12 +326,11 @@
 				writer.onwrite = callback;
 				writer.onerror = callback;
 				writer.write(blobBuilder.getBlob());
-			} else {
+			} else
 				file.createWriter(function(fileWriter) {
 					writer = fileWriter;
 					writeDataBuffer(dataBuffer, callback);
 				});
-			}
 		}
 
 		return {
