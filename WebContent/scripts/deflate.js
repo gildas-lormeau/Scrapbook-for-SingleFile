@@ -1,28 +1,19 @@
 /*
  * Port of a script by Masanao Izumo.
  * 
- * Only changes : wrap all the variables in a function and add the main function to JSZip (DEFLATE compression method). Everything else was
- * written by M. Izumo.
- * 
  * Original code can be found here: http://www.onicos.com/staff/iz/amuse/javascript/expert/inflate.txt
  */
 
-if (!JSZip) {
-	throw "JSZip not defined";
-}
-
 /*
- * Original: http://www.onicos.com/staff/iz/amuse/javascript/expert/deflate.txt
+ * Modified version by Gildas Lormeau.
+ * 
+ * zip_deflate accepts an ArrayBuffer or Array object instead of a String object and returns an Array object.
  */
 
 (function() {
 
 	/*
 	 * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp> Version: 1.0.1 LastModified: Dec 25 1999
-	 */
-
-	/*
-	 * Interface: data = zip_deflate(src);
 	 */
 
 	/* constant parameters */
@@ -350,7 +341,7 @@ if (!JSZip) {
 		var i;
 		/* for (i = 0; i < n && zip_deflate_pos < zip_deflate_data.length; i++) buff[offset + i] = zip_deflate_data[zip_deflate_pos++] */
 		for (i = 0; i < n && zip_deflate_pos < zip_deflate_data.length; i++)
-			buff[offset + i] = zip_deflate_data.charCodeAt(zip_deflate_pos++);
+			buff[offset + i] = zip_deflate_data[zip_deflate_pos++];
 		return i;
 	};
 
@@ -1597,31 +1588,46 @@ if (!JSZip) {
 		}
 	};
 
-	var zip_deflate = function(dataArray, level) {
-		var i;
-		zip_deflate_data = dataArray;
+	var zip_deflate = function(data, level, onprogress) {
+		var i, last_zip_deflate_pos = -1;
+		zip_deflate_data = data;
 		zip_deflate_pos = 0;
-		if (typeof level == "undefined")
+		if (!level)
 			level = zip_DEFAULT_LEVEL;
 		zip_deflate_start(level);
 		var buff = new Array(1024);
 		var aout = [];
-		while ((i = zip_deflate_internal(buff, 0, buff.length)) > 0)
-			aout = aout.concat(buff);
+		while ((i = zip_deflate_internal(buff, 0, buff.length)) > 0) {
+			aout.push(buff.slice(0));
+			if (last_zip_deflate_pos != zip_deflate_pos)
+				onprogress(zip_deflate_pos, data.length);
+			last_zip_deflate_pos = zip_deflate_pos;
+		}
 		zip_deflate_data = null; // G.C.
-		return aout;
+		return Array.prototype.concat.apply([], aout);
 	};
 
 	//
 	// end of the script of Masanao Izumo.
 	//
 
-	// we add the compression method for JSZip
-	JSZip.compressions["DEFLATE"] = {
-		magic : "\x08\x00",
-		compress : function(content, level) {
-			return zip_deflate(content, level);
+	addEventListener("message", function(event) {
+		var message = event.data;
+
+		function onprogress(current, total) {
+			postMessage({
+				progress : true,
+				current : current,
+				total : total
+			});
 		}
-	};
+
+		if (message.deflate) {
+			postMessage({
+				end : true,
+				data : zip_deflate(message.data, message.level, onprogress)
+			});
+		}
+	}, false);
 
 })();

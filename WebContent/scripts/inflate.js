@@ -1,187 +1,19 @@
-(function(globalObject) {
+/*
+ * Port of a script by Masanao Izumo.
+ * 
+ * Original code can be found here: http://www.onicos.com/staff/iz/amuse/javascript/expert/inflate.txt
+ */
 
-	var MAGIC_NUMBER = 0x04034b50;
+/*
+ * Modified version by Gildas Lormeau.
+ * 
+ * zip_inflate accepts an ArrayBuffer or Array object instead of a String object and returns an Array object.
+ */
 
-	function JSUnzip() {
-	}
-
-	function decodeUTF8(utftext) {
-		var str = "", i = 0, c = c1 = c2 = 0;
-		while (i < utftext.length) {
-			c = utftext.charCodeAt(i);
-			if (c < 128) {
-				str += String.fromCharCode(c);
-				i++;
-			} else if ((c > 191) && (c < 224)) {
-				c2 = utftext.charCodeAt(i + 1);
-				str += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
-				i += 2;
-			} else {
-				c2 = utftext.charCodeAt(i + 1);
-				c3 = utftext.charCodeAt(i + 2);
-				str += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-				i += 3;
-			}
-		}
-		return str;
-	}
-
-	JSUnzip.prototype = {
-		setContent : function(content) {
-			this.fileContents = new JSUnzip.BigEndianBinaryStream(content);
-		},
-
-		getEntries : function() {
-			if (this.isZipFile()) {
-				this.entries = [];
-				var e = new JSUnzip.ZipEntry(this.fileContents);
-				while ("fileName" in e) {
-					this.entries.push(e);
-					e = new JSUnzip.ZipEntry(this.fileContents);
-				}
-			}
-		},
-
-		isZipFile : function() {
-			return this.fileContents.getByteRangeAsNumber(0, 4) === MAGIC_NUMBER;
-		}
-	};
-
-	JSUnzip.ZipEntry = function(binaryStream) {
-		var dataOffsetStart;
-
-		this.signature = binaryStream.getNextBytesAsNumber(4);
-		if (this.signature !== MAGIC_NUMBER)
-			return;
-
-		this.versionNeeded = binaryStream.getNextBytesAsNumber(2);
-		this.bitFlag = binaryStream.getNextBytesAsNumber(2);
-		this.compressionMethod = binaryStream.getNextBytesAsNumber(2);
-		this.timeBlob = binaryStream.getNextBytesAsNumber(4);
-
-		if (this.isEncrypted())
-			throw "File contains encrypted entry. Not supported.";
-
-		if (this.isUsingBit3TrailingDataDescriptor())
-			throw "File is using bit 3 trailing data descriptor. Not supported.";
-
-		this.crc32 = binaryStream.getNextBytesAsNumber(4);
-		this.compressedSize = binaryStream.getNextBytesAsNumber(4);
-		this.uncompressedSize = binaryStream.getNextBytesAsNumber(4);
-
-		if (this.isUsingZip64())
-			throw "File is using Zip64 (4gb+ file size). Not supported";
-
-		this.fileNameLength = binaryStream.getNextBytesAsNumber(2);
-		this.extraFieldLength = binaryStream.getNextBytesAsNumber(2);
-
-		this.fileName = binaryStream.getNextBytesAsString(this.fileNameLength);
-
-		if (this.isUsingUtf8())
-			this.fileName = decodeUTF8(this.fileName);
-
-		this.extra = binaryStream.getNextBytesAsString(this.extraFieldLength);
-
-		dataOffsetStart = binaryStream.currentByteIndex;
-
-		this.getData = function(isUTF8) {
-			return isUTF8 ? decodeUTF8(binaryStream.getByteRangeAsString(dataOffsetStart, this.compressedSize)) : binaryStream.getByteRangeAsString(
-					dataOffsetStart, this.compressedSize);
-			// return binaryStream.getByteRange(dataOffsetStart, this.compressedSize);
-		};
-
-		binaryStream.currentByteIndex += this.compressedSize;
-	};
-
-	JSUnzip.ZipEntry.prototype = {
-		isEncrypted : function() {
-			return (this.bitFlag & 0x01) === 0x01;
-		},
-
-		isUsingUtf8 : function() {
-			return (this.bitFlag & 0x0800) === 0x0800;
-		},
-
-		isUsingBit3TrailingDataDescriptor : function() {
-			return (this.bitFlag & 0x0008) === 0x0008;
-		},
-
-		isUsingZip64 : function() {
-			this.compressedSize === 0xFFFFFFFF || this.uncompressedSize === 0xFFFFFFFF;
-		}
-	};
-
-	JSUnzip.BigEndianBinaryStream = function(stream) {
-		// this.int8Array = new Uint8Array(stream);
-		this.stream = stream;
-		this.currentByteIndex = 0;
-	};
-
-	JSUnzip.BigEndianBinaryStream.prototype = {
-
-		/*
-		 * getByteRange : function(index, steps) { // return this.int8Array.subarray(index, index + steps); },
-		 */
-
-		getByteAt : function(index) {
-			return this.stream.charCodeAt(index);
-			// return this.int8Array[index];
-		},
-
-		getNextBytesAsNumber : function(steps) {
-			var res = this.getByteRangeAsNumber(this.currentByteIndex, steps);
-			this.currentByteIndex += steps;
-			return res;
-		},
-
-		getNextBytesAsString : function(steps) {
-			var res = this.getByteRangeAsString(this.currentByteIndex, steps);
-			this.currentByteIndex += steps;
-			return res;
-		},
-
-		// Big endian, so we're going backwards.
-		getByteRangeAsNumber : function(index, steps) {
-			var result = 0;
-			var i = index + steps - 1;
-			while (i >= index) {
-				result = (result << 8) + this.getByteAt(i);
-				i--;
-			}
-			return result;
-		},
-
-		getByteRangeAsString : function(index, steps) {
-			var result = "";
-			var max = index + steps;
-			var i = index;
-			while (i < max) {
-				result += String.fromCharCode(this.getByteAt(i));
-				i++;
-			}
-			return result;
-		}
-	};
-
-	globalObject.JSUnzip = JSUnzip;
-
-}(this));
-
-(function(globalObject) {
+(function() {
 
 	/*
-	 * Modified version by Gildas Lormeau.
-	 * 
-	 * JSInflate.inflate returns an ArrayBuffer object instead of a String object.
-	 */
-
-	/*
-	 * Port of script by Masanao Izumo.
-	 * 
-	 * Wrapped all the variables in a function, created a constructor for interacting with the lib. Everything else was written by M. Izumo.
-	 * 
-	 * Original code can be found here: http://www.onicos.com/staff/iz/amuse/javascript/expert/inflate.txt
-	 * 
+	 * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp> Version: 1.0.0.1 LastModified: Dec 25 1999
 	 */
 
 	var zip_WSIZE = 32768; // Sliding Window size
@@ -260,206 +92,203 @@
 		 * codes or an oversubscribed set of lengths), and three if not enough memory. The code with value 256 is special, and the tables
 		 * are constructed so that no bits beyond that code are fetched when that code is decoded.
 		 */
+		var a; // counter for codes of length k
+		var c = new Array(this.BMAX + 1); // bit length count table
+		var el; // length of EOB code (value 256)
+		var f; // i repeats in table every f entries
+		var g; // maximum code length
+		var h; // table level
+		var i; // counter, current code
+		var j; // counter
+		var k; // number of bits in current code
+		var lx = new Array(this.BMAX + 1); // stack of bits per table
+		var p; // pointer into c[], b[], or v[]
+		var pidx; // index of p
+		var q; // (zip_HuftNode) points to current table
+		var r = new zip_HuftNode(); // table entry for structure assignment
+		var u = new Array(this.BMAX); // zip_HuftNode[BMAX][] table stack
+		var v = new Array(this.N_MAX); // values in order of bit length
+		var w;
+		var x = new Array(this.BMAX + 1); // bit offsets, then code stack
+		var xp; // pointer into x or c
+		var y; // number of dummy codes added
+		var z; // number of entries in current table
+		var o;
+		var tail; // (zip_HuftList)
+		tail = this.root = null;
+		for (i = 0; i < c.length; i++)
+			c[i] = 0;
+		for (i = 0; i < lx.length; i++)
+			lx[i] = 0;
+		for (i = 0; i < u.length; i++)
+			u[i] = null;
+		for (i = 0; i < v.length; i++)
+			v[i] = 0;
+		for (i = 0; i < x.length; i++)
+			x[i] = 0;
 
-		{
-			var a; // counter for codes of length k
-			var c = new Array(this.BMAX + 1); // bit length count table
-			var el; // length of EOB code (value 256)
-			var f; // i repeats in table every f entries
-			var g; // maximum code length
-			var h; // table level
-			var i; // counter, current code
-			var j; // counter
-			var k; // number of bits in current code
-			var lx = new Array(this.BMAX + 1); // stack of bits per table
-			var p; // pointer into c[], b[], or v[]
-			var pidx; // index of p
-			var q; // (zip_HuftNode) points to current table
-			var r = new zip_HuftNode(); // table entry for structure assignment
-			var u = new Array(this.BMAX); // zip_HuftNode[BMAX][] table stack
-			var v = new Array(this.N_MAX); // values in order of bit length
-			var w;
-			var x = new Array(this.BMAX + 1); // bit offsets, then code stack
-			var xp; // pointer into x or c
-			var y; // number of dummy codes added
-			var z; // number of entries in current table
-			var o;
-			var tail; // (zip_HuftList)
-			tail = this.root = null;
-			for (i = 0; i < c.length; i++)
-				c[i] = 0;
-			for (i = 0; i < lx.length; i++)
-				lx[i] = 0;
-			for (i = 0; i < u.length; i++)
-				u[i] = null;
-			for (i = 0; i < v.length; i++)
-				v[i] = 0;
-			for (i = 0; i < x.length; i++)
-				x[i] = 0;
+		// Generate counts for each bit length
+		el = n > 256 ? b[256] : this.BMAX; // set length of EOB code, if any
+		p = b;
+		pidx = 0;
+		i = n;
+		do {
+			c[p[pidx]]++; // assume all entries <= BMAX
+			pidx++;
+		} while (--i > 0);
+		if (c[0] == n) { // null input--all zero length codes
+			this.root = null;
+			this.m = 0;
+			this.status = 0;
+			return;
+		}
 
-			// Generate counts for each bit length
-			el = n > 256 ? b[256] : this.BMAX; // set length of EOB code, if any
-			p = b;
-			pidx = 0;
-			i = n;
-			do {
-				c[p[pidx]]++; // assume all entries <= BMAX
-				pidx++;
-			} while (--i > 0);
-			if (c[0] == n) { // null input--all zero length codes
-				this.root = null;
-				this.m = 0;
-				this.status = 0;
-				return;
-			}
+		// Find minimum and maximum length, bound *m by those
+		for (j = 1; j <= this.BMAX; j++)
+			if (c[j] != 0)
+				break;
+		k = j; // minimum code length
+		if (mm < j)
+			mm = j;
+		for (i = this.BMAX; i != 0; i--)
+			if (c[i] != 0)
+				break;
+		g = i; // maximum code length
+		if (mm > i)
+			mm = i;
 
-			// Find minimum and maximum length, bound *m by those
-			for (j = 1; j <= this.BMAX; j++)
-				if (c[j] != 0)
-					break;
-			k = j; // minimum code length
-			if (mm < j)
-				mm = j;
-			for (i = this.BMAX; i != 0; i--)
-				if (c[i] != 0)
-					break;
-			g = i; // maximum code length
-			if (mm > i)
-				mm = i;
-
-			// Adjust last length count to fill out codes, if needed
-			for (y = 1 << j; j < i; j++, y <<= 1)
-				if ((y -= c[j]) < 0) {
-					this.status = 2; // bad input: more codes than bits
-					this.m = mm;
-					return;
-				}
-			if ((y -= c[i]) < 0) {
-				this.status = 2;
+		// Adjust last length count to fill out codes, if needed
+		for (y = 1 << j; j < i; j++, y <<= 1)
+			if ((y -= c[j]) < 0) {
+				this.status = 2; // bad input: more codes than bits
 				this.m = mm;
 				return;
 			}
-			c[i] += y;
+		if ((y -= c[i]) < 0) {
+			this.status = 2;
+			this.m = mm;
+			return;
+		}
+		c[i] += y;
 
-			// Generate starting offsets into the value table for each length
-			x[1] = j = 0;
-			p = c;
-			pidx = 1;
-			xp = 2;
-			while (--i > 0)
-				// note that i == g from above
-				x[xp++] = (j += p[pidx++]);
+		// Generate starting offsets into the value table for each length
+		x[1] = j = 0;
+		p = c;
+		pidx = 1;
+		xp = 2;
+		while (--i > 0)
+			// note that i == g from above
+			x[xp++] = (j += p[pidx++]);
 
-			// Make a table of values in order of bit lengths
-			p = b;
-			pidx = 0;
-			i = 0;
-			do {
-				if ((j = p[pidx++]) != 0)
-					v[x[j]++] = i;
-			} while (++i < n);
-			n = x[g]; // set n to length of v
-			// Generate the Huffman codes and for each, make the table entries
-			x[0] = i = 0; // first Huffman code is zero
-			p = v;
-			pidx = 0; // grab values in bit order
-			h = -1; // no tables yet--level -1
-			w = lx[0] = 0; // no bits decoded yet
-			q = null; // ditto
-			z = 0; // ditto
-			// go through the bit lengths (k already is bits in shortest code)
-			for (; k <= g; k++) {
-				a = c[k];
-				while (a-- > 0) {
-					// here i is the Huffman code of length k bits for value p[pidx]
-					// make tables up to required level
-					while (k > w + lx[1 + h]) {
-						w += lx[1 + h]; // add bits already decoded
-						h++;
+		// Make a table of values in order of bit lengths
+		p = b;
+		pidx = 0;
+		i = 0;
+		do {
+			if ((j = p[pidx++]) != 0)
+				v[x[j]++] = i;
+		} while (++i < n);
+		n = x[g]; // set n to length of v
+		// Generate the Huffman codes and for each, make the table entries
+		x[0] = i = 0; // first Huffman code is zero
+		p = v;
+		pidx = 0; // grab values in bit order
+		h = -1; // no tables yet--level -1
+		w = lx[0] = 0; // no bits decoded yet
+		q = null; // ditto
+		z = 0; // ditto
+		// go through the bit lengths (k already is bits in shortest code)
+		for (; k <= g; k++) {
+			a = c[k];
+			while (a-- > 0) {
+				// here i is the Huffman code of length k bits for value p[pidx]
+				// make tables up to required level
+				while (k > w + lx[1 + h]) {
+					w += lx[1 + h]; // add bits already decoded
+					h++;
 
-						// compute minimum size table less than or equal to *m bits
-						z = (z = g - w) > mm ? mm : z; // upper limit
-						if ((f = 1 << (j = k - w)) > a + 1) { // try a k-w bit table
-							// too few codes for k-w bit table
-							f -= a + 1; // deduct codes from patterns left
-							xp = k;
-							while (++j < z) { // try smaller tables up to z bits
-								if ((f <<= 1) <= c[++xp])
-									break; // enough codes to use up j bits
-								f -= c[xp]; // else deduct codes from patterns
-							}
-						}
-						if (w + j > el && w < el)
-							j = el - w; // make EOB code end at table
-						z = 1 << j; // table entries for j-bit table
-						lx[1 + h] = j; // set table size in stack
-						// allocate and link in new table
-						q = new Array(z);
-						for (o = 0; o < z; o++) {
-							q[o] = new zip_HuftNode();
-						}
-
-						if (tail == null)
-							tail = this.root = new zip_HuftList();
-						else
-							tail = tail.next = new zip_HuftList();
-						tail.next = null;
-						tail.list = q;
-						u[h] = q; // table starts after link
-						/* connect to last table, if there is one */
-						if (h > 0) {
-							x[h] = i; // save pattern for backing up
-							r.b = lx[h]; // bits to dump before this table
-							r.e = 16 + j; // bits in this table
-							r.t = q; // pointer to this table
-							j = (i & ((1 << w) - 1)) >> (w - lx[h]);
-							u[h - 1][j].e = r.e;
-							u[h - 1][j].b = r.b;
-							u[h - 1][j].n = r.n;
-							u[h - 1][j].t = r.t;
+					// compute minimum size table less than or equal to *m bits
+					z = (z = g - w) > mm ? mm : z; // upper limit
+					if ((f = 1 << (j = k - w)) > a + 1) { // try a k-w bit table
+						// too few codes for k-w bit table
+						f -= a + 1; // deduct codes from patterns left
+						xp = k;
+						while (++j < z) { // try smaller tables up to z bits
+							if ((f <<= 1) <= c[++xp])
+								break; // enough codes to use up j bits
+							f -= c[xp]; // else deduct codes from patterns
 						}
 					}
-
-					// set up table entry in r
-					r.b = k - w;
-					if (pidx >= n)
-						r.e = 99; // out of values--invalid code
-					else if (p[pidx] < s) {
-						r.e = (p[pidx] < 256 ? 16 : 15); // 256 is end-of-block code
-						r.n = p[pidx++]; // simple code is just the value
-					} else {
-						r.e = e[p[pidx] - s]; // non-simple--look up in lists
-						r.n = d[p[pidx++] - s];
+					if (w + j > el && w < el)
+						j = el - w; // make EOB code end at table
+					z = 1 << j; // table entries for j-bit table
+					lx[1 + h] = j; // set table size in stack
+					// allocate and link in new table
+					q = new Array(z);
+					for (o = 0; o < z; o++) {
+						q[o] = new zip_HuftNode();
 					}
 
-					// fill code-like entries with r //
-					f = 1 << (k - w);
-					for (j = i >> w; j < z; j += f) {
-						q[j].e = r.e;
-						q[j].b = r.b;
-						q[j].n = r.n;
-						q[j].t = r.t;
-					}
-
-					// backwards increment the k-bit code i
-					for (j = 1 << (k - 1); (i & j) != 0; j >>= 1)
-						i ^= j;
-					i ^= j;
-
-					// backup over finished tables
-					while ((i & ((1 << w) - 1)) != x[h]) {
-						w -= lx[h]; // don't need to update q
-						h--;
+					if (tail == null)
+						tail = this.root = new zip_HuftList();
+					else
+						tail = tail.next = new zip_HuftList();
+					tail.next = null;
+					tail.list = q;
+					u[h] = q; // table starts after link
+					/* connect to last table, if there is one */
+					if (h > 0) {
+						x[h] = i; // save pattern for backing up
+						r.b = lx[h]; // bits to dump before this table
+						r.e = 16 + j; // bits in this table
+						r.t = q; // pointer to this table
+						j = (i & ((1 << w) - 1)) >> (w - lx[h]);
+						u[h - 1][j].e = r.e;
+						u[h - 1][j].b = r.b;
+						u[h - 1][j].n = r.n;
+						u[h - 1][j].t = r.t;
 					}
 				}
+
+				// set up table entry in r
+				r.b = k - w;
+				if (pidx >= n)
+					r.e = 99; // out of values--invalid code
+				else if (p[pidx] < s) {
+					r.e = (p[pidx] < 256 ? 16 : 15); // 256 is end-of-block code
+					r.n = p[pidx++]; // simple code is just the value
+				} else {
+					r.e = e[p[pidx] - s]; // non-simple--look up in lists
+					r.n = d[p[pidx++] - s];
+				}
+
+				// fill code-like entries with r //
+				f = 1 << (k - w);
+				for (j = i >> w; j < z; j += f) {
+					q[j].e = r.e;
+					q[j].b = r.b;
+					q[j].n = r.n;
+					q[j].t = r.t;
+				}
+
+				// backwards increment the k-bit code i
+				for (j = 1 << (k - 1); (i & j) != 0; j >>= 1)
+					i ^= j;
+				i ^= j;
+
+				// backup over finished tables
+				while ((i & ((1 << w) - 1)) != x[h]) {
+					w -= lx[h]; // don't need to update q
+					h--;
+				}
 			}
+		}
 
-			/* return actual size of base table */
-			this.m = lx[1];
+		/* return actual size of base table */
+		this.m = lx[1];
 
-			/* Return true (1) if we were given an incomplete table */
-			this.status = ((y != 0 && g != 1) ? 1 : 0);
-		} /* end of constructor */
+		/* Return true (1) if we were given an incomplete table */
+		this.status = ((y != 0 && g != 1) ? 1 : 0);
 	}
 
 	/* routines (inflate) */
@@ -467,7 +296,7 @@
 	function zip_GET_BYTE() {
 		if (zip_inflate_data.length == zip_inflate_pos)
 			return -1;
-		return zip_inflate_data.charCodeAt(zip_inflate_pos++);
+		return zip_inflate_data[zip_inflate_pos++];
 		// return zip_inflate_data[zip_inflate_pos++];
 	}
 
@@ -877,23 +706,47 @@
 		return n;
 	}
 
-	var JSInflate = {};
-
-	JSInflate.inflate = function(data, uncompressedSize) {
-		var arrayBuffer = new ArrayBuffer(uncompressedSize), uint8Array = new Uint8Array(arrayBuffer), index = 0, buff = [], length;
+	function zip_inflate(data, onprogress/* , uncompressedSize (chrome > 13) */) {
+		var buff = [], length;
+		// var index = 0, arrayBuffer = new ArrayBuffer(uncompressedSize), uint8Array = new Uint8Array(arrayBuffer) (chrome > 13)
+		var aout = [];
 		buff.length = 1024;
 		zip_inflate_start();
 		zip_inflate_data = data;
 		zip_inflate_pos = 0;
 		while ((length = zip_inflate_internal(buff, 0, buff.length)) > 0) {
 			buff.length = length;
-			uint8Array.set(buff, index);
-			index += length;
+			// uint8Array.set(buff, index); (chrome > 13)
+			aout.push(buff.slice(0));
+			// index += length; (chrome > 13)
+			onprogress(zip_inflate_pos, data.length);
 		}
 		zip_inflate_data = null; // G.C.
-		return arrayBuffer;
-	};
+		// return uint8Array; (chrome > 13)
+		return Array.prototype.concat.apply([], aout);
+	}
 
-	globalObject.JSInflate = JSInflate;
+	//
+	// end of the script of Masanao Izumo.
+	//
 
-}(this));
+	addEventListener("message", function(event) {
+		var message = event.data;
+
+		function onprogress(current, total) {
+			postMessage({
+				progress : true,
+				current : current,
+				total : total
+			});
+		}
+
+		if (message.inflate) {
+			postMessage({
+				end : true,
+				data : zip_inflate(message.data, onprogress/* , message.uncompressedSize (chrome > 13) */)
+			});
+		}
+	}, false);
+
+}());
