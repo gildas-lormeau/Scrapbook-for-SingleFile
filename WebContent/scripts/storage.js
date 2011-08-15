@@ -154,14 +154,15 @@ var storage = {};
 						if (result.rows.length)
 							pageMetadata = result.rows.item(0);
 						tx.executeSql(query, [ id ], function(cbTx, result) {
-							var i, blobBuilder = new BBuilder(), bom = new Uint8Array(0xEF, 0xBB, 0xBF), fileReader;
+							var i, blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM), fileReader;
 							if (result.rows.length)
 								for (i = 0; i < result.rows.length; i++)
 									tags.push(result.rows.item(i).tag);
 							if (pageMetadata)
 								commentNode.textContent += " page info: " + JSON.stringify(pageMetadata) + "\n";
 							commentNode.textContent += " tags: " + JSON.stringify(tags) + "\n";
-							blobBuilder.append(bom.buffer);
+							v.set([ 0xEF, 0xBB, 0xBF ]);
+							blobBuilder.append(BOM);
 							blobBuilder.append(getDoctype(newDoc));
 							blobBuilder.append(newDoc.documentElement.outerHTML);
 							fileReader = new FileReader();
