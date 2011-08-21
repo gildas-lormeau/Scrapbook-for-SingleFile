@@ -285,7 +285,7 @@
 				function refreshTitle() {
 					aElement.title = title + "\n\n- Saved date : " + new Date(row.timestamp).toLocaleDateString()
 							+ (row.read_timestamp ? "\n- Last read date : " + new Date(row.read_timestamp).toLocaleDateString() : "")
-							+ +(stars ? "\n- Rating : " + (stars / 100) + " star" + (stars > 100 ? "s" : "") : "") + "\n- Size : "
+							+ (stars ? "\n- Rating : " + (stars / 100) + " star" + (stars > 100 ? "s" : "") : "") + "\n- Size : "
 							+ Math.floor(row.size / (1024 * 1024) * 100) / 100 + " MB"
 							+ (infoLine3Element.values.length ? "\n- Tags : " + infoLine3Element.values.join(", ") : "");
 				}
