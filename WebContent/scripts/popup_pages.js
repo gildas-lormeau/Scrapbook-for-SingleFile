@@ -283,10 +283,11 @@
 				var liElement, cbElement, aElement, favicoElement, moreElement, moreDivElement, starsElement, linkElement, dateLabelElement, dateLinkElement, readDateLabelElement, readDateLinkElement, sizeLabelElement, infoLine1Element, infoLine2Element, infoLine3Element, stars = row.idx || 0, title = row.title;
 
 				function refreshTitle() {
-					aElement.title = "open the archive\n\n- Title : " + title + "\n- Saved date : " + new Date(row.timestamp).toLocaleDateString()
-							+ "\n- Last read date : " + (row.read_timestamp ? new Date(row.read_timestamp).toLocaleDateString() : "-") + "\n- Rating : "
-							+ (stars / 100) + " star" + (stars > 100 || !stars ? "s" : "") + "\n- Size : " + Math.floor(row.size / (1024 * 1024) * 100) / 100
-							+ " MB\n- Tags : " + (infoLine3Element.values.length ? infoLine3Element.values.join(", ") : "-");
+					aElement.title = title + "\n\n- Saved date : " + new Date(row.timestamp).toLocaleDateString()
+							+ (row.read_timestamp ? "\n- Last read date : " + new Date(row.read_timestamp).toLocaleDateString() : "")
+							+ +(stars ? "\n- Rating : " + (stars / 100) + " star" + (stars > 100 ? "s" : "") : "") + "\n- Size : "
+							+ Math.floor(row.size / (1024 * 1024) * 100) / 100 + " MB"
+							+ (infoLine3Element.values.length ? "\n- Tags : " + infoLine3Element.values.join(", ") : "");
 				}
 
 				aElement = document.createElement("a");
