@@ -25,7 +25,7 @@ var storage = {};
 	var DATA_SIZE = 1073741824;
 	var TMP_DATA_SIZE = 1024 * 1024 * 1024;
 
-	var reqPages = "create table if not exists pages (id integer primary key asc autoincrement, title varchar(2048), url varchar(2048), timestamp integer, idx integer, favico blob, read_timestamp integer, size integer)";
+	var reqPages = "create table if not exists pages (id integer primary key asc autoincrement, title varchar(2048), url varchar(2048), timestamp integer, read_timestamp integer, idx integer, favico blob, size integer)";
 	var reqTags = "create table if not exists tags (id integer primary key asc autoincrement, tag varchar(128))";
 	var reqPagesTags = "create table if not exists pages_tags (page_id integer, tag_id integer)";
 	var reqPagesContents = "create table if not exists pages_contents (id integer, content blob)";
@@ -62,6 +62,13 @@ var storage = {};
 				options.filesystemEnabled = "";
 			});
 		}
+		//--- fix for regression introduced in version 0.1.3 ---
+		db.transaction(function(tx) {
+			tx.executeSql("update pages set idx = null where idx = \"\"", [], function() {
+				tx.executeSql("update pages set read_timestamp = null where read_timestamp = \"\"", []);
+			});
+		});				
+		// ---
 	}
 
 	storage.importDB = function(onprogress, onfinish) {
@@ -983,7 +990,7 @@ var storage = {};
 		content = removeNullChar(content);
 		db.transaction(function(tx) {
 			var today = new Date();
-			tx.executeSql(query, [ favicoData, url, title, timestamp || today.getTime(), content.length, readDateTs || "", idx || "" ], function(cbTx, result) {
+			tx.executeSql(query, [ favicoData, url, title, timestamp || today.getTime(), content.length, readDateTs || null, idx || null ], function(cbTx, result) {
 				var id = result.insertId;
 
 				function onFileError(e) {
@@ -1051,8 +1058,10 @@ var storage = {};
 				node.textContent = node.textContent.replace(/ page info: (.*)\n/, "");
 				timestamp = pageInfo.timestamp;
 				title = pageInfo.title;
-				readDateTs = pageInfo.read_date_timestamp;
-				idx = pageInfo.idx;
+				if (pageInfo.read_date_timestamp)
+					readDateTs = pageInfo.read_date_timestamp;
+				if (pageInfo.idx)
+					idx = pageInfo.idx;
 			}
 
 			tagsArray = node.textContent.match(/ tags: (.*)/);
@@ -1082,9 +1091,10 @@ var storage = {};
 	};
 
 	storage.setRating = function(id, rating) {
-		db.transaction(function(tx) {
-			tx.executeSql("update pages set idx = ? where id = ?", [ rating, id ]);
-		});
+		if (rating)
+			db.transaction(function(tx) {
+				tx.executeSql("update pages set idx = ? where id = ?", [ Number(rating), id ]);
+			});
 	};
 
 	storage.reset = function(callback) {
