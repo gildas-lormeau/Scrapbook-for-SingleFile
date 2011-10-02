@@ -137,7 +137,7 @@
 			element.style.position = "absolute";
 			element.style.left = (document.body.scrollLeft + document.body.offsetWidth / 2) + "px";
 			element.style.top = (document.body.scrollTop + 50) + "px";
-			element.style.zIndex = 9007199254740992;
+			element.style.zIndex = 2147483646;
 			element.setAttribute("onmousedown", "(" + (function() {
 				var element = event.target;
 				if (element.className != "scrapbook-note-close" && element.className != "scrapbook-note-pin") {
