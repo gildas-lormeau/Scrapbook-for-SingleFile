@@ -227,7 +227,8 @@ function importDB() {
 			process.importing.index = index;
 			process.importing.max = max;
 			notifyViews(function(extensionPage) {
-				extensionPage.notifyImportProgress();
+				if (extensionPage.notifyImportProgress)
+					extensionPage.notifyImportProgress();
 			});
 		}, function() {
 			process.importing = null;
@@ -252,12 +253,14 @@ function exportDB() {
 			process.exporting.index = index;
 			process.exporting.max = max;
 			notifyViews(function(extensionPage) {
-				extensionPage.notifyExportProgress();
+				if (extensionPage.notifyExportProgress)
+					extensionPage.notifyExportProgress();
 			});
 		}, function() {
 			process.exporting = null;
 			notifyViews(function(extensionPage) {
-				extensionPage.notifyExportProgress();
+				if (extensionPage.notifyExportProgress)
+					extensionPage.notifyExportProgress();
 			});
 		})
 	};
@@ -286,13 +289,15 @@ function exportToZip(checkedPages, filename) {
 			max : max
 		};
 		notifyViews(function(extensionPage) {
-			extensionPage.notifyExportToZipProgress();
+			if (extensionPage.notifyExportToZipProgress)
+				extensionPage.notifyExportToZipProgress();
 		});
 	}, function(url) {
 		var notificationExportOK;
 		process.exportingToZip = null;
 		notifyViews(function(extensionPage) {
-			extensionPage.notifyExportToZipProgress();
+			if (extensionPage.notifyExportToZipProgress)
+				extensionPage.notifyExportToZipProgress();
 		});
 		notificationExporting.cancel();
 		chrome.tabs.create({
