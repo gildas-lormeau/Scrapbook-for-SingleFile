@@ -62,12 +62,12 @@ var storage = {};
 				options.filesystemEnabled = "";
 			});
 		}
-		//--- fix for regression introduced in version 0.1.3 ---
+		// --- fix for regression introduced in version 0.1.3 ---
 		db.transaction(function(tx) {
 			tx.executeSql("update pages set idx = null where idx = \"\"", [], function() {
 				tx.executeSql("update pages set read_timestamp = null where read_timestamp = \"\"", []);
 			});
-		});				
+		});
 		// ---
 	}
 
@@ -121,7 +121,7 @@ var storage = {};
 	}
 
 	storage.exportToZip = function(pageIds, filename, compress, onprogress, onfinish) {
-		var zipper, file, exportIndex = 0;
+		var zipWriter, file, exportIndex = 0;
 
 		function cleanFilesystem(callback) {
 			rootReader = tmpfs.root.createReader("/");
@@ -161,34 +161,28 @@ var storage = {};
 						if (result.rows.length)
 							pageMetadata = result.rows.item(0);
 						tx.executeSql(query, [ id ], function(cbTx, result) {
-							var i, blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM), fileReader;
+							var i, blobBuilder = new BBuilder(), fileReader;
 							if (result.rows.length)
 								for (i = 0; i < result.rows.length; i++)
 									tags.push(result.rows.item(i).tag);
 							if (pageMetadata)
 								commentNode.textContent += " page info: " + JSON.stringify(pageMetadata) + "\n";
 							commentNode.textContent += " tags: " + JSON.stringify(tags) + "\n";
-							v.set([ 0xEF, 0xBB, 0xBF ]);
-							blobBuilder.append(BOM);
+							blobBuilder.append((new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer);
 							blobBuilder.append(getDoctype(newDoc));
 							blobBuilder.append(newDoc.documentElement.outerHTML);
-							fileReader = new FileReader();
-							fileReader.onloadend = function(e) {
-								var data = new Uint8Array(e.target.result);
-								zipper.add(name, data, null, function() {
-									exportIndex++;
-									if (exportIndex == pageIds.length)
-										zipper.close(function() {
-											onfinish(file.toURL());
-										});
-									else
-										exportContent(pageIds);
-									onprogress(exportIndex, pageIds.length);
-								}, function(current, total) {
-									// TODO progress
-								});
-							};
-							fileReader.readAsArrayBuffer(blobBuilder.getBlob());
+							zipWriter.add(name, new zip.BlobReader(blobBuilder.getBlob()), null, function() {
+								exportIndex++;
+								if (exportIndex == pageIds.length)
+									zipWriter.close(function() {
+										onfinish(file.toURL());
+									});
+								else
+									exportContent(pageIds);
+								onprogress(exportIndex * 100, pageIds.length * 100);
+							}, function(current, total) {
+								onprogress((exportIndex * 100) + Math.floor((current / total) * 100), pageIds.length * 100);
+							});
 						}, function() {
 							// TODO
 						});
@@ -203,54 +197,59 @@ var storage = {};
 				create : true
 			}, function(zipfile) {
 				file = zipfile;
-				zipper = zip.createWriter(file, !compress);
-				exportContent(pageIds, 0);
-				onprogress(exportIndex, pageIds.length);
+				zip.createWriter(new zip.FileWriter(file), !compress, function(writer) {
+					zipWriter = writer;
+					exportContent(pageIds, 0);
+					onprogress(exportIndex, pageIds.length);
+				});
 			});
 		});
 	};
 
 	storage.importFromZip = function(file, onprogress, onfinish) {
-		var importIndex = 0, unzipper = zip.createReader(file);
+		var importIndex = 0, zipReader;
+		zip.createReader(new zip.BlobReader(file), function(reader) {
+			var zipReader = reader;
+			zipReader.getEntries(function(entries) {
+				function nextFile() {
+					if (importIndex < entries.length) {
+						var entry = entries[importIndex];
+						onprogress(importIndex * 100, entries.length * 100);
+						if (/\.html$|\.htm$/i.test(entry.filename)) {
+							var blobWriter = new zip.BlobWriter();
+							entry.getData(blobWriter, function(data) {
+								var fileReader = new FileReader();
+								fileReader.onloadend = function(event) {
+									var archiveFilename, archiveIdMatch, archiveId, archiveTitle;
+									archiveFilename = entry.filename.replace(/.html?$/, "");
+									archiveIdMatch = archiveFilename.match(/ \((\d*)\)$/);
+									if (archiveIdMatch)
+										archiveId = archiveIdMatch[1];
+									archiveFilename = archiveFilename.replace(/ \(\d*\)$/, "");
+									archiveTitle = entry.filename.replace(/.html?$/, "").replace(/ \(\d*\)$/, "");
+									storage.addContent(event.target.result, archiveTitle, null, null, function() {
+										importIndex++;
+										nextFile();
+									}, function() {
+										// TODO error handling...
+									});
+								};
+								fileReader.readAsText(data, "UTF-8");
+							}, function(current, total) {
+								onprogress((importIndex * 100) + Math.floor((current / total) * 100), entries.length * 100);
+							});
+						} else {
+							importIndex++;
+							nextFile();
+						}
+					} else
+						zipReader.close(onfinish);
+				}
 
-		unzipper.getEntries(function(entries) {
-			function nextFile() {
-				if (importIndex < entries.length) {
-					var entry = entries[importIndex];
-					onprogress(importIndex, entries.length);
-					if (/\.html$|\.htm$/i.test(entry.filename)) {
-						entry.getData(function(data) {
-							var fileReader, blobBuilder = new BBuilder(), buffer = new ArrayBuffer(data.length), array = new Uint8Array(buffer);
-							array.set(data, 0);
-							blobBuilder.append(buffer);
-							fileReader = new FileReader();
-							fileReader.onloadend = function(event) {
-								var archiveFilename, archiveIdMatch, archiveId, archiveTitle;
-								archiveFilename = entry.filename.replace(/.html?$/, "");
-								archiveIdMatch = archiveFilename.match(/ \((\d*)\)$/);
-								if (archiveIdMatch)
-									archiveId = archiveIdMatch[1];
-								archiveFilename = archiveFilename.replace(/ \(\d*\)$/, "");
-								archiveTitle = entry.filename.replace(/.html?$/, "").replace(/ \(\d*\)$/, "");
-								storage.addContent(event.target.result, archiveTitle, null, null, function() {
-									importIndex++;
-									nextFile();
-								}, function(current, total) {
-									// TODO progress
-								});
-							};
-							fileReader.readAsText(blobBuilder.getBlob(), "UTF-8");
-						});
-					} else {
-						importIndex++;
-						nextFile();
-					}
-				} else
-					unzipper.close(onfinish);
-			}
-
-			nextFile();
+				nextFile();
+			});
 		});
+
 	};
 
 	storage.exportDB = function(onprogress, onfinish) {
@@ -276,9 +275,8 @@ var storage = {};
 							create : true
 						}, function(fileEntry) {
 							fileEntry.createWriter(function(fileWriter) {
-								var blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
-								v.set([ 0xEF, 0xBB, 0xBF ]);
-								blobBuilder.append(BOM);
+								var blobBuilder = new BBuilder();
+								blobBuilder.append((new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer);
 								blobBuilder.append(content || "");
 								fileWriter.onwrite = function(e) {
 									db.transaction(function(tx) {
@@ -405,9 +403,8 @@ var storage = {};
 		if (fs && !forceUseDatabase) {
 			fs.root.getFile(id + ".html", null, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
-					var blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
-					v.set([ 0xEF, 0xBB, 0xBF ]);
-					blobBuilder.append(BOM);
+					var blobBuilder = new BBuilder();
+					blobBuilder.append((new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer);
 					blobBuilder.append(content);
 					fileWriter.onerror = function(e) {
 						storage.updatePage(id, content, true);
@@ -990,7 +987,8 @@ var storage = {};
 		content = removeNullChar(content);
 		db.transaction(function(tx) {
 			var today = new Date();
-			tx.executeSql(query, [ favicoData, url, title, timestamp || today.getTime(), content.length, readDateTs || null, idx || null ], function(cbTx, result) {
+			tx.executeSql(query, [ favicoData, url, title, timestamp || today.getTime(), content.length, readDateTs || null, idx || null ], function(cbTx,
+					result) {
 				var id = result.insertId;
 
 				function onFileError(e) {
@@ -1019,9 +1017,8 @@ var storage = {};
 						create : true
 					}, function(fileEntry) {
 						fileEntry.createWriter(function(fileWriter) {
-							var blobBuilder = new BBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
-							v.set([ 0xEF, 0xBB, 0xBF ]);
-							blobBuilder.append(BOM);
+							var blobBuilder = new BBuilder();
+							blobBuilder.append((new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer);
 							blobBuilder.append(content);
 							fileWriter.onerror = onFileError;
 							fileWriter.onwrite = finishUpdate;
