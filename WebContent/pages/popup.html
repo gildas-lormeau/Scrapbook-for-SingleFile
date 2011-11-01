@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Scrapbook for Single</title>
+<title>PageArchiver</title>
 <link rel="stylesheet" href="components.css">
 <link rel="stylesheet" href="popup.css">
 <script>
@@ -12,7 +12,6 @@
 <script type="text/javascript" src="../scripts/popup_pages.js"></script>
 <script type="text/javascript" src="../scripts/popup_tabs.js"></script>
 <script type="text/javascript" src="../scripts/popup_tags.js"></script>
-<script type="text/javascript" src="../scripts/popup_options.js"></script>
 <script type="text/javascript" src="../scripts/popup.js"></script>
 </head>
 <body>
@@ -30,7 +29,6 @@
 		<a href="#" id="tabs-link" title="show current opened tabs">Tabs</a>
 		<a href="#" id="tags-link" title="show tags">Tags</a>
 		<span id="options-container">
-			<a href="#" id="options-link" title="show options">Options</a>
 			<span id="options-newtab" title="open the popup in a new tab" tabindex="0"></span>
 		</span>
 	</h4>
@@ -44,7 +42,7 @@
 		</div>
 	</div>
 	<div id="firstuse">
-		<p>Scrapbook for Singlefile has been successfully installed !</p>		
+		<p>PageArchiver has been successfully installed!</p>
 		<ul>
 			<li>click on <a href="#" id="firstuse-tabs-link" >Tabs</a> above to save tabs content into archives</li>
 			<li>click on <a href="#" id="firstuse-pages-link" >Archives</a> above to manage archives</li>
@@ -223,98 +221,6 @@
 				<input id="tags-filter-button" type="button" value="Filter" title="filter archives by all selected tags">
 				<input id="tags-delete-button" type="button" value="Delete" title="delete all selected tags">
 			</span>
-		</div>
-	</div>
-	<div id="tab-options">
-		<div class="option-header">
-			Basic configuration:
-		</div>		
-		<div>
-			<div class="options-block-container">
-				<span class="label">Ask confirmation for multiple deletion</span>
-				<select id="options-ask-confirm-button">
-					<option value="yes">yes</option>
-					<option value="">no</option>							
-				</select>
-			</div>
-		</div>
-		<div>
-			<div class="options-block-container">
-				<span class="label">Expand automatically new archives info</span>
-				<select id="options-expand-archives-button">
-					<option value="yes">yes</option>
-					<option value="">no</option>							
-				</select>
-			</div>
-		</div>
-		<div>
-			<div class="options-block-container">
-				<span class="label">Search for content only in archives title</span>
-				<select id="options-search-title-button">
-					<option value="yes">yes</option>
-					<option value="">no</option>
-				</select>
-			</div>
-		</div>
-		<div>
-			<div class="options-block-container">
-				<span class="label">Set current filters as default filters</span>
-				<input id="options-set-button" type="button" value="OK">
-			</div>
-		</div>
-		<div>
-			<div class="options-block-container">
-				<span class="label">Reset default filters</span>
-				<input id="options-reset-button" type="button" value="OK">
-			</div>
-		</div>
-		<div class="option-header">
-			Sandoxed filesystem configuration:
-		</div>
-		<div>
-			<div id="options-save-archives-container" class="options-block-container">
-				<span class="label">Save archives on sandboxed filesystem</span>
-				<select id="options-save-archives-button">
-					<option value="yes">yes</option>
-					<option value="">no</option>							
-				</select>
-			</div>
-		</div>
-		<div>
-			<div id="options-import-container" class="options-block-container">
-				<span class="label">Import archives from filesystem</span>
-				<input id="options-import-button" type="button" value="OK">
-			</div>
-		</div>
-		<div>
-			<div id="options-export-container" class="options-block-container">
-				<span class="label">Export archives to filesystem</span>
-				<input id="options-export-button" type="button" value="OK">
-			</div>
-		</div>
-		<div class="option-header">
-			Database export/import:
-		</div>
-		<div>
-			<div id="options-compress-container" class="options-block-container">
-				<span class="label">Compress archives</span>
-				<select id="options-compress-button">
-					<option value="yes">yes</option>
-					<option value="">no</option>
-				</select>
-			</div>
-		</div>
-		<div>
-			<div id="options-import-fromzip-container" class="options-block-container">
-				<span class="label">Import archives from a zip file</span>
-				<input type="file" accept="application/zip" id="options-import-fromzip-button">
-			</div>
-		</div>
-		<div>
-			<div id="options-export-tozip-container" class="options-block-container">
-				<span class="label">Export progress</span>
-				<div id="options-export-tozip-button"></div>
-			</div>
 		</div>
 	</div>
 </div>

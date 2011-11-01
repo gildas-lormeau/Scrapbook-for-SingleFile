@@ -262,43 +262,16 @@ ul a:visited,#pages-links a {
 	padding-bottom: 10px;
 }
 
-#options-container {
-	position: absolute;
-	right: 0px;
-	top: 2px;
-}
-
-#options-newtab {
-	display: inline-block;
-	width: 19px;
-	height: 16px;
-	background-image: url(../resources/external_tab.png);
-	opacity: .5;
-	margin-left: 5px;
-}
-
-#options-link {
-	padding-right: 5px;
-}
-
-#options-newtab:hover {
-	opacity: 1;
-}
-
-#tab-pages,#tab-tabs,#tab-tags,#tab-options {
+#tab-pages,#tab-tabs,#tab-tags {
 	display: none;
 }
 
-#tab-pages.selected,#tab-tabs.selected,#tab-tags.selected,#tab-options.selected
+#tab-pages.selected,#tab-tabs.selected,#tab-tags.selected
 	{
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
 	max-height: 540px;
 	min-height: 317px;
-}
-
-#tab-options {
-	padding-top: 10px;
 }
 
 #pages-form,#tabs-form,#tags-form {
@@ -390,27 +363,6 @@ ul a:visited,#pages-links a {
 
 #pages-expand-button {
 	width: 28px;
-}
-
-#pages-options {
-	margin: 2px;
-	padding-top: 2px;
-	padding-bottom: 2px;
-	padding-left: 3px;
-	padding-right: 3px;
-	font-size: 9pt;
-	background-color: #f3f3f3;
-	-webkit-border-radius: 5px;
-}
-
-#pages-options>div {
-	cursor: default;
-	min-height: 16px;
-	margin-top: 3px;
-}
-
-#pages-options a {
-	color: inherit;
 }
 
 #pages-list .collapser-content {
@@ -586,6 +538,27 @@ ul a:visited,#pages-links a {
 	width: 80px;
 }
 
+#pages-options {
+	margin: 2px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 3px;
+	padding-right: 3px;
+	font-size: 9pt;
+	background-color: #f3f3f3;
+	-webkit-border-radius: 5px;
+}
+
+#pages-options>div {
+	cursor: default;
+	min-height: 16px;
+	margin-top: 3px;
+}
+
+#pages-options a {
+	color: inherit;
+}
+
 .screen-mask {
 	width: 100%;
 	height: 100%;
@@ -666,54 +639,23 @@ ul a:visited,#pages-links a {
 	visibility: hidden;
 }
 
-.options-block-container {
-	display: block;
-	position: relative;
-	padding-left: 2px;
-	padding-right: 2px;
-	padding-top: 4px;
-	padding-bottom: 10px;
-	margin-bottom: 5px;
-	margin-left: 15px;
-	margin-right: 15px;
-}
-
-#options-disable-sf-button,#options-ask-confirm-button,#options-expand-archives-button,#options-save-archives-button,#options-open-bgtab-button,#options-search-title-button,#options-compress-button
-	{
+#options-container {
 	position: absolute;
-	right: 2px;
-	top: -2px;
-	width: 54px;
-	border-width: 0px;
-	background-color: #F3F3F3;
-	padding: 2px;
-	border-style: solid;
-	border-width: 1px;
-	-webkit-border-radius: 3px;
-	border-color: gray;
+	right: 0px;
+	top: 2px;
 }
 
-#options-import-container .label,#options-export-container .label,#options-export-tozip-container .label
-	{
+#options-newtab {
 	display: inline-block;
-	width: 180px;
+	width: 19px;
+	height: 16px;
+	background-image: url(../resources/external_tab.png);
+	opacity: .5;
+	margin-left: 5px;
 }
 
-.tabs-options-progress {
-	position: absolute;
-	right: 100px;
-	height: 15px;
-	width: 80px;
-	display: none;
-}
-
-#options-set-button,#options-reset-button,#options-import-button,#options-export-button,#options-export-tozip-button
-	{
-	position: absolute;
-	right: -1px;
-	top: -2px;
-	width: 55px;
-	margin: 2px;
+#options-newtab:hover {
+	opacity: 1;
 }
 
 .period-date-input,#pages-misc-rating-from-input,#pages-misc-rating-to-input,#pages-misc-size-from-input,#pages-misc-size-to-input,#pages-misc-other-input,#pages-expand-button,#pages-limit-input,#pages-tags-filter,#pages-readdate-period-input select,#pages-saveddate-period-input select,#pages-url-filter
@@ -780,37 +722,15 @@ ul {
 	color: rgba(28, 32, 48, 1);
 }
 
-.option-header {
-	cursor: default;
-	opacity: 0.7;
-	padding-left: 5px;
-	padding-top: 5px;
-	padding-bottom: 3px;
-}
-
-#options-import-fromzip-button {
-	position: absolute;
-	right: -1px;
-	top: -2px;
-	margin: 2px;
-	direction: rtl;
-	color: transparent;
-}
-
 #tab-tags .title-input:not ([href]){
 	cursor: default;
-}
-
-*::-webkit-file-upload-button {
-	background-color: #F3F3F3;
-	-webkit-border-radius: 3px;
 }
 
 #pages-list li[id]:hover .keywords-input-newkeyword {
 	color: rgba(28, 32, 48, 1);
 }
 
-#pages-list .collapser-button,#pages-options .collapser-button, #tags-list .collapser-button {
+#pages-list .collapser-button, #pages-options .collapser-button, #tags-list .collapser-button {
 	width: 12px;
 	height: 12px;
 	margin-left: 2px;

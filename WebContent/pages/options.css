@@ -1,21 +1,22 @@
 body {
 	background-color: #eee;
+	font-size: 11pt;
 }
 
 h2 {
-	font-size: 1.3em;
+	font-size: 1.7em;
 }
 
 body>div {
 	margin-left: auto;
 	margin-right: auto;
-	width: 280px;
+	width: 500px;
 	background-color: #fff;
 	font-family: sans-serif;
 	margin-bottom: 10px;
-	border-width: 1px;
+	border-width: 0px;
 	border-style: solid;
-	border-radius: 8px;
+	border-radius: 5px;
 	padding-left: 10px;
 	padding-right: 10px;
 	padding-bottom: 5px;
@@ -24,21 +25,32 @@ body>div {
 }
 
 #icon {
-	width: 1em;
 	padding-right: .3em;
+	position: relative;
+	top: 10px;
+	left: 10px;
 }
 
-button {
-	background: -webkit-gradient(linear, left bottom, left top, color-stop(0.12, rgb(201
-		, 201, 201) ), color-stop(0.79, rgb(247, 247, 247) ) );
-	border-color: rgb(191, 191, 191);
-	border-style: solid;
-	height: 25px;
-	border-radius: 4px;
+h2 {
+	margin-top: .2em;
 }
 
-button:active {
-	border-color: rgb(237, 237, 237);
+h2 span {
+	margin-left: 1em;
+}
+
+input[type=button] {
+	width: 120px;
+	background-color: #f3f3f3;
+	-webkit-border-radius: 3px;
+}
+
+select {
+	margin-left: 0px;
+}
+
+select option {
+	background-color: white;
 }
 
 #popupContent div {
@@ -47,4 +59,80 @@ button:active {
 
 button {
 	width: 100%;
+}
+
+/* options */
+.options-block-container {
+	display: block;
+	position: relative;
+	padding-left: 2px;
+	padding-right: 2px;
+	padding-top: 4px;
+	padding-bottom: 10px;
+	margin-bottom: 5px;
+	margin-left: 15px;
+	margin-right: 15px;
+}
+
+#options-disable-sf-button,#options-ask-confirm-button,#options-expand-archives-button,#options-save-archives-button,#options-open-bgtab-button,#options-search-title-button,#options-compress-button,#options-open-archives-bg
+	{
+	position: absolute;
+	right: 2px;
+	top: -2px;
+	width: 54px;
+	border-width: 0px;
+	background-color: #F3F3F3;
+	padding: 2px;
+	border-style: solid;
+	border-width: 1px;
+	-webkit-border-radius: 3px;
+	border-color: gray;
+}
+
+#options-import-container .label,#options-export-container .label {
+	display: inline-block;
+	width: 250px;
+}
+
+.tabs-options-progress {
+	position: absolute;
+	right: 100px;
+	height: 15px;
+	width: 80px;
+	display: none;
+}
+
+#options-set-button,#options-reset-button,#options-reset-db-button,#options-import-button,#options-export-button
+	{
+	position: absolute;
+	right: -1px;
+	top: -2px;
+	width: 55px;
+	margin: 2px;
+}
+
+*::-webkit-file-upload-button {
+	background-color: #F3F3F3;
+	-webkit-border-radius: 3px;
+}
+
+.option-header {
+	cursor: default;
+	opacity: 0.7;
+	padding-left: 5px;
+	padding-top: 5px;
+	padding-bottom: 3px;
+}
+
+#options-import-fromzip-button {
+	position: absolute;
+	right: -1px;
+	top: -2px;
+	margin: 2px;
+	direction: rtl;
+	color: transparent;
+}
+
+select option {
+	background-color: white;
 }

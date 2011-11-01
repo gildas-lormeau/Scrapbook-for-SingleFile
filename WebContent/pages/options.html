@@ -2,21 +2,116 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Scrapbook for Single options</title>
+<title>Options (PageArchiver)</title>
 <script type="text/javascript" src="../scripts/options.js"></script>
 <link rel="stylesheet" href="options.css">
 </head>
-<body onload="load()">
+<body>
 <div>
-<h2><img alt="icon" id="icon" src="../resources/icon_48.png"/>Scrapbook for SingleFile</h2>
+<h2><img alt="icon" id="icon" src="../resources/icon_48.png"/><span>PageArchiver options</span></h2>
 <hr>
-<!-- 
-<h4>Options :</h4>
- -->
-<div id="popupContent">	
-	<div>
-		<button onclick="reset()">Reset database</button>
-	</div>	
+<div id="popupContent">
+	<div id="tab-options">
+		<div class="option-header">
+			Basic configuration:
+		</div>
+		<div>
+			<div class="options-block-container">
+				<span class="label">Ask confirmation for multiple deletion</span>
+				<select id="options-ask-confirm-button">
+					<option value="yes">yes</option>
+					<option value="">no</option>
+				</select>
+			</div>
+		</div>
+		<div>
+			<div class="options-block-container">
+				<span class="label">Expand automatically new archives info</span>
+				<select id="options-expand-archives-button">
+					<option value="yes">yes</option>
+					<option value="">no</option>
+				</select>
+			</div>
+		</div>
+		<div>
+			<div class="options-block-container">
+				<span class="label">Open archives in background tabs</span>
+				<select id="options-open-archives-bg">
+					<option value="yes">yes</option>
+					<option value="">no</option>
+				</select>
+			</div>
+		</div>
+		<div>
+			<div class="options-block-container">
+				<span class="label">Search for content only in archives title</span>
+				<select id="options-search-title-button">
+					<option value="yes">yes</option>
+					<option value="">no</option>
+				</select>
+			</div>
+		</div>
+		<div>
+			<div class="options-block-container">
+				<span class="label">Set current filters as default filters</span>
+				<input id="options-set-button" type="button" value="OK">
+			</div>
+		</div>
+		<div>
+			<div class="options-block-container">
+				<span class="label">Reset default filters</span>
+				<input id="options-reset-button" type="button" value="OK">
+			</div>
+		</div>
+		<div class="option-header">
+			Sandboxed filesystem configuration:
+		</div>
+		<div>
+			<div id="options-save-archives-container" class="options-block-container">
+				<span class="label">Save archives on sandboxed filesystem</span>
+				<select id="options-save-archives-button">
+					<option value="yes">yes</option>
+					<option value="">no</option>
+				</select>
+			</div>
+		</div>
+		<div>
+			<div id="options-import-container" class="options-block-container">
+				<span class="label">Import archives from filesystem</span>
+				<input id="options-import-button" type="button" value="OK">
+			</div>
+		</div>
+		<div>
+			<div id="options-export-container" class="options-block-container">
+				<span class="label">Export archives to filesystem</span>
+				<input id="options-export-button" type="button" value="OK">
+			</div>
+		</div>
+		<div class="option-header">
+			Database management:
+		</div>
+		<div>
+			<div id="options-import-fromzip-container" class="options-block-container">
+				<span class="label">Import archives from a zip file</span>
+				<input type="file" accept="application/zip" id="options-import-fromzip-button">
+			</div>
+		</div>
+		<div>
+			<div id="options-compress-container" class="options-block-container">
+				<span class="label">Compress archives on export</span>
+				<select id="options-compress-button">
+					<option value="yes">yes</option>
+					<option value="">no</option>
+				</select>
+			</div>
+		</div>
+		<div>
+			<div id="options-export-tozip-container" class="options-block-container">
+				<span class="label">Reset database</span>
+				<input id="options-reset-db-button" type="button" onclick="reset()" value="OK">
+			</div>
+		</div>
+	</div>
 </div>
 </div>
 </body>

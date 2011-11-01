@@ -2,32 +2,31 @@
  * Copyright 2011 Gildas Lormeau
  * contact : gildas.lormeau <at> gmail.com
  * 
- * This file is part of Scrapbook for SingleFile.
+ * This file is part of PageArchiver.
  *
- *   Scrapbook for SingleFile is free software: you can redistribute it and/or modify
+ *   PageArchiver is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Lesser General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
  *
- *   Scrapbook for SingleFile is distributed in the hope that it will be useful,
+ *   PageArchiver is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU Lesser General Public License for more details.
  *
  *   You should have received a copy of the GNU Lesser General Public License
- *   along with Scrapbook for SingleFile.  If not, see <http://www.gnu.org/licenses/>.
+ *   along with PageArchiver.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, displayed = false, pagesLink, tabsLink, tagsLink, optionsLink, tabPages, tabTabs, tabTags, tabOptions, newTabLink;
+	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, displayed = false, pagesLink, tabsLink, tagsLink, tabPages, tabTabs, tabTags, newTabLink;
 
 	this.showTab = function(tab, callback) {
 		var loader = document.getElementById("loader");
 		pagesLink.className = tabPages.className = "";
 		tabsLink.className = tabTabs.className = "";
 		tagsLink.className = tabTags.className = "";
-		optionsLink.className = tabOptions.className = "";
 		document.getElementById("firstuse").style.display = "none";
 		bgPage.tab = tab;
 		switch (tab) {
@@ -43,10 +42,6 @@
 			tagsLink.className = tabTags.className = "selected";
 			showTagsTab(callback);
 			break;
-		case "options":
-			optionsLink.className = tabOptions.className = "selected";
-			showOptionsTab(callback);
-			break;
 		case "firstUse":
 			document.getElementById("main").style.display = "block";
 			if (loader)
@@ -60,12 +55,10 @@
 		pagesLink = document.getElementById("pages-link");
 		tabsLink = document.getElementById("tabs-link");
 		tagsLink = document.getElementById("tags-link");
-		optionsLink = document.getElementById("options-link");
 		newTabLink = document.getElementById("options-newtab");
 		tabPages = document.getElementById("tab-pages");
 		tabTabs = document.getElementById("tab-tabs");
 		tabTags = document.getElementById("tab-tags");
-		tabOptions = document.getElementById("tab-options");
 		bgPage.detectSingleFile(function(detected) {
 			if (!detected) {
 				document.getElementById("loader").style.display = "none";
@@ -80,9 +73,6 @@
 			};
 			tagsLink.onclick = function() {
 				showTab("tags");
-			};
-			optionsLink.onclick = function() {
-				showTab("options");
 			};
 			newTabLink.onclick = function() {
 				bgPage.chrome.tabs.create({
@@ -103,7 +93,6 @@
 			initPagesTab();
 			initTabsTab();
 			initTagsTab();
-			initOptionsTab();
 			showTab(bgPage.tab || "pages", function() {
 				var loader = document.getElementById("loader");
 				if (state.firstUse) {

@@ -1,21 +1,21 @@
 {
-	"name": "Scrapbook for SingleFile",
+	"name": "PageArchiver",
 	"icons": {
 		"16": "resources/icon_16.png",
 		"48": "resources/icon_48.png",
 		"128": "resources/icon_128.png" },
-	"version": "0.1.8",
-	"description": "Helps you to archive pages for offline reading",
+	"version": "0.1.9",
+	"description": "Helps you to archive web pages for offline reading",
 	"background_page" : "pages/background.html",
 	"options_page": "pages/options.html",
 	"browser_action": {
 	    "default_icon": "resources/icon_48.png", 
-	    "default_title": "View Scrapbook",
+	    "default_title": "View archives",
 	    "default_popup": "pages/popup.html"
 	},
 	"permissions" : ["tabs", "unlimitedStorage", "notifications", "omnibox"],
 	"minimum_chrome_version" : "7",
     "omnibox" : { 
-        "keyword" : "sb" 
+        "keyword" : "pa"
     }
 }

@@ -2,20 +2,20 @@
  * Copyright 2011 Gildas Lormeau
  * contact : gildas.lormeau <at> gmail.com
  * 
- * This file is part of Scrapbook for SingleFile.
+ * This file is part of PageArchiver.
  *
- *   Scrapbook for SingleFile is free software: you can redistribute it and/or modify
+ *   PageArchiver is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Lesser General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
  *
- *   Scrapbook for SingleFile is distributed in the hope that it will be useful,
+ *   PageArchiver is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU Lesser General Public License for more details.
  *
  *   You should have received a copy of the GNU Lesser General Public License
- *   along with Scrapbook for SingleFile.  If not, see <http://www.gnu.org/licenses/>.
+ *   along with PageArchiver.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 (function() {
@@ -150,16 +150,7 @@
 		}
 
 		function initPinElement() {
-			pin.className = "scrapbook-note-pin";
-			pin.title = "Unpin";
-			pin.style.backgroundImage = "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sIBBUNKJHJLfYAAAGOSURBVDjL5ZPJLwMBFMa/2cx0UNEI0dDWEkNIUaUhsURciISEQxPiQOLkyEX8FQ5EuHBGJE6OEgexxF4tJaq2NlNRqjWm03HqQW1xk3jH973vl7wN+B/hqLKNePp7nYeWmp5EjfzJvA3kZDXXjWkjoqCvr5x1WGyDvwKkAzzxEJQJSQNlZY3KNBomdk1Cb1wnEg2uwhKK9d+3syR5R+t1WralYTH27EsBy0M6D+Ll6BhkRbmau7xAAgCdCOD12QNpfW1ThCQj5gvjdW0dUAEQKhihWA1bLYgxjBSv/wCguKRk1R9E1HMGQpMOheIh3/pAcCw4r39DdZ9PhUJPl1+2sAUwxrrGGVqn61NcThB5+bi/vkGqUPASXZzPzQHEb4doBWTp4spL1wqqYjAh7HAh1WQCtXcwmWj+FHBqrhlKbm0aVW4CUYjiqmIuQ/DIAVmXYf9sS+8A+2ZrN19aMi49RiLi3FJn1t5mE63Epjlb9aUkBoZ/vDhna4fX3WUP7BiKrPHcCTjmNEmr/bt/8gbi940I+j5U9QAAAABJRU5ErkJggg==)";
-			pin.style.position = "absolute";
-			pin.style.right = "18px";
-			pin.style.top = "2px";
-			pin.style.width = "16px";
-			pin.style.height = "16px";
-			pin.style.opacity = ".7";
-			pin.setAttribute("onclick", "(" + (function() {
+			function onPinClick(event) {
 				var note = event.target.parentElement.parentElement.parentElement;
 				if (note.style.position == "absolute") {
 					event.target.title = "Pin";
@@ -174,7 +165,18 @@
 					note.style.top = (note.offsetTop + document.body.scrollTop) + "px";
 					note.style.left = (note.offsetLeft + document.body.scrollLeft) + "px";
 				}
-			}).toString() + ")()");
+			}
+
+			pin.className = "scrapbook-note-pin";
+			pin.title = "Unpin";
+			pin.style.backgroundImage = "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sIBBUNKJHJLfYAAAGOSURBVDjL5ZPJLwMBFMa/2cx0UNEI0dDWEkNIUaUhsURciISEQxPiQOLkyEX8FQ5EuHBGJE6OEgexxF4tJaq2NlNRqjWm03HqQW1xk3jH973vl7wN+B/hqLKNePp7nYeWmp5EjfzJvA3kZDXXjWkjoqCvr5x1WGyDvwKkAzzxEJQJSQNlZY3KNBomdk1Cb1wnEg2uwhKK9d+3syR5R+t1WralYTH27EsBy0M6D+Ll6BhkRbmau7xAAgCdCOD12QNpfW1ThCQj5gvjdW0dUAEQKhihWA1bLYgxjBSv/wCguKRk1R9E1HMGQpMOheIh3/pAcCw4r39DdZ9PhUJPl1+2sAUwxrrGGVqn61NcThB5+bi/vkGqUPASXZzPzQHEb4doBWTp4spL1wqqYjAh7HAh1WQCtXcwmWj+FHBqrhlKbm0aVW4CUYjiqmIuQ/DIAVmXYf9sS+8A+2ZrN19aMi49RiLi3FJn1t5mE63Epjlb9aUkBoZ/vDhna4fX3WUP7BiKrPHcCTjmNEmr/bt/8gbi940I+j5U9QAAAABJRU5ErkJggg==)";
+			pin.style.position = "absolute";
+			pin.style.right = "18px";
+			pin.style.top = "2px";
+			pin.style.width = "16px";
+			pin.style.height = "16px";
+			pin.style.opacity = ".7";
+			pin.setAttribute("onclick", "(" + onPinClick.toString() + ")(event)");
 		}
 
 		function initCloseElement() {
@@ -347,6 +349,9 @@
 			frame.classList.remove("collapsed");
 			doc.body.classList.remove("collapsed");
 			displayed = true;
+			setTimeout(function() {
+				document.body.focus();
+			}, 0);
 		}
 
 		function hide() {

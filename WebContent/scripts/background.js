@@ -2,20 +2,20 @@
  * Copyright 2011 Gildas Lormeau
  * contact : gildas.lormeau <at> gmail.com
  * 
- * This file is part of Scrapbook for SingleFile.
+ * This file is part of PageArchiver.
  *
- *   Scrapbook for SingleFile is free software: you can redistribute it and/or modify
+ *   PageArchiver is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Lesser General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
  *
- *   Scrapbook for SingleFile is distributed in the hope that it will be useful,
+ *   PageArchiver is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU Lesser General Public License for more details.
  *
  *   You should have received a copy of the GNU Lesser General Public License
- *   along with Scrapbook for SingleFile.  If not, see <http://www.gnu.org/licenses/>.
+ *   along with PageArchiver.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 var dev = false;
@@ -28,15 +28,16 @@ var DEFAULT_SEARCH_FILTERS = {
 	limit : 20
 };
 
-var SINGLE_FILE_ID = dev ? "onlinihoegnbbcmeeocfeplgbkmoidla" /* "oabofdibacblkhpogjinmdbcekfkikjc" */: "jemlklgaibiijojffihnhieihhagocma";
+var SINGLE_FILE_ID = dev ? "onlinihoegnbbcmeeocfeplgbkmoidla" : "jemlklgaibiijojffihnhieihhagocma";
 
 var options = localStorage.options ? JSON.parse(localStorage.options) : {
 	askConfirmation : "yes",
-	expandNewArchive : "yes",
+	expandNewArchive : "",
 	filesystemEnabled : "",
 	searchInTitle : "",
-	compress : "yes"
-}/* , linkedElement */;
+	compress : "yes",
+	openInBackground : ""
+};
 
 options.save = function() {
 	localStorage.options = JSON.stringify(options);
@@ -57,8 +58,8 @@ var popupState = {
 var process = {
 	importing : null,
 	exporting : null,
-	exportingToZip : null,
-	importingFromZip : null
+	exportingToZip : false,
+	importingFromZip : false
 };
 
 var tabs = {
@@ -75,36 +76,30 @@ function resetDatabase(callback) {
 function open(id, selected) {
 	if (popupState.newPages[id])
 		popupState.newPages[id] = false;
-	chrome.tabs.create({
-		url : "pages/proxy.html?" + id,
-		selected : selected
+	storage.getContent(id, function(content, title) {
+		var BlobBuilder = window.WebKitBlobBuilder, blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
+		v.set([ 0xEF, 0xBB, 0xBF ]);
+		blobBuilder.append(BOM);
+		blobBuilder.append(content);
+		blobBuilder.append("<link rel='stylesheet' class='scrapbook-editor' href='" + chrome.extension.getURL("pages/proxy-page.css") + "'></link>");
+		blobBuilder.append("<script class='scrapbook-editor'>var scrapbook_path = \"" + chrome.extension.getURL("") + "\";</script>");
+		blobBuilder.append("<iframe id='scrapbook-background' class='scrapbook-editor' hidden src='"
+				+ chrome.extension.getURL("pages/proxy-content.html?" + id) + "'></iframe>");
+		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/color-picker.js") + "'></script>");
+		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/proxy-page.js") + "'></script>");
+		blobBuilder.append("<script class='scrapbook-editor'>document.title = \"" + title + "\";</script>");
+		chrome.tabs.create({
+			url : webkitURL.createObjectURL(blobBuilder.getBlob("text/html")),
+			selected : selected
+		});
 	});
 }
 
-function openURL(url, selected) {
-	chrome.tabs.create({
-		url : url,
-		selected : selected
+function openPages(ids) {
+	ids.forEach(function(id, index) {
+		open(id, (!index && options.openInBackground != "yes"));
 	});
 }
-
-function openPages(checkedPages) {
-	checkedPages.forEach(function(id, index) {
-		if (index)
-			open(id, false);
-		else
-			open(id, true);
-	});
-}
-
-/*
- * function updatePage() { var element = linkedElement; resetLinkedElement(); storage.updatePage(element.archiveId, element.archiveDoc); }
- * 
- * 
- * function resetLinkedElement() { linkedElement.link.style.backgroundColor = null; linkedElement = null; }
- * 
- * function setLinkedElement(element) { linkedElement = element; linkedElement.link.style.backgroundColor = "green"; tab = "pages"; }
- */
 
 function openLink(url) {
 	chrome.tabs.create({
@@ -119,8 +114,7 @@ function getSelectedTab(callback) {
 }
 
 function detectSingleFile(callback) {
-	var img;
-	img = new Image();
+	var img = new Image();
 	img.src = "chrome-extension://" + SINGLE_FILE_ID + "/resources/icon_16.png";
 	img.onload = function() {
 		callback(true);
@@ -271,34 +265,36 @@ function cancelExportDB() {
 	process.exporting = null;
 }
 
-function exportToZip(checkedPages, filename) {
-	var notificationExporting;
+function refreshBadge(text, title) {
+	chrome.browserAction.setBadgeText({
+		text : text
+	});
+	chrome.browserAction.setTitle({
+		title : title
+	});
+}
 
-	process.exportingToZip = {
-		index : 0,
-		max : 0
-	};
+function exportToZip(checkedPages, filename) {
+	var notificationExporting, pctIndex = 0;
+	if (process.exportingToZip || process.importingFromZip)
+		return;
+	process.exportingToZip = true;
+	refreshBadge("0%", "exporting to zip...");
 	notificationExporting = webkitNotifications.createHTMLNotification('notificationExporting.html');
 	notificationExporting.show();
 	setTimeout(function() {
 		notificationExporting.cancel();
 	}, 3000);
 	storage.exportToZip(checkedPages, filename, options.compress == "yes", function(index, max) {
-		process.exportingToZip = {
-			index : index,
-			max : max
-		};
-		notifyViews(function(extensionPage) {
-			if (extensionPage.notifyExportToZipProgress)
-				extensionPage.notifyExportToZipProgress();
-		});
+		var pct = Math.floor((index / max) * 100);
+		if (pct != pctIndex) {
+			refreshBadge(Math.floor((index / max) * 100) + "%", "exporting to zip...");
+			pctIndex = pct;
+		}
 	}, function(url) {
 		var notificationExportOK;
-		process.exportingToZip = null;
-		notifyViews(function(extensionPage) {
-			if (extensionPage.notifyExportToZipProgress)
-				extensionPage.notifyExportToZipProgress();
-		});
+		process.exportingToZip = false;
+		refreshBadge("", "");
 		notificationExporting.cancel();
 		chrome.tabs.create({
 			url : url,
@@ -314,31 +310,26 @@ function exportToZip(checkedPages, filename) {
 }
 
 function importFromZip(file) {
-	var notificationImporting;
-
-	process.importingFromZip = {
-		index : 0,
-		max : 0
-	};
+	var notificationImporting, pctIndex = 0;
+	if (process.exportingToZip || process.importingFromZip)
+		return;
+	process.importingFromZip = true;
+	refreshBadge("0%", "importing from zip...");
 	notificationImporting = webkitNotifications.createHTMLNotification('notificationImporting.html');
 	notificationImporting.show();
 	setTimeout(function() {
 		notificationImporting.cancel();
 	}, 3000);
 	storage.importFromZip(file, function(index, max) {
-		process.importingFromZip = {
-			index : index,
-			max : max
-		};
-		notifyViews(function(extensionPage) {
-			extensionPage.notifyImportFromZipProgress();
-		});
+		var pct = Math.floor((index / max) * 100);
+		if (pct != pctIndex) {
+			refreshBadge(Math.floor((index / max) * 100) + "%", "importing from zip...");
+			pctIndex = pct;
+		}
 	}, function() {
 		var notificationImportOK;
-		process.importingFromZip = null;
-		notifyViews(function(extensionPage) {
-			extensionPage.notifyImportFromZipProgress();
-		});
+		process.importingFromZip = false;
+		refreshBadge("", "");
 		notificationImportOK = webkitNotifications.createHTMLNotification('notificationImportOK.html');
 		notificationImporting.cancel();
 		notificationImportOK.show();
@@ -373,7 +364,7 @@ if (!localStorage.options)
 	options.save();
 
 chrome.omnibox.setDefaultSuggestion({
-	description : "Scrapbook for SingleFile : search an archive"
+	description : "PageArchiver : search an archive"
 });
 
 chrome.omnibox.onInputChanged.addListener(function(text, suggestCallback) {
@@ -388,7 +379,7 @@ chrome.omnibox.onInputChanged.addListener(function(text, suggestCallback) {
 				for (i = 0; i < rows.length; i++) {
 					description = rows[i].title.replace(/[<>&]/g, "");
 					suggestions.push({
-						content : "page/" + rows[i].id,
+						content : description + " (" + rows[i].id + ")",
 						description : description
 					});
 				}
@@ -400,9 +391,11 @@ chrome.omnibox.onInputChanged.addListener(function(text, suggestCallback) {
 });
 
 chrome.omnibox.onInputEntered.addListener(function(text, suggestCallback) {
-	var id = text.split("/")[1];
+	var id, match = text.match(/\(([^)]*)\)$/);
+	if (match)
+		id = text.match(/\(([^)]*)\)$/)[1];
 	if (id)
-		open(id);
+		open(id, options.openInBackground != "yes");
 });
 
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
@@ -410,9 +403,8 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		storage.updatePage(request.archiveId, request.content);
 	if (request.gefaultStyle) {
 		var i, style = getComputedStyle(document.getElementById("basic-div")), divStyle = {};
-		for (i = 0; i < style.length; i++) {
+		for (i = 0; i < style.length; i++)
 			divStyle[style[i]] = style[style[i]];
-		}
 		delete divStyle["width"];
 		delete divStyle["-webkit-perspective-origin"];
 		delete divStyle["-webkit-transform-origin"];
@@ -438,4 +430,8 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 		if (!tabs.length)
 			onProcessEnd();
 	}
+});
+
+chrome.browserAction.setBadgeBackgroundColor({
+	color : [ 4, 229, 36, 255 ]
 });

@@ -50,3 +50,17 @@
 	}
 })();
 // ---
+
+// --- migration code from version 0.1.8 to 0.1.8+ ---
+(function() {
+	var options;
+
+	if (localStorage.options) {
+		options = JSON.parse(localStorage.options);
+		if (typeof options.openInBackground == "undefined") {
+			options.openInBackground = "";
+			localStorage.options = JSON.stringify(options);
+		}
+	}
+})();
+// ---
