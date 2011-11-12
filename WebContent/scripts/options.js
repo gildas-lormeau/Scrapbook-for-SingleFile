@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, searchTitleButton, saveOnDiskButton, importButton, exportButton, exportToZipButton, importFromZipButton, compressButton, openInBackgroundButton;
+	var bgPage = chrome.extension.getBackgroundPage(), askConfirmButton, expandArchivesButton, searchTitleButton, saveOnDiskButton, importButton, exportButton, importFromZipButton, compressButton, openInBackgroundButton;
 
 	var requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
