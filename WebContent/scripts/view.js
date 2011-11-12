@@ -17,12 +17,6 @@
  *   You should have received a copy of the GNU Lesser General Public License
  *   along with PageArchiver.  If not, see <http://www.gnu.org/licenses/>.
  */
-(function() {
-
-	var bgPage = chrome.extension.getBackgroundPage(), archiveId = Number(location.search.split('?')[1]);
-
-	bgPage.getArchiveURL(archiveId, function(url) {
-		location.href = url;
-	});
-
-})();
+chrome.extension.getBackgroundPage().getArchiveURL(Number(location.search.split('?')[1]), function(url) {
+	location.replace(url);
+});
