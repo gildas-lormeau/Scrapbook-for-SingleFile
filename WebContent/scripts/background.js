@@ -79,14 +79,14 @@ function getArchiveURL(id, callback) {
 		v.set([ 0xEF, 0xBB, 0xBF ]);
 		blobBuilder.append(BOM);
 		blobBuilder.append(content);
+		blobBuilder.append("<script class='scrapbook-editor'>history.pushState({}, \"" + title + "\", \"" + chrome.extension.getURL("pages/view.html") + "?"
+				+ id + "\");</script>");
 		blobBuilder.append("<link rel='stylesheet' class='scrapbook-editor' href='" + chrome.extension.getURL("pages/proxy-page.css") + "'></link>");
 		blobBuilder.append("<script class='scrapbook-editor'>var scrapbook_path = \"" + chrome.extension.getURL("") + "\";</script>");
 		blobBuilder.append("<iframe id='scrapbook-background' class='scrapbook-editor' hidden src='"
 				+ chrome.extension.getURL("pages/proxy-content.html?" + id) + "'></iframe>");
 		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/color-picker.js") + "'></script>");
 		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/proxy-page.js") + "'></script>");
-		blobBuilder.append("<script class='scrapbook-editor'>history.pushState({}, \"" + title + "\", \"" + chrome.extension.getURL("pages/view.html") + "?"
-				+ id + "\");</script>");
 		callback(webkitURL.createObjectURL(blobBuilder.getBlob("text/html")));
 	});
 }
