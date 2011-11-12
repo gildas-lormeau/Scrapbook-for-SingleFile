@@ -73,9 +73,7 @@ function resetDatabase(callback) {
 	});
 }
 
-function open(id, selected) {
-	if (popupState.newPages[id])
-		popupState.newPages[id] = false;
+function getArchiveURL(id, callback) {
 	storage.getContent(id, function(content, title) {
 		var BlobBuilder = window.WebKitBlobBuilder, blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
 		v.set([ 0xEF, 0xBB, 0xBF ]);
@@ -87,9 +85,18 @@ function open(id, selected) {
 				+ chrome.extension.getURL("pages/proxy-content.html?" + id) + "'></iframe>");
 		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/color-picker.js") + "'></script>");
 		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/proxy-page.js") + "'></script>");
-		blobBuilder.append("<script class='scrapbook-editor'>document.title = \"" + title + "\";</script>");
+		blobBuilder.append("<script class='scrapbook-editor'>history.pushState({}, \"" + title + "\", \"" + chrome.extension.getURL("pages/view.html") + "?"
+				+ id + "\");</script>");
+		callback(webkitURL.createObjectURL(blobBuilder.getBlob("text/html")));
+	});
+}
+
+function open(id, selected) {
+	if (popupState.newPages[id])
+		popupState.newPages[id] = false;
+	getArchiveURL(id, function(url) {
 		chrome.tabs.create({
-			url : webkitURL.createObjectURL(blobBuilder.getBlob("text/html")),
+			url : url,
 			selected : selected
 		});
 	});

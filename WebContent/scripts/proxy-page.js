@@ -484,6 +484,13 @@
 			defaultStyle = JSON.parse(message.defaultStyle);
 	}, false);
 
+	addEventListener("keydown", function(event) {
+		if (event.ctrlKey && event.keyCode == 83)
+			Array.prototype.forEach.call(document.querySelectorAll(".scrapbook-editor"), function(element) {
+				element.parentNode.removeChild(element);
+			});
+	}, false);
+
 	initDocument();
 	colorPicker = getColorPicker(function() {
 		document.execCommand("ForeColor", false, colorPicker.getValue());
