@@ -13,7 +13,7 @@
 <div id="popupContent">
 	<div id="tab-options">
 		<div class="option-header">
-			Basic configuration:
+			Basic configuration
 		</div>
 		<div>
 			<div class="options-block-container">
@@ -64,11 +64,11 @@
 			</div>
 		</div>
 		<div class="option-header">
-			Sandboxed filesystem configuration:
+			Database-Sandboxed filesystem configuration
 		</div>
 		<div>
 			<div id="options-save-archives-container" class="options-block-container">
-				<span class="label">Save archives on sandboxed filesystem</span>
+				<span class="label">Save archives on sandboxed filesystem instead of database</span>
 				<select id="options-save-archives-button">
 					<option value="yes">yes</option>
 					<option value="">no</option>
@@ -77,24 +77,24 @@
 		</div>
 		<div>
 			<div id="options-import-container" class="options-block-container">
-				<span class="label">Import archives from filesystem</span>
+				<span class="label">Import archives from filesystem to database</span>
 				<input id="options-import-button" type="button" value="OK">
 			</div>
 		</div>
 		<div>
 			<div id="options-export-container" class="options-block-container">
-				<span class="label">Export archives to filesystem</span>
+				<span class="label">Export archives from database to filesystem</span>
 				<input id="options-export-button" type="button" value="OK">
 			</div>
 		</div>
-		<div class="option-header">
-			Database management:
-		</div>
 		<div>
-			<div id="options-import-fromzip-container" class="options-block-container">
-				<span class="label">Import archives from a zip file</span>
-				<input type="file" accept="application/zip" id="options-import-fromzip-button">
+			<div id="options-export-tozip-container" class="options-block-container">
+				<span class="label">Reset filesystem and database</span>
+				<input id="options-reset-db-button" type="button" onclick="reset()" value="OK">
 			</div>
+		</div>
+		<div class="option-header">
+			Import/Export configuration
 		</div>
 		<div>
 			<div id="options-compress-container" class="options-block-container">
@@ -106,9 +106,9 @@
 			</div>
 		</div>
 		<div>
-			<div id="options-export-tozip-container" class="options-block-container">
-				<span class="label">Reset database</span>
-				<input id="options-reset-db-button" type="button" onclick="reset()" value="OK">
+			<div id="options-import-fromzip-container" class="options-block-container">
+				<span class="label">Import archives from zip file</span>
+				<input type="file" accept="application/zip" id="options-import-fromzip-button">
 			</div>
 		</div>
 	</div>
