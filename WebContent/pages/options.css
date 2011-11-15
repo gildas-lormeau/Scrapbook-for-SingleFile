@@ -89,11 +89,6 @@ button {
 	border-color: gray;
 }
 
-#options-import-container .label,#options-export-container .label {
-	display: inline-block;
-	width: 250px;
-}
-
 .tabs-options-progress {
 	position: absolute;
 	right: 100px;
