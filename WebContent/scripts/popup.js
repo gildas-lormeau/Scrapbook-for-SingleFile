@@ -20,7 +20,7 @@
 
 (function() {
 
-	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, displayed = false, pagesLink, tabsLink, tagsLink, tabPages, tabTabs, tabTags, newTabLink;
+	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, displayed = false, pagesLink, tabsLink, tagsLink, tabPages, tabTabs, tabTags, newTabLink, newNoteLink;
 
 	this.showTab = function(tab, callback) {
 		var loader = document.getElementById("loader");
@@ -51,62 +51,70 @@
 		}
 	};
 
+	function init() {
+		pagesLink.onclick = function() {
+			showTab("pages");
+		};
+		tabsLink.onclick = function() {
+			showTab("tabs");
+		};
+		tagsLink.onclick = function() {
+			showTab("tags");
+		};
+		newNoteLink.onclick = function() {
+			bgPage.createNewNote(prompt("title"));
+		};
+		newTabLink.onclick = function() {
+			bgPage.chrome.tabs.create({
+				url : location.href.split("#")[0] + "?newtab",
+				selected : true
+			});
+		};
+		newTabLink.onkeyup = function(event) {
+			if (event.keyIdentifier == "Enter")
+				newTabLink.onclick();
+		};
+		document.getElementById("firstuse-tabs-link").onclick = function() {
+			showTab("tabs");
+		};
+		document.getElementById("firstuse-pages-link").onclick = function() {
+			showTab("pages");
+		};
+		initPagesTab();
+		initTabsTab();
+		initTagsTab();
+		showTab(bgPage.tab || "pages", function() {
+			var loader = document.getElementById("loader");
+			if (state.firstUse) {
+				showTab("firstUse");
+				state.firstUse = false;
+				return;
+			}
+			if (!displayed) {
+				loader.parentElement.removeChild(loader);
+				loader = null;
+				document.getElementById("main").style.display = "block";
+				displayed = true;
+			}
+		});
+	}
+
 	this.onload = function() {
 		pagesLink = document.getElementById("pages-link");
 		tabsLink = document.getElementById("tabs-link");
 		tagsLink = document.getElementById("tags-link");
 		newTabLink = document.getElementById("options-newtab");
+		newNoteLink = document.getElementById("new-note-link");
 		tabPages = document.getElementById("tab-pages");
 		tabTabs = document.getElementById("tab-tabs");
 		tabTags = document.getElementById("tab-tags");
 		bgPage.detectSingleFile(function(detected) {
-			if (!detected) {
+			if (detected)
+				init();
+			else {
 				document.getElementById("loader").style.display = "none";
 				document.getElementById("error").style.display = "block";
-				return;
 			}
-			pagesLink.onclick = function() {
-				showTab("pages");
-			};
-			tabsLink.onclick = function() {
-				showTab("tabs");
-			};
-			tagsLink.onclick = function() {
-				showTab("tags");
-			};
-			newTabLink.onclick = function() {
-				bgPage.chrome.tabs.create({
-					url : location.href.split("#")[0] + "?newtab",
-					selected : true
-				});
-			};
-			newTabLink.onkeyup = function(event) {
-				if (event.keyIdentifier == "Enter")
-					newTabLink.onclick();
-			};
-			document.getElementById("firstuse-tabs-link").onclick = function() {
-				showTab("tabs");
-			};
-			document.getElementById("firstuse-pages-link").onclick = function() {
-				showTab("pages");
-			};
-			initPagesTab();
-			initTabsTab();
-			initTagsTab();
-			showTab(bgPage.tab || "pages", function() {
-				var loader = document.getElementById("loader");
-				if (state.firstUse) {
-					showTab("firstUse");
-					state.firstUse = false;
-					return;
-				}
-				if (!displayed) {
-					loader.parentElement.removeChild(loader);
-					loader = null;
-					document.getElementById("main").style.display = "block";
-					displayed = true;
-				}
-			});
 		});
 	};
 

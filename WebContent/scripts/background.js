@@ -43,7 +43,7 @@ options.save = function() {
 	localStorage.options = JSON.stringify(options);
 };
 
-var notificationArchiving, timeoutNoResponse, timeoutSearch;
+var timeoutNoResponse, timeoutSearch;
 
 var popupState = {
 	firstUse : !localStorage.defautSearchFilters,
@@ -73,8 +73,8 @@ function resetDatabase(callback) {
 	});
 }
 
-function getArchiveURL(id, callback) {
-	storage.getContent(id, function(content, title) {
+function getArchiveURL(id, editMode, callback) {
+	function createObjectURL(content, title) {
 		var BlobBuilder = window.WebKitBlobBuilder, blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
 		v.set([ 0xEF, 0xBB, 0xBF ]);
 		blobBuilder.append(BOM);
@@ -87,14 +87,20 @@ function getArchiveURL(id, callback) {
 				+ chrome.extension.getURL("pages/proxy-content.html?" + id) + "'></iframe>");
 		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/color-picker.js") + "'></script>");
 		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/proxy-page.js") + "'></script>");
+		if (editMode)
+			blobBuilder.append("<script class='scrapbook-editor'>showToolbox();</script>");
+		blobBuilder
+				.append("<script class='scrapbook-editor'>Array.prototype.forEach.call(document.querySelectorAll('.scrapbook-editor'), function(element) { if (element.tagName == 'SCRIPT') element.parentElement.removeChild(element); });</script>");
 		callback(webkitURL.createObjectURL(blobBuilder.getBlob("text/html")));
-	});
+	}
+
+	storage.getContent(id, createObjectURL);
 }
 
-function open(id, selected) {
+function open(id, selected, editMode) {
 	if (popupState.newPages[id])
 		popupState.newPages[id] = false;
-	getArchiveURL(id, function(url) {
+	getArchiveURL(id, editMode, function(url) {
 		chrome.tabs.create({
 			url : url,
 			selected : selected
@@ -146,8 +152,6 @@ function getTabsInfo(callback) {
 
 function onProcessEnd() {
 	var notification = webkitNotifications.createHTMLNotification('notificationOK.html');
-	if (notificationArchiving)
-		notificationArchiving.cancel();
 	if (timeoutNoResponse)
 		clearTimeout(timeoutNoResponse);
 	timeoutNoResponse = null;
@@ -174,11 +178,6 @@ function setTimeoutNoResponse() {
 }
 
 function saveTabs(tabIds) {
-	notificationArchiving = webkitNotifications.createHTMLNotification('notificationArchiving.html');
-	notificationArchiving.show();
-	setTimeout(function() {
-		notificationArchiving.cancel();
-	}, 3000);
 	setTimeoutNoResponse();
 	tabIds.forEach(function(tabId) {
 		notifyTabProgress(tabId, 0, 0, 100);
@@ -282,16 +281,11 @@ function refreshBadge(text, title) {
 }
 
 function exportToZip(checkedPages, filename) {
-	var notificationExporting, pctIndex = 0;
+	var pctIndex = 0;
 	if (process.exportingToZip || process.importingFromZip)
 		return;
 	process.exportingToZip = true;
 	refreshBadge("0%", "exporting to zip...");
-	notificationExporting = webkitNotifications.createHTMLNotification('notificationExporting.html');
-	notificationExporting.show();
-	setTimeout(function() {
-		notificationExporting.cancel();
-	}, 3000);
 	storage.exportToZip(checkedPages, filename, options.compress == "yes", function(index, max) {
 		var pct = Math.floor((index / max) * 100);
 		if (pct != pctIndex) {
@@ -302,13 +296,11 @@ function exportToZip(checkedPages, filename) {
 		var notificationExportOK;
 		process.exportingToZip = false;
 		refreshBadge("", "");
-		notificationExporting.cancel();
 		chrome.tabs.create({
 			url : url,
 			selected : false
 		});
 		notificationExportOK = webkitNotifications.createHTMLNotification('notificationExportOK.html');
-		notificationExporting.cancel();
 		notificationExportOK.show();
 		setTimeout(function() {
 			notificationExportOK.cancel();
@@ -317,16 +309,11 @@ function exportToZip(checkedPages, filename) {
 }
 
 function importFromZip(file) {
-	var notificationImporting, pctIndex = 0;
+	var pctIndex = 0;
 	if (process.exportingToZip || process.importingFromZip)
 		return;
 	process.importingFromZip = true;
 	refreshBadge("0%", "importing from zip...");
-	notificationImporting = webkitNotifications.createHTMLNotification('notificationImporting.html');
-	notificationImporting.show();
-	setTimeout(function() {
-		notificationImporting.cancel();
-	}, 3000);
 	storage.importFromZip(file, function(index, max) {
 		var pct = Math.floor((index / max) * 100);
 		if (pct != pctIndex) {
@@ -338,13 +325,23 @@ function importFromZip(file) {
 		process.importingFromZip = false;
 		refreshBadge("", "");
 		notificationImportOK = webkitNotifications.createHTMLNotification('notificationImportOK.html');
-		notificationImporting.cancel();
 		notificationImportOK.show();
 		setTimeout(function() {
 			notificationImportOK.cancel();
 		}, 3000);
 	});
 }
+
+function createNewNote(title) {
+	storage.addContent("<!doctype html><html><head><title>" + title + "</title></head><body><div style='min-height: 1.5em;'></div></body></html>", title, null,
+			null, function(id) {
+				open(id, true, true);
+				if (options.expandNewArchive == "yes")
+					popupState.newPages[id] = true;
+			}, function() {
+				// error
+			});
+};
 
 function notifyTabProgress(tabId, state, index, max) {
 	notifyViews(function(extensionPage) {

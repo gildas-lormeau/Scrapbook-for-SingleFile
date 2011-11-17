@@ -20,7 +20,7 @@
 
 (function() {
 
-	var toolbox, colorPicker, bgColorPicker, defaultStyle;
+	var toolbox, colorPicker, bgColorPicker, defaultStyle, editedElement;
 
 	function getDoctype(doc) {
 		var docType = doc.doctype, docTypeStr;
@@ -342,22 +342,41 @@
 			return button;
 		}
 
+		function onclickEdition(event) {
+			var element = event.target;
+			while (element && element.parentNode != document.body)
+				element = element.parentNode;
+			if (element && element.parentNode == document.body && element != editedElement) {
+				if (editedElement)
+					editedElement.contentEditable = false;
+				editedElement = element;
+				element.contentEditable = true;
+			} else if (editedElement)
+				editedElement.focus();
+			event.preventDefault();
+		}
+
 		function show() {
 			collapseButton.classList.remove("collapse-left-button");
 			collapseButton.classList.add("collapse-right-button");
-			document.body.contentEditable = true;
+			addEventListener("click", onclickEdition, false);
 			frame.classList.remove("collapsed");
 			doc.body.classList.remove("collapsed");
 			displayed = true;
 			setTimeout(function() {
-				document.body.focus();
+				if (document.body.firstElementChild) {
+					document.body.firstElementChild.contentEditable = true;
+					document.body.firstElementChild.focus();
+					editedElement = document.body.firstElementChild;
+				}
 			}, 0);
 		}
 
 		function hide() {
 			collapseButton.classList.remove("collapse-right-button");
 			collapseButton.classList.add("collapse-left-button");
-			document.body.contentEditable = false;
+			removeEventListener("click", onclickEdition, false);
+			editedElement = null;
 			frame.classList.add("collapsed");
 			doc.body.classList.add("collapsed");
 			colorPicker.hide();
@@ -379,7 +398,6 @@
 			document.head.appendChild(stylesheet);
 		}
 
-		frame.style["-webkit-user-select"] = "none";
 		frame.classList.add("scrapbook-editor");
 		frame.classList.add("scrapbook-toolbox");
 		frame.classList.add("collapsed");
@@ -453,11 +471,14 @@
 		getNoteButton = createButton("get-note-button", "Add Note", getNote);
 		getNoteButton.style.marginLeft = "8px";
 		saveButton = createButton("save-button", "Save", function() {
-			var docElement = document.documentElement.cloneNode(true);
+			if (editedElement)
+				editedElement.contentEditable = false;
+			var docElement = document.documentElement.cloneNode(true), editedDocElement;
+			if (editedElement)
+				editedElement.contentEditable = true;
 			Array.prototype.forEach.call(docElement.querySelectorAll(".scrapbook-editor"), function(element) {
 				element.parentElement.removeChild(element);
 			});
-			docElement.querySelector("body").contentEditable = false;
 			document.getElementById("scrapbook-background").contentWindow.postMessage({
 				saveArchive : true,
 				content : getDoctype(document) + docElement.outerHTML
@@ -467,6 +488,10 @@
 		document.addEventListener("click", function() {
 			colorPicker.hide();
 			bgColorPicker.hide();
+		}, false);
+		doc.addEventListener("click", function() {
+			if (editedElement)
+				editedElement.focus();
 		}, false);
 		return {
 			toggle : toggle,
@@ -485,19 +510,30 @@
 	}, false);
 
 	addEventListener("keydown", function(event) {
-		if (event.ctrlKey && event.keyCode == 83)
+		if (event.ctrlKey && event.keyCode == 83) {
+			if (editedElement)
+				editedElement.contentEditable = false;
 			Array.prototype.forEach.call(document.querySelectorAll(".scrapbook-editor"), function(element) {
 				element.parentNode.removeChild(element);
 			});
+		}
 	}, false);
 
 	initDocument();
 	colorPicker = getColorPicker(function() {
 		document.execCommand("ForeColor", false, colorPicker.getValue());
+		if (editedElement)
+			editedElement.focus();
 	});
 	bgColorPicker = getColorPicker(function() {
 		document.execCommand("HiliteColor", false, bgColorPicker.getValue());
+		if (editedElement)
+			editedElement.focus();
 	});
 	toolbox = getToolbox();
+
+	this.showToolbox = function() {
+		toolbox.show();
+	};
 
 })();

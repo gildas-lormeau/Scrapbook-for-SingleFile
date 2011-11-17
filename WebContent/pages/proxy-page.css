@@ -9,6 +9,7 @@
 	border-width: 0px;
 	box-shadow: 2px 2px 2px #ccc;
 	-webkit-transition: width .5s ease-out;
+	-webkit-user-select: none;
 }
 
 .scrapbook-colorpicker {
