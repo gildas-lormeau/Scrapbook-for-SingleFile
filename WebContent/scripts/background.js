@@ -204,18 +204,9 @@ function resetDefaultFilters() {
 }
 
 function notifyViews(notifyHandler) {
-	var views = chrome.extension.getViews(), popups = chrome.extension.getViews({
-		type : "popup"
-	}), extensionPages = [];
-	if (popups.length)
-		extensionPages = popups;
-	views.forEach(function(view) {
-		if (view.location.href.indexOf("chrome-extension://" + location.host + "/pages/popup.html") == 0)
-			extensionPages.push(view);
-	});
-	extensionPages.forEach(function(extensionPage) {
-		if (extensionPage != this)
-			notifyHandler(extensionPage);
+	chrome.extension.getViews().forEach(function(view) {
+		if (view != this)
+			notifyHandler(view);
 	});
 }
 
@@ -226,15 +217,15 @@ function importDB() {
 		cancel : storage.importDB(function(index, max) {
 			process.importing.index = index;
 			process.importing.max = max;
-			notifyViews(function(extensionPage) {
-				if (extensionPage.notifyImportProgress)
-					extensionPage.notifyImportProgress();
+			notifyViews(function(view) {
+				if (view.notifyImportProgress)
+					view.notifyImportProgress();
 			});
 		}, function() {
 			process.importing = null;
-			notifyViews(function(extensionPage) {
-				if (extensionPage.notifyImportProgress)
-					extensionPage.notifyImportProgress();
+			notifyViews(function(view) {
+				if (view.notifyImportProgress)
+					view.notifyImportProgress();
 			});
 		})
 	};
@@ -252,15 +243,15 @@ function exportDB() {
 		cancel : storage.exportDB(function(index, max) {
 			process.exporting.index = index;
 			process.exporting.max = max;
-			notifyViews(function(extensionPage) {
-				if (extensionPage.notifyExportProgress)
-					extensionPage.notifyExportProgress();
+			notifyViews(function(view) {
+				if (view.notifyExportProgress)
+					view.notifyExportProgress();
 			});
 		}, function() {
 			process.exporting = null;
-			notifyViews(function(extensionPage) {
-				if (extensionPage.notifyExportProgress)
-					extensionPage.notifyExportProgress();
+			notifyViews(function(view) {
+				if (view.notifyExportProgress)
+					view.notifyExportProgress();
 			});
 		})
 	};
@@ -344,8 +335,9 @@ function createNewNote(title) {
 };
 
 function notifyTabProgress(tabId, state, index, max) {
-	notifyViews(function(extensionPage) {
-		extensionPage.notifyTabProgress(tabId, state, index, max);
+	notifyViews(function(view) {
+		if (view.notifyTabProgress)
+			view.notifyTabProgress(tabId, state, index, max);
 	});
 	if (state == 2) {
 		if (tabs[tabId])
