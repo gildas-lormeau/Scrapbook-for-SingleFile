@@ -159,9 +159,16 @@
 	}
 
 	function selectAllButtonOnclick() {
-		Array.prototype.forEach.call(document.querySelectorAll("#tab-pages input[type=checkbox]"), function(inputElement) {
-			checkedPages.push(inputElement.parentElement.id.split("page.")[1]);
-			inputElement.checked = true;
+		Array.prototype.forEach.call(document.querySelectorAll("#tab-pages li input[type=checkbox]"), function(inputElement) {
+			var id = inputElement.parentElement.id.split("page.")[1], index;
+			inputElement.checked = selectAllButton.checked;
+			if (inputElement.checked)
+				checkedPages.push(id);
+			else {
+				index = checkedPages.indexOf(id);
+				if (index != -1)
+					checkedPages.splice(index, 1);
+			}
 		});
 	}
 
@@ -262,6 +269,15 @@
 			tagCancelButtonOnclick();
 			event.preventDefault();
 		}
+	}
+
+	function refreshSelectAllButton() {
+		var uncheckedCount = 0;
+		Array.prototype.forEach.call(document.querySelectorAll("#tab-pages li input[type=checkbox]"), function(inputElement) {
+			if (!inputElement.checked)
+				uncheckedCount++;
+		});
+		selectAllButton.checked = !uncheckedCount;
 	}
 
 	function display(rows, tags) {
@@ -383,6 +399,7 @@
 						checkedPages.splice(checkedPages.indexOf("" + row.id), 1);
 					else
 						checkedPages.push("" + row.id);
+					refreshSelectAllButton();
 				};
 				cbElement.checked = checkedPages.indexOf("" + row.id) != -1;
 				favicoElement.src = row.favico ? row.favico : "../resources/default_favico.gif";
@@ -434,9 +451,6 @@
 					tagsInput.value = value;
 					search();
 				};
-				/*
-				 * if (bgPage.linkedElement) aElement.title = "associate the selected link with this archive"; else
-				 */
 				refreshTitle();
 			})(rows[i], tags[i]);
 		}
@@ -489,6 +503,7 @@
 			var i, link, start;
 			pageCount = count;
 			display(rows, tags);
+			refreshSelectAllButton();
 			if (pageCount > 1) {
 				links.innerHTML = "";
 				start = Math.min(Math.max(pageCount - 10, 0), Math.max(searchFilters.currentPage - 5, 0));

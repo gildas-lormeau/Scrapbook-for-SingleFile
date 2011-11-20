@@ -23,9 +23,18 @@
 	var bgPage = chrome.extension.getBackgroundPage(), state = bgPage.popupState, allSelected = false, selectAllButton, saveButton, ulElement, searchInput;
 
 	function selectAllButtonOnclick() {
-		Array.prototype.forEach.call(document.querySelectorAll("#tab-tabs input[type=checkbox]"), function(inputElement) {
-			inputElement.checked = true;
+		Array.prototype.forEach.call(document.querySelectorAll("#tab-tabs li input[type=checkbox]"), function(inputElement) {
+			inputElement.checked = selectAllButton.checked;
 		});
+	}
+
+	function refreshSelectAllButton() {
+		var uncheckedCount = 0;
+		Array.prototype.forEach.call(document.querySelectorAll("#tab-tabs li input[type=checkbox]"), function(inputElement) {
+			if (!inputElement.checked)
+				uncheckedCount++;
+		});
+		selectAllButton.checked = !uncheckedCount;
 	}
 
 	function saveButtonOnclick() {
@@ -64,6 +73,7 @@
 			liElement.id = "tab." + tab.id;
 			cbElement.type = "checkbox";
 			cbElement.title = "select a tab to archive";
+			cbElement.onclick = refreshSelectAllButton;
 			aElement.textContent = tab.title;
 		});
 		tempElement.id = ulElement.id;
@@ -81,6 +91,7 @@
 		state.searchedTabs = searchInput.value ? searchInput.value.split(/\s+/) : null;
 		bgPage.getTabsInfo(function(tabs) {
 			display(tabs);
+			refreshSelectAllButton();
 			if (callback)
 				callback();
 		});

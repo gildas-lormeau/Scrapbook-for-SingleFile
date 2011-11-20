@@ -45,8 +45,8 @@
 	<div id="firstuse">
 		<p>PageArchiver has been successfully installed!</p>
 		<ul>
-			<li>click on <a href="#" id="firstuse-tabs-link" >Tabs</a> above to save tabs content into archives</li>
-			<li>click on <a href="#" id="firstuse-pages-link" >Archives</a> above to manage archives</li>
+			<li>click on <a href="#" id="firstuse-tabs-link" >Tabs</a> link above to save tabs content into archives</li>
+			<li>click on <a href="#" id="firstuse-pages-link" >Archives</a> link above to manage archives</li>
 		</ul>
 		<p>
 			Note: you must refresh current tabs before saving them.
@@ -182,8 +182,8 @@
 			</div>
 		</div>
 		<div class="buttons-container">
-			<img id="pages-select-button" title="select all archives" src="../resources/selectAll.png">
-			<span class="buttons-action">			
+			<input id="pages-select-button" type="checkbox" title="select all archives">
+			<span class="buttons-action">
 				<input id="pages-open-button" type="button" value="Open" title="open all selected archives">
 				<input id="pages-delete-button" type="button" value="Delete" title="delete all selected archives">
 				<input id="pages-tag-button" type="button" value="Tags..." title="tag all selected archives">
@@ -201,7 +201,7 @@
 		<ul id="tabs-list">		
 		</ul>
 		<div class="buttons-container">
-			<img id="tabs-select-button" title="select all tabs" src="../resources/selectAll.png">
+			<input id="tabs-select-button" type="checkbox" title="select all tabs">
 			<span class="buttons-action">
 				<input id="tabs-save-button" type="button" value="Save" title="save all selected tabs">
 			</span>
@@ -217,7 +217,7 @@
 		<ul id="tags-list">		
 		</ul>
 		<div class="buttons-container">
-			<img id="tags-select-button" title="select all tags" src="../resources/selectAll.png">
+			<input id="tags-select-button" type="checkbox" title="select all tags">
 			<span class="buttons-action">
 				<input id="tags-filter-button" type="button" value="Filter" title="filter archives by all selected tags">
 				<input id="tags-delete-button" type="button" value="Delete" title="delete all selected tags">

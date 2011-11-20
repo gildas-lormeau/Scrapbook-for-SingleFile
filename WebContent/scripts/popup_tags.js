@@ -43,8 +43,18 @@
 	function selectAllButtonOnclick() {
 		Array.prototype.forEach.call(document.querySelectorAll(".tags-row-used input[type=checkbox], .tags-row-unused input[type=checkbox]"), function(
 				inputElement) {
-			inputElement.checked = true;
+			inputElement.checked = selectAllButton.checked;
 		});
+	}
+
+	function refreshSelectAllButton() {
+		var uncheckedCount = 0;
+		Array.prototype.forEach.call(document.querySelectorAll(".tags-row-used input[type=checkbox], .tags-row-unused input[type=checkbox]"), function(
+				inputElement) {
+			if (!inputElement.checked)
+				uncheckedCount++;
+		});
+		selectAllButton.checked = !uncheckedCount;
 	}
 
 	function deleteButtonOnclick() {
@@ -113,6 +123,7 @@
 					"show all related archives");
 			cbElement.type = "checkbox";
 			cbElement.title = "select a tag to delete";
+			cbElement.onclick = refreshSelectAllButton;
 			new TitleInput(tagElement, tag, "edit tag value \"" + tag + "\"", "delete \"" + tag + "\"");
 			if (tagData.pages) {
 				tagElement.href = "#";
@@ -170,6 +181,7 @@
 		state.searchedTags = searchInput.value ? searchInput.value.split(/\s+/) : null;
 		bgPage.storage.getTags(state.searchedTags, function(usedTags, unusedTags) {
 			display(usedTags, unusedTags);
+			refreshSelectAllButton();
 			if (callback)
 				callback();
 		});
