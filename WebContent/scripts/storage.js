@@ -1032,7 +1032,6 @@ var storage = {};
 	}
 
 	storage.addContent = function(content, title, url, favicoData, callback, onFileErrorCallback) {
-		var EMPTY_IMAGE_DATA = "data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 		var titleLength, domain, domainArray, node, urlArray, timestamp, readDateTs, idx, tags = [], pageInfo, pageInfoArray, tagsArray, newDoc = document.implementation
 				.createHTMLDocument();
 		newDoc.open();
@@ -1040,7 +1039,7 @@ var storage = {};
 		newDoc.close();
 		if (!favicoData) {
 			favicoData = newDoc.querySelector('link[href][rel="shortcut icon"], link[href][rel="icon"], link[href][rel="apple-touch-icon"]');
-			favicoData = favicoData ? favicoData.href : EMPTY_IMAGE_DATA;
+			favicoData = favicoData ? favicoData.href : null;
 		}
 		node = newDoc.documentElement.childNodes[0];
 		if (node && node.nodeType == Node.COMMENT_NODE && node.textContent.indexOf("SingleFile") != -1) {
