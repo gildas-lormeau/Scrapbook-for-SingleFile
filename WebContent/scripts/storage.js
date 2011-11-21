@@ -154,6 +154,10 @@ var storage = {};
 				newDoc.writeln(content);
 				newDoc.close();
 				commentNode = newDoc.documentElement.firstChild;
+				if (!commentNode || commentNode.nodeType != Node.COMMENT_NODE || commentNode.textContent.indexOf("SingleFile") == -1) {
+					commentNode = document.createComment("");
+					newDoc.documentElement.insertBefore(commentNode, newDoc.documentElement.firstChild);
+				}
 				db.transaction(function(tx) {
 					var query = "select title, timestamp, read_timestamp, idx from pages where id=?";
 					tx.executeSql(query, [ id ], function(cbTx, result) {
@@ -167,7 +171,8 @@ var storage = {};
 									tags.push(result.rows.item(i).tag);
 							if (pageMetadata)
 								commentNode.textContent += " page info: " + JSON.stringify(pageMetadata) + "\n";
-							commentNode.textContent += " tags: " + JSON.stringify(tags) + "\n";
+							if (tags.length)
+								commentNode.textContent += " tags: " + JSON.stringify(tags) + "\n";
 							blobBuilder.append((new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer);
 							blobBuilder.append(getDoctype(newDoc));
 							blobBuilder.append(newDoc.documentElement.outerHTML);
