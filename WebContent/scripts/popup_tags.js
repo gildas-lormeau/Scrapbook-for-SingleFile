@@ -24,7 +24,7 @@
 
 	function getSelectedTagIds() {
 		var selectedIds = [];
-		Array.prototype.forEach.call(document.querySelectorAll("#tab-tags input[type=checkbox]"), function(inputElement) {
+		Array.prototype.forEach.call(document.querySelectorAll("#tab-tags li input[type=checkbox]"), function(inputElement) {
 			if (inputElement.checked)
 				selectedIds.push(inputElement.parentElement.id.split("tag.")[1]);
 		});
@@ -33,7 +33,7 @@
 
 	function getSelectedTags() {
 		var selectedTags = [];
-		Array.prototype.forEach.call(document.querySelectorAll("#tab-tags input[type=checkbox]"), function(inputElement) {
+		Array.prototype.forEach.call(document.querySelectorAll("#tab-tags li input[type=checkbox]"), function(inputElement) {
 			if (inputElement.checked)
 				selectedTags.push(inputElement.parentElement.querySelector(".title-input").textContent);
 		});
