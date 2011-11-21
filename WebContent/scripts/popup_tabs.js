@@ -39,7 +39,7 @@
 
 	function saveButtonOnclick() {
 		var selectedIds = [];
-		Array.prototype.forEach.call(document.querySelectorAll("#tab-tabs input[type=checkbox]"), function(inputElement) {
+		Array.prototype.forEach.call(document.querySelectorAll("#tab-tabs li input[type=checkbox]"), function(inputElement) {
 			if (inputElement.checked)
 				selectedIds.push(Number(inputElement.parentElement.id.split("tab.")[1]));
 		});
