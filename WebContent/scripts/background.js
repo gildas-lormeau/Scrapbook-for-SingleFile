@@ -354,6 +354,26 @@ function notifyTabProgress(tabId, state, index, max) {
 	}
 }
 
+function openPopup() {
+	chrome.tabs.getAllInWindow(null, function(tabs) {
+		var foundId;
+		tabs.forEach(function(tab) {
+			if (tab.url.indexOf(chrome.extension.getURL("pages/popup.html?newtab")) == 0)
+				foundId = tab.id;
+		});
+		if (foundId)
+			chrome.tabs.update(foundId, {
+				url : "pages/popup.html?newtab",
+				selected : true
+			});
+		else
+			chrome.tabs.create({
+				url : "pages/popup.html?newtab",
+				selected : true
+			});
+	});
+}
+
 setDefaultFilters();
 popupState.searchFilters.currentPage = 0;
 if (!localStorage.options)
@@ -392,6 +412,10 @@ chrome.omnibox.onInputEntered.addListener(function(text, suggestCallback) {
 		id = text.match(/\(([^)]*)\)$/)[1];
 	if (id)
 		open(id, options.openInBackground != "yes");
+	else {
+		popupState.searchFilters.text = text.split(" ");
+		openPopup();
+	}
 });
 
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {

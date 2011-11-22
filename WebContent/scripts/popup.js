@@ -65,10 +65,7 @@
 			bgPage.createNewNote(prompt("title"));
 		};
 		newTabLink.onclick = function() {
-			bgPage.chrome.tabs.create({
-				url : location.href.split("#")[0] + "?newtab",
-				selected : true
-			});
+			bgPage.openPopup();
 		};
 		newTabLink.onkeyup = function(event) {
 			if (event.keyIdentifier == "Enter")
