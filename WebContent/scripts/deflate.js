@@ -1,9 +1,5 @@
 /*
- * This JavaScript program is based on JZlib (ported by Gildas Lormeau).
- */
-
-/*
- Copyright (c) 2000,2001,2002,2003 ymnk, JCraft,Inc. All rights reserved.
+ Copyright (c) 2012 Gildas Lormeau. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -29,15 +25,15 @@
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- * This program is based on zlib-1.1.3, so all credit should go authors
+ * This program is based on JZlib 1.0.2 ymnk, JCraft,Inc.
+ * JZlib is based on zlib-1.1.3, so all credit should go authors
  * Jean-loup Gailly(jloup@gzip.org) and Mark Adler(madler@alumni.caltech.edu)
  * and contributors of zlib.
  */
 
 (function(obj) {
-
-	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
 
 	// Global
 
@@ -70,103 +66,25 @@
 
 	var Buf_size = 8 * 2;
 
-	// JZlib
+	// JZlib version : "1.0.2"
+	var Z_DEFAULT_COMPRESSION = -1;
 
-	var JZlib = {
-		version : "1.0.2",
+	// compression strategy
+	var Z_FILTERED = 1;
+	var Z_HUFFMAN_ONLY = 2;
+	var Z_DEFAULT_STRATEGY = 0;
 
-		Z_NO_COMPRESSION : 0,
-		Z_BEST_SPEED : 1,
-		Z_BEST_COMPRESSION : 9,
-		Z_DEFAULT_COMPRESSION : -1,
+	var Z_NO_FLUSH = 0;
+	var Z_PARTIAL_FLUSH = 1;
+	var Z_FULL_FLUSH = 3;
+	var Z_FINISH = 4;
 
-		// compression strategy
-		Z_FILTERED : 1,
-		Z_HUFFMAN_ONLY : 2,
-		Z_DEFAULT_STRATEGY : 0,
-
-		Z_NO_FLUSH : 0,
-		Z_PARTIAL_FLUSH : 1,
-		Z_SYNC_FLUSH : 2,
-		Z_FULL_FLUSH : 3,
-		Z_FINISH : 4,
-
-		Z_OK : 0,
-		Z_STREAM_END : 1,
-		Z_NEED_DICT : 2,
-		Z_ERRNO : -1,
-		Z_STREAM_ERROR : -2,
-		Z_DATA_ERROR : -3,
-		Z_MEM_ERROR : -4,
-		Z_BUF_ERROR : -5,
-		Z_VERSION_ERROR : -6
-	};
-
-	// ADLER32
-
-	// largest prime smaller than 65536
-	var BASE = 65521;
-	// NMAX is the largest n such that 255n(n+1)/2 + (n+1)(BASE-1) <= 2^32-1
-	var NMAX = 5552;
-
-	function adler32(adler, buf, index, len) {
-		if (!buf) {
-			return 1;
-		}
-
-		var s1 = adler & 0xffff;
-		var s2 = (adler >> 16) & 0xffff;
-		var k;
-
-		while (len > 0) {
-			k = len < NMAX ? len : NMAX;
-			len -= k;
-			while (k >= 16) {
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				s1 += buf[index++];
-				s2 += s1;
-				k -= 16;
-			}
-			if (k !== 0) {
-				do {
-					s1 += buf[index++];
-					s2 += s1;
-				} while (--k !== 0);
-			}
-			s1 %= BASE;
-			s2 %= BASE;
-		}
-		return (s2 << 16) | s1;
-	}
+	var Z_OK = 0;
+	var Z_STREAM_END = 1;
+	var Z_NEED_DICT = 2;
+	var Z_STREAM_ERROR = -2;
+	var Z_DATA_ERROR = -3;
+	var Z_BUF_ERROR = -5;
 
 	// Tree
 
@@ -492,8 +410,6 @@
 	var MAX_MEM_LEVEL = 9;
 	var DEF_MEM_LEVEL = 8;
 
-	var Z_DEFAULT_COMPRESSION = JZlib.Z_DEFAULT_COMPRESSION;
-
 	function Config(good_length, max_lazy, nice_length, max_chain, func) {
 		var that = this;
 		that.good_length = good_length;
@@ -514,12 +430,12 @@
 	// 2
 	"stream end", // Z_STREAM_END 1
 	"", // Z_OK 0
-	"file error", // Z_ERRNO (-1)
+	"", // Z_ERRNO (-1)
 	"stream error", // Z_STREAM_ERROR (-2)
 	"data error", // Z_DATA_ERROR (-3)
-	"insufficient memory", // Z_MEM_ERROR (-4)
+	"", // Z_MEM_ERROR (-4)
 	"buffer error", // Z_BUF_ERROR (-5)
-	"incompatible version",// Z_VERSION_ERROR (-6)
+	"",// Z_VERSION_ERROR (-6)
 	"" ];
 
 	// block not completed, need more input or more output
@@ -536,26 +452,6 @@
 
 	// preset dictionary flag in zlib header
 	var PRESET_DICT = 0x20;
-
-	var Z_FILTERED = JZlib.Z_FILTERED;
-	var Z_HUFFMAN_ONLY = JZlib.Z_HUFFMAN_ONLY;
-	var Z_DEFAULT_STRATEGY = JZlib.Z_DEFAULT_STRATEGY;
-
-	var Z_NO_FLUSH = JZlib.Z_NO_FLUSH;
-	var Z_PARTIAL_FLUSH = JZlib.Z_PARTIAL_FLUSH;
-	var Z_SYNC_FLUSH = JZlib.Z_SYNC_FLUSH;
-	var Z_FULL_FLUSH = JZlib.Z_FULL_FLUSH;
-	var Z_FINISH = JZlib.Z_FINISH;
-
-	var Z_OK = JZlib.Z_OK;
-	var Z_STREAM_END = JZlib.Z_STREAM_END;
-	var Z_NEED_DICT = JZlib.Z_NEED_DICT;
-	var Z_ERRNO = JZlib.Z_ERRNO;
-	var Z_STREAM_ERROR = JZlib.Z_STREAM_ERROR;
-	var Z_DATA_ERROR = JZlib.Z_DATA_ERROR;
-	var Z_MEM_ERROR = JZlib.Z_MEM_ERROR;
-	var Z_BUF_ERROR = JZlib.Z_BUF_ERROR;
-	var Z_VERSION_ERROR = JZlib.Z_VERSION_ERROR;
 
 	var INIT_STATE = 42;
 	var BUSY_STATE = 113;
@@ -592,7 +488,6 @@
 		var pending_buf_size; // size of pending_buf
 		// pending_out; // next pending byte to output to the stream
 		// pending; // nb of bytes in the pending buffer
-		// noheader; // suppress zlib header and adler32
 		// data_type; // UNKNOWN, BINARY or ASCII
 		var method; // STORED (for zip only) or DEFLATED
 		var last_flush; // value of flush param for previous deflate call
@@ -1753,11 +1648,7 @@
 			that.pending = 0;
 			that.pending_out = 0;
 
-			if (that.noheader < 0) {
-				that.noheader = 0; // was set to -1 by deflate(..., Z_FINISH);
-			}
-			status = (that.noheader !== 0) ? BUSY_STATE : INIT_STATE;
-			strm.adler = adler32(0, null, 0, 0);
+			status = BUSY_STATE;
 
 			last_flush = Z_NO_FLUSH;
 
@@ -1767,8 +1658,6 @@
 		}
 
 		that.deflateInit = function(strm, _level, bits, _method, memLevel, _strategy) {
-			var _noheader = 0;
-
 			if (!_method)
 				_method = Z_DEFLATED;
 			if (!memLevel)
@@ -1789,11 +1678,6 @@
 			if (_level == Z_DEFAULT_COMPRESSION)
 				_level = 6;
 
-			if (bits < 0) { // undocumented feature: suppress zlib header
-				_noheader = 1;
-				bits = -bits;
-			}
-
 			if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || _method != Z_DEFLATED || bits < 9 || bits > 15 || _level < 0 || _level > 9 || _strategy < 0
 					|| _strategy > Z_HUFFMAN_ONLY) {
 				return Z_STREAM_ERROR;
@@ -1801,7 +1685,6 @@
 
 			strm.dstate = that;
 
-			that.noheader = _noheader;
 			w_bits = bits;
 			w_size = 1 << w_bits;
 			w_mask = w_size - 1;
@@ -1826,8 +1709,6 @@
 			l_buf = (1 + 2) * lit_bufsize;
 
 			level = _level;
-
-			// console.log("level="+level);
 
 			strategy = _strategy;
 			method = _method & 0xff;
@@ -1881,8 +1762,6 @@
 
 			if (!dictionary || status != INIT_STATE)
 				return Z_STREAM_ERROR;
-
-			strm.adler = adler32(strm.adler, dictionary, 0, dictLength);
 
 			if (length < MIN_MATCH)
 				return Z_OK;
@@ -1944,13 +1823,6 @@
 
 				status = BUSY_STATE;
 				putShortMSB(header);
-
-				// Save the adler32 of the preset dictionary:
-				if (strstart !== 0) {
-					putShortMSB(strm.adler >>> 16);
-					putShortMSB(strm.adler & 0xffff);
-				}
-				strm.adler = adler32(0, null, 0, 0);
 			}
 
 			// Flush as much pending output as possible
@@ -2038,18 +1910,7 @@
 
 			if (flush != Z_FINISH)
 				return Z_OK;
-			if (that.noheader !== 0)
-				return Z_STREAM_END;
-
-			// Write the zlib trailer (adler32)
-			putShortMSB(strm.adler >>> 16);
-			putShortMSB(strm.adler & 0xffff);
-			strm.flush_pending();
-
-			// If avail_out is zero, the application will call deflate again
-			// to flush the rest.
-			that.noheader = -1; // write the trailer only once!
-			return that.pending !== 0 ? Z_OK : Z_STREAM_END;
+			return Z_STREAM_END;
 		};
 	}
 
@@ -2068,23 +1929,22 @@
 		// that.msg;
 		// that.dstate;
 		// that.data_type; // best guess about the data type: ascii or binary
-		// that.adler;
 
 	}
 
 	ZStream.prototype = {
-		deflateInit : function(level, nowrap, bits) {
+		deflateInit : function(level, bits) {
 			var that = this;
 			that.dstate = new Deflate();
 			if (!bits)
 				bits = MAX_BITS;
-			return that.dstate.deflateInit(that, level, nowrap ? -bits : bits);
+			return that.dstate.deflateInit(that, level, bits);
 		},
 
 		deflate : function(flush) {
 			var that = this;
 			if (!that.dstate) {
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			}
 			return that.dstate.deflate(that, flush);
 		},
@@ -2092,7 +1952,7 @@
 		deflateEnd : function() {
 			var that = this;
 			if (!that.dstate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			var ret = that.dstate.deflateEnd();
 			that.dstate = null;
 			return ret;
@@ -2101,19 +1961,19 @@
 		deflateParams : function(level, strategy) {
 			var that = this;
 			if (!that.dstate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.dstate.deflateParams(that, level, strategy);
 		},
 
 		deflateSetDictionary : function(dictionary, dictLength) {
 			var that = this;
 			if (!that.dstate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.dstate.deflateSetDictionary(that, dictionary, dictLength);
 		},
 
-		// Read a new buffer from the current input stream, update the adler32
-		// and total number of bytes read. All deflate() input goes through
+		// Read a new buffer from the current input stream, update the
+		// total number of bytes read. All deflate() input goes through
 		// this function so some applications may wish to modify it to avoid
 		// allocating a large strm->next_in buffer and copying from it.
 		// (See also flush_pending()).
@@ -2125,9 +1985,6 @@
 			if (len === 0)
 				return 0;
 			that.avail_in -= len;
-			if (that.dstate.noheader === 0) {
-				that.adler = adler32(that.adler, that.next_in, that.next_in_index, len);
-			}
 			buf.set(that.next_in.subarray(that.next_in_index, that.next_in_index + len), start);
 			that.next_in_index += len;
 			that.total_in += len;
@@ -2170,16 +2027,16 @@
 
 	// Deflater
 
-	function Deflater(level, wrap) {
+	function Deflater(level) {
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
-		var flush = JZlib.Z_NO_FLUSH;
+		var flush = Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
 
 		if (typeof level == "undefined")
-			level = that.DEFAULT_COMPRESSION;
-		z.deflateInit(level, !wrap);
+			level = Z_DEFAULT_COMPRESSION;
+		z.deflateInit(level);
 		z.next_out = buf;
 
 		that.append = function(data, onprogress) {
@@ -2193,7 +2050,7 @@
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
 				err = z.deflate(flush);
-				if (err != JZlib.Z_OK)
+				if (err != Z_OK)
 					throw "deflating: " + z.msg;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
@@ -2218,8 +2075,8 @@
 			do {
 				z.next_out_index = 0;
 				z.avail_out = bufsize;
-				err = z.deflate(JZlib.Z_FINISH);
-				if (err != JZlib.Z_STREAM_END && err != JZlib.Z_OK)
+				err = z.deflate(Z_FINISH);
+				if (err != Z_STREAM_END && err != Z_OK)
 					throw "deflating: " + z.msg;
 				if (bufsize - z.avail_out > 0)
 					buffers.push(new Uint8Array(buf.subarray(0, z.next_out_index)));
@@ -2235,38 +2092,36 @@
 		};
 	}
 
-	Deflater.prototype = {
-		NO_COMPRESSION : 0,
-		BEST_SPEED : 1,
-		BEST_COMPRESSION : 9,
-		DEFAULT_COMPRESSION : -1
-	};
+	var deflater;
 
-	if (!obj.zip)
-		obj.zip = {};
-
-	obj.zip.Deflater = Deflater;
-
-	var deflater = new obj.zip.Deflater();
-
-	obj.addEventListener("message", function(event) {
-		var message = event.data;
-
-		if (message.append)
-			obj.postMessage({
-				onappend : true,
-				data : deflater.append(message.data, function(current) {
-					obj.postMessage({
-						progress : true,
-						current : current
-					});
-				})
-			});
-		if (message.flush)
-			obj.postMessage({
-				onflush : true,
-				data : deflater.flush()
-			});
-	}, false);
+	if (obj.zip)
+		obj.zip.Deflater = Deflater;
+	else {
+		deflater = new Deflater();
+		obj.addEventListener("message", function(event) {
+			var message = event.data;
+			if (message.init) {
+				deflater = new Deflater(message.level);
+				obj.postMessage({
+					oninit : true
+				});
+			}
+			if (message.append)
+				obj.postMessage({
+					onappend : true,
+					data : deflater.append(message.data, function(current) {
+						obj.postMessage({
+							progress : true,
+							current : current
+						});
+					})
+				});
+			if (message.flush)
+				obj.postMessage({
+					onflush : true,
+					data : deflater.flush()
+				});
+		}, false);
+	}
 
 })(this);

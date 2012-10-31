@@ -27,10 +27,10 @@
 	}, false);
 
 	chrome.extension.sendRequest({
-		gefaultStyle : true
+		defaultStyle : true
 	}, function(style) {
 		parent.postMessage(JSON.stringify({
-			sefaultStyle : true,
+			setDefaultStyle : true,
 			defaultStyle: style
 		}), "*");
 	});

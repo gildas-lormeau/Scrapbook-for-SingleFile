@@ -505,7 +505,7 @@
 
 	addEventListener("message", function(event) {
 		var message = JSON.parse(event.data);
-		if (message.sefaultStyle)
+		if (message.setDefaultStyle)
 			defaultStyle = JSON.parse(message.defaultStyle);
 	}, false);
 

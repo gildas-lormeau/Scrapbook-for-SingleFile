@@ -31,7 +31,7 @@ var storage = {};
 	var reqPagesContents = "create table if not exists pages_contents (id integer, content blob)";
 	var reqPagesTexts = "create table if not exists pages_texts (id integer, text blob)";
 
-	var db, fs, tmpfs, BBuilder = window.BlobBuilder || window.WebKitBlobBuilder, requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
+	var db, fs, tmpfs, requestFS = window.requestFileSystem || window.webkitRequestFileSystem;
 
 	function useFilesystem() {
 		return options.filesystemEnabled == "yes" && typeof requestFS != "undefined";
@@ -48,6 +48,7 @@ var storage = {};
 	}
 
 	function init() {
+		zip.workerScriptsPath = "scripts/";
 		db = openDatabase("ScrapBook for SingleFile", "1.0", "scrapbook", DATA_SIZE);
 		createDatabase();
 		if (typeof requestFS != "undefined") {
@@ -62,13 +63,6 @@ var storage = {};
 				options.filesystemEnabled = "";
 			});
 		}
-		// --- fix for regression introduced in version 0.1.3 ---
-		db.transaction(function(tx) {
-			tx.executeSql("update pages set idx = null where idx = \"\"", [], function() {
-				tx.executeSql("update pages set read_timestamp = null where read_timestamp = \"\"", []);
-			});
-		});
-		// ---
 	}
 
 	storage.importDB = function(onprogress, onfinish) {
@@ -165,7 +159,7 @@ var storage = {};
 						if (result.rows.length)
 							pageMetadata = result.rows.item(0);
 						tx.executeSql(query, [ id ], function(cbTx, result) {
-							var i, blobBuilder = new BBuilder(), fileReader;
+							var i, blob, fileReader;
 							if (result.rows.length)
 								for (i = 0; i < result.rows.length; i++)
 									tags.push(result.rows.item(i).tag);
@@ -173,10 +167,8 @@ var storage = {};
 								commentNode.textContent += " page info: " + JSON.stringify(pageMetadata) + "\n";
 							if (tags.length)
 								commentNode.textContent += " tags: " + JSON.stringify(tags) + "\n";
-							blobBuilder.append((new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer);
-							blobBuilder.append(getDoctype(newDoc));
-							blobBuilder.append(newDoc.documentElement.outerHTML);
-							zipWriter.add(name, new zip.BlobReader(blobBuilder.getBlob()), null, function() {
+							blob = new Blob([(new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer, getDoctype(newDoc), newDoc.documentElement.outerHTML]);
+							zipWriter.add(name, new zip.BlobReader(blob), function() {
 								exportIndex++;
 								if (exportIndex == pageIds.length)
 									zipWriter.close(function() {
@@ -202,11 +194,13 @@ var storage = {};
 				create : true
 			}, function(zipfile) {
 				file = zipfile;
-				zip.createWriter(new zip.FileWriter(file), !compress, function(writer) {
+				zip.createWriter(new zip.FileWriter(file), function(writer) {
 					zipWriter = writer;
 					exportContent(pageIds, 0);
 					onprogress(exportIndex, pageIds.length);
-				});
+				}, function(error) {
+					// TODO
+				}, !compress);
 			});
 		});
 	};
@@ -280,15 +274,12 @@ var storage = {};
 							create : true
 						}, function(fileEntry) {
 							fileEntry.createWriter(function(fileWriter) {
-								var blobBuilder = new BBuilder();
-								blobBuilder.append((new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer);
-								blobBuilder.append(content || "");
 								fileWriter.onwrite = function(e) {
 									db.transaction(function(tx) {
 										tx.executeSql("delete from pages_contents where id = ?", [ id ], exportNextContent, exportNextContent);
 									}, exportNextContent);
 								};
-								fileWriter.write(blobBuilder.getBlob());
+								fileWriter.write(new Blob([(new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer, content || ""]));
 							}, exportNextContent);
 						}, exportNextContent);
 					}, exportNextContent);
@@ -409,12 +400,10 @@ var storage = {};
 			fs.root.getFile(id + ".html", null, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
 					var blobBuilder = new BBuilder();
-					blobBuilder.append((new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer);
-					blobBuilder.append(content);
 					fileWriter.onerror = function(e) {
 						storage.updatePage(id, content, true);
 					};
-					fileWriter.write(blobBuilder.getBlob());
+					fileWriter.write(new Blob([(new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer, content]));
 				});
 			}, function() {
 				storage.updatePage(id, content, true);
@@ -1022,12 +1011,9 @@ var storage = {};
 						create : true
 					}, function(fileEntry) {
 						fileEntry.createWriter(function(fileWriter) {
-							var blobBuilder = new BBuilder();
-							blobBuilder.append((new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer);
-							blobBuilder.append(content);
 							fileWriter.onerror = onFileError;
 							fileWriter.onwrite = finishUpdate;
-							fileWriter.write(blobBuilder.getBlob());
+							fileWriter.write(new Blob([(new Uint8Array([ 0xEF, 0xBB, 0xBF ])).buffer, content, ]));
 						});
 					}, onFileError);
 				} else

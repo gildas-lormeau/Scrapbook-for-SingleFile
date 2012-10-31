@@ -1,9 +1,5 @@
 /*
- * This JavaScript program is based on JZlib (ported by Gildas Lormeau).
- */
-
-/*
- Copyright (c) 2000,2001,2002,2003 ymnk, JCraft,Inc. All rights reserved.
+ Copyright (c) 2012 Gildas Lormeau. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -29,15 +25,15 @@
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- * This program is based on zlib-1.1.3, so all credit should go authors
+ * This program is based on JZlib 1.0.2 ymnk, JCraft,Inc.
+ * JZlib is based on zlib-1.1.3, so all credit should go authors
  * Jean-loup Gailly(jloup@gzip.org) and Mark Adler(madler@alumni.caltech.edu)
  * and contributors of zlib.
  */
 
 (function(obj) {
-
-	var BlobBuilder = obj.WebKitBlobBuilder || obj.MozBlobBuilder || obj.BlobBuilder;
 
 	// Global
 	var MAX_BITS = 15;
@@ -45,12 +41,10 @@
 	var Z_OK = 0;
 	var Z_STREAM_END = 1;
 	var Z_NEED_DICT = 2;
-	var Z_ERRNO = -1;
 	var Z_STREAM_ERROR = -2;
 	var Z_DATA_ERROR = -3;
 	var Z_MEM_ERROR = -4;
 	var Z_BUF_ERROR = -5;
-	var Z_VERSION_ERROR = -6;
 
 	var inflate_mask = [ 0x00000000, 0x00000001, 0x00000003, 0x00000007, 0x0000000f, 0x0000001f, 0x0000003f, 0x0000007f, 0x000000ff, 0x000001ff, 0x000003ff,
 			0x000007ff, 0x00000fff, 0x00001fff, 0x00003fff, 0x00007fff, 0x0000ffff ];
@@ -60,44 +54,9 @@
 	var MAX_WBITS = 15; // 32K LZ77 window
 	var DEF_WBITS = MAX_WBITS;
 
-	// JZlib
-
-	var JZlib = {
-		version : "1.0.2",
-
-		Z_NO_COMPRESSION : 0,
-		Z_BEST_SPEED : 1,
-		Z_BEST_COMPRESSION : 9,
-		Z_DEFAULT_COMPRESSION : -1,
-
-		// compression strategy
-		Z_FILTERED : 1,
-		Z_HUFFMAN_ONLY : 2,
-		Z_DEFAULT_STRATEGY : 0,
-
-		Z_NO_FLUSH : 0,
-		Z_PARTIAL_FLUSH : 1,
-		Z_SYNC_FLUSH : 2,
-		Z_FULL_FLUSH : 3,
-		Z_FINISH : 4,
-
-		Z_OK : 0,
-		Z_STREAM_END : 1,
-		Z_NEED_DICT : 2,
-		Z_ERRNO : -1,
-		Z_STREAM_ERROR : -2,
-		Z_DATA_ERROR : -3,
-		Z_MEM_ERROR : -4,
-		Z_BUF_ERROR : -5,
-		Z_VERSION_ERROR : -6
-	};
-
-	// Adler32
-
-	function adler32() {
-		// TODO
-		return 0;
-	}
+	// JZlib version : "1.0.2"
+	var Z_NO_FLUSH = 0;
+	var Z_FINISH = 4;
 
 	// InfTree
 	var fixed_bl = 9;
@@ -1168,7 +1127,7 @@
 	var DONELOCKS = 8; // finished last block, done
 	var BADBLOCKS = 9; // ot a data error--stuck here
 
-	function InfBlocks(z, checkFunction, w) {
+	function InfBlocks(z, w) {
 		var that = this;
 
 		var mode = TYPE; // current inflate_block mode
@@ -1186,7 +1145,6 @@
 		var last = 0; // true if this block is the last block
 
 		var hufts = new Int32Array(MANY * 3); // single malloc for tree space
-		var checkfn = checkFunction; // check function
 		var check = 0; // check on output
 		var inftree = new InfTree();
 
@@ -1209,9 +1167,6 @@
 			that.bitk = 0;
 			that.bitb = 0;
 			that.read = that.write = 0;
-
-			if (checkfn)
-				z.adler = check = adler32(z, 0, null, 0, 0);
 		};
 
 		that.reset(z, null);
@@ -1237,10 +1192,6 @@
 			z.avail_out -= n;
 			z.total_out += n;
 
-			// update check information
-			if (checkfn)
-				z.adler = check = adler32(z, check, window, q, n);
-
 			// copy as far as end of window
 			z.next_out.set(that.window.subarray(q, q + n), p);
 			p += n;
@@ -1263,10 +1214,6 @@
 				// update counters
 				z.avail_out -= n;
 				z.total_out += n;
-
-				// update check information
-				if (checkfn)
-					z.adler = check = adler32(z, check, that.window, q, n);
 
 				// copy
 				z.next_out.set(that.window.subarray(q, q + n), p);
@@ -1804,12 +1751,6 @@
 	// preset dictionary flag in zlib header
 	var PRESET_DICT = 0x20;
 
-	var Z_NO_FLUSH = 0;
-	var Z_PARTIAL_FLUSH = 1;
-	var Z_SYNC_FLUSH = 2;
-	var Z_FULL_FLUSH = 3;
-	var Z_FINISH = 4;
-
 	var Z_DEFLATED = 8;
 
 	var METHOD = 0; // waiting for method byte
@@ -1820,10 +1761,6 @@
 	var DICT1 = 5; // one dictionary check byte to go
 	var DICT0 = 6; // waiting for inflateSetDictionary
 	var BLOCKS = 7; // decompressing blocks
-	var CHECK4 = 8; // four check bytes to go
-	var CHECK3 = 9; // three check bytes to go
-	var CHECK2 = 10; // two check bytes to go
-	var CHECK1 = 11; // one check byte to go
 	var DONE = 12; // finished check, done
 	var BAD = 13; // got an error--stay here
 
@@ -1845,7 +1782,6 @@
 		that.marker = 0;
 
 		// mode independent information
-		that.nowrap = 0; // flag for no wrapper
 		that.wbits = 0; // log2(window size) (8..15, defaults to 15)
 
 		// this.blocks; // current inflate_blocks state
@@ -1856,7 +1792,7 @@
 
 			z.total_in = z.total_out = 0;
 			z.msg = null;
-			z.istate.mode = z.istate.nowrap !== 0 ? BLOCKS : METHOD;
+			z.istate.mode = BLOCKS;
 			z.istate.blocks.reset(z, null);
 			return Z_OK;
 		}
@@ -1873,13 +1809,6 @@
 			z.msg = null;
 			that.blocks = null;
 
-			// handle undocumented nowrap option (no zlib header or check)
-			that.nowrap = 0;
-			if (w < 0) {
-				w = -w;
-				that.nowrap = 1;
-			}
-
 			// set window size
 			if (w < 8 || w > 15) {
 				that.inflateEnd(z);
@@ -1887,7 +1816,7 @@
 			}
 			that.wbits = w;
 
-			z.istate.blocks = new InfBlocks(z, z.istate.nowrap !== 0 ? null : that, 1 << w);
+			z.istate.blocks = new InfBlocks(z, 1 << w);
 
 			// reset state
 			inflateReset(z);
@@ -1987,7 +1916,6 @@
 					z.avail_in--;
 					z.total_in++;
 					z.istate.need += (z.read_byte(z.next_in_index++) & 0xff);
-					z.adler = z.istate.need;
 					z.istate.mode = DICT0;
 					return Z_NEED_DICT;
 				case DICT0:
@@ -2011,58 +1939,6 @@
 					}
 					r = f;
 					z.istate.blocks.reset(z, z.istate.was);
-					if (z.istate.nowrap !== 0) {
-						z.istate.mode = DONE;
-						break;
-					}
-					z.istate.mode = CHECK4;
-				case CHECK4:
-
-					if (z.avail_in === 0)
-						return r;
-					r = f;
-
-					z.avail_in--;
-					z.total_in++;
-					z.istate.need = ((z.read_byte(z.next_in_index++) & 0xff) << 24) & 0xff000000;
-					z.istate.mode = CHECK3;
-				case CHECK3:
-
-					if (z.avail_in === 0)
-						return r;
-					r = f;
-
-					z.avail_in--;
-					z.total_in++;
-					z.istate.need += ((z.read_byte(z.next_in_index++) & 0xff) << 16) & 0xff0000;
-					z.istate.mode = CHECK2;
-				case CHECK2:
-
-					if (z.avail_in === 0)
-						return r;
-					r = f;
-
-					z.avail_in--;
-					z.total_in++;
-					z.istate.need += ((z.read_byte(z.next_in_index++) & 0xff) << 8) & 0xff00;
-					z.istate.mode = CHECK1;
-				case CHECK1:
-
-					if (z.avail_in === 0)
-						return r;
-					r = f;
-
-					z.avail_in--;
-					z.total_in++;
-					z.istate.need += (z.read_byte(z.next_in_index++) & 0xff);
-
-					if (z.istate.was[0] != z.istate.need) {
-						z.istate.mode = BAD;
-						z.msg = "incorrect data check";
-						z.istate.marker = 5; // can't try inflateSync
-						break;
-					}
-
 					z.istate.mode = DONE;
 				case DONE:
 					return Z_STREAM_END;
@@ -2079,12 +1955,6 @@
 			var length = dictLength;
 			if (!z || !z.istate || z.istate.mode != DICT0)
 				return Z_STREAM_ERROR;
-
-			if (adler32(z, 1, dictionary, 0, dictLength) != z.adler) {
-				return Z_DATA_ERROR;
-			}
-
-			z.adler = adler32(z, 0, null, 0, 0);
 
 			if (length >= (1 << z.istate.wbits)) {
 				length = (1 << z.istate.wbits) - 1;
@@ -2165,25 +2035,25 @@
 	}
 
 	ZStream.prototype = {
-		inflateInit : function(nowrap, bits) {
+		inflateInit : function(bits) {
 			var that = this;
 			that.istate = new Inflate();
 			if (!bits)
 				bits = MAX_BITS;
-			return that.istate.inflateInit(that, nowrap ? -bits : bits);
+			return that.istate.inflateInit(that, bits);
 		},
 
 		inflate : function(f) {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.istate.inflate(that, f);
 		},
 
 		inflateEnd : function() {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			var ret = that.istate.inflateEnd(that);
 			that.istate = null;
 			return ret;
@@ -2192,13 +2062,13 @@
 		inflateSync : function() {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.istate.inflateSync(that);
 		},
 		inflateSetDictionary : function(dictionary, dictLength) {
 			var that = this;
 			if (!that.istate)
-				return JZlib.Z_STREAM_ERROR;
+				return Z_STREAM_ERROR;
 			return that.istate.inflateSetDictionary(that, dictionary, dictLength);
 		},
 		read_byte : function(start) {
@@ -2213,15 +2083,15 @@
 
 	// Inflater
 
-	function Inflater(wrap) {
+	function Inflater() {
 		var that = this;
 		var z = new ZStream();
 		var bufsize = 512;
-		var flush = JZlib.Z_NO_FLUSH;
+		var flush = Z_NO_FLUSH;
 		var buf = new Uint8Array(bufsize);
 		var nomoreinput = false;
 
-		z.inflateInit(!wrap);
+		z.inflateInit();
 		z.next_out = buf;
 
 		that.append = function(data, onprogress) {
@@ -2239,11 +2109,11 @@
 					nomoreinput = true;
 				}
 				err = z.inflate(flush);
-				if (nomoreinput && (err == JZlib.Z_BUF_ERROR))
+				if (nomoreinput && (err == Z_BUF_ERROR))
 					return -1;
-				if (err != JZlib.Z_OK && err != JZlib.Z_STREAM_END)
+				if (err != Z_OK && err != Z_STREAM_END)
 					throw "inflating: " + z.msg;
-				if ((nomoreinput || err == JZlib.Z_STREAM_END) && (z.avail_out == data.length))
+				if ((nomoreinput || err == Z_STREAM_END) && (z.avail_out == data.length))
 					return -1;
 				if (z.next_out_index)
 					if (z.next_out_index == bufsize)
@@ -2268,32 +2138,32 @@
 		};
 	}
 
-	if (!obj.zip)
-		obj.zip = {};
+	var inflater;
 
-	obj.zip.Inflater = Inflater;
+	if (obj.zip)
+		obj.zip.Inflater = Inflater;
+	else {
+		inflater = new Inflater();
+		obj.addEventListener("message", function(event) {
+			var message = event.data;
 
-	var inflater = new obj.zip.Inflater();
-
-	obj.addEventListener("message", function(event) {
-		var message = event.data;
-
-		if (message.append)
-			obj.postMessage({
-				onappend : true,
-				data : inflater.append(message.data, function(current) {
-					obj.postMessage({
-						progress : true,
-						current : current
-					});
-				})
-			});
-		if (message.flush) {
-			inflater.flush();
-			obj.postMessage({
-				onflush : true
-			});
-		}
-	}, false);
+			if (message.append)
+				obj.postMessage({
+					onappend : true,
+					data : inflater.append(message.data, function(current) {
+						obj.postMessage({
+							progress : true,
+							current : current
+						});
+					})
+				});
+			if (message.flush) {
+				inflater.flush();
+				obj.postMessage({
+					onflush : true
+				});
+			}
+		}, false);
+	}
 
 })(this);

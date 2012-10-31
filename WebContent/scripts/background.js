@@ -75,23 +75,23 @@ function resetDatabase(callback) {
 
 function getArchiveURL(id, editMode, callback) {
 	function createObjectURL(content, title) {
-		var BlobBuilder = window.WebKitBlobBuilder, blobBuilder = new BlobBuilder(), BOM = new ArrayBuffer(3), v = new Uint8Array(BOM);
+		var BOM = new ArrayBuffer(3), v = new Uint8Array(BOM), array;
 		v.set([ 0xEF, 0xBB, 0xBF ]);
-		blobBuilder.append(BOM);
-		blobBuilder.append(content);
-		blobBuilder.append("<script class='scrapbook-editor'>history.pushState({}, \"" + title + "\", \"" + chrome.extension.getURL("pages/view.html") + "?"
-				+ id + "\");</script>");
-		blobBuilder.append("<link rel='stylesheet' class='scrapbook-editor' href='" + chrome.extension.getURL("pages/proxy-page.css") + "'></link>");
-		blobBuilder.append("<script class='scrapbook-editor'>var scrapbook_path = \"" + chrome.extension.getURL("") + "\";</script>");
-		blobBuilder.append("<iframe id='scrapbook-background' class='scrapbook-editor' hidden src='"
-				+ chrome.extension.getURL("pages/proxy-content.html?" + id) + "'></iframe>");
-		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/color-picker.js") + "'></script>");
-		blobBuilder.append("<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/proxy-page.js") + "'></script>");
+		array = [
+				BOM,
+				content,
+				"<script class='scrapbook-editor'>history.replaceState({}, \"" + title.replace(/"/g, "'") + "\", \""
+						+ chrome.extension.getURL("pages/view.html") + "?" + id + "\");</script>",
+				"<link rel='stylesheet' class='scrapbook-editor' href='" + chrome.extension.getURL("pages/proxy-page.css") + "'></link>",
+				"<script class='scrapbook-editor'>var scrapbook_path = \"" + chrome.extension.getURL("") + "\";</script>",
+				"<iframe id='scrapbook-background' class='scrapbook-editor' hidden src='" + chrome.extension.getURL("pages/proxy-content.html?" + id)
+						+ "'></iframe>", "<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/color-picker.js") + "'></script>",
+				"<script class='scrapbook-editor' src='" + chrome.extension.getURL("scripts/proxy-page.js") + "'></script>" ];
 		if (editMode)
-			blobBuilder.append("<script class='scrapbook-editor'>showToolbox();</script>");
-		blobBuilder
-				.append("<script class='scrapbook-editor'>Array.prototype.forEach.call(document.querySelectorAll('.scrapbook-editor'), function(element) { if (element.tagName == 'SCRIPT') element.parentElement.removeChild(element); });</script>");
-		callback(webkitURL.createObjectURL(blobBuilder.getBlob("text/html")));
+			array.push("<script class='scrapbook-editor'>showToolbox();</script>");
+		callback(webkitURL.createObjectURL(new Blob(array, {
+			type : "text/html"
+		})));
 	}
 
 	storage.getContent(id, createObjectURL);
@@ -151,7 +151,7 @@ function getTabsInfo(callback) {
 }
 
 function onProcessEnd() {
-	var notification = webkitNotifications.createHTMLNotification('notificationOK.html');
+	var notification = webkitNotifications.createHTMLNotification('pages/notificationOK.html');
 	if (timeoutNoResponse)
 		clearTimeout(timeoutNoResponse);
 	timeoutNoResponse = null;
@@ -165,7 +165,7 @@ function setTimeoutNoResponse() {
 	if (timeoutNoResponse)
 		clearTimeout(timeoutNoResponse);
 	timeoutNoResponse = setTimeout(function() {
-		var notificationNoResponse = webkitNotifications.createHTMLNotification('notificationTimeout.html');
+		var notificationNoResponse = webkitNotifications.createHTMLNotification('pages/notificationTimeout.html');
 		tabs = {
 			length : 0
 		};
@@ -291,7 +291,7 @@ function exportToZip(checkedPages, filename) {
 			url : url,
 			selected : false
 		});
-		notificationExportOK = webkitNotifications.createHTMLNotification('notificationExportOK.html');
+		notificationExportOK = webkitNotifications.createHTMLNotification('pages/notificationExportOK.html');
 		notificationExportOK.show();
 		setTimeout(function() {
 			notificationExportOK.cancel();
@@ -315,7 +315,7 @@ function importFromZip(file) {
 		var notificationImportOK;
 		process.importingFromZip = false;
 		refreshBadge("", "");
-		notificationImportOK = webkitNotifications.createHTMLNotification('notificationImportOK.html');
+		notificationImportOK = webkitNotifications.createHTMLNotification('pages/notificationImportOK.html');
 		notificationImportOK.show();
 		setTimeout(function() {
 			notificationImportOK.cancel();
@@ -421,15 +421,28 @@ chrome.omnibox.onInputEntered.addListener(function(text, suggestCallback) {
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	if (request.saveArchive)
 		storage.updatePage(request.archiveId, request.content);
-	if (request.gefaultStyle) {
-		var i, style = getComputedStyle(document.getElementById("basic-div")), divStyle = {};
+	if (request.defaultStyle) {
+		var i, element, style, divStyle = {};
+		element = document.getElementById("basic-div");
+		if (!element) {
+			element = document.createElement("div");
+			element.id = "basic-div";
+			document.body.appendChild(element);
+		}
+		style = getComputedStyle(element);
 		for (i = 0; i < style.length; i++)
 			divStyle[style[i]] = style[style[i]];
+		divStyle["font-family"] = "Arial";
+		divStyle["font-size"] = "11pt";
 		delete divStyle["width"];
 		delete divStyle["-webkit-perspective-origin"];
 		delete divStyle["-webkit-transform-origin"];
 		sendResponse(JSON.stringify(divStyle));
 	}
+	if (request.getArchiveURL)
+		getArchiveURL(request.index, false, function(url) {
+			sendResponse(url);
+		});
 });
 
 chrome.extension.onRequestExternal.addListener(function(request, sender, sendResponse) {
@@ -444,7 +457,7 @@ chrome.extension.onRequestExternal.addListener(function(request, sender, sendRes
 			if (options.expandNewArchive == "yes")
 				popupState.newPages[id] = true;
 		}, function() {
-			webkitNotifications.createHTMLNotification('notificationFileError.html').show();
+			webkitNotifications.createHTMLNotification('pages/notificationFileError.html').show();
 		});
 		sendResponse({});
 		if (!tabs.length)
