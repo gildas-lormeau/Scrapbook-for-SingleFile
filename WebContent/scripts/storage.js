@@ -167,7 +167,9 @@ var storage = {};
 								commentNode.textContent += " page info: " + JSON.stringify(pageMetadata) + "\n";
 							if (tags.length)
 								commentNode.textContent += " tags: " + JSON.stringify(tags) + "\n";
-							blob = new Blob([new Uint8Array([ 0xEF, 0xBB, 0xBF ]), getDoctype(newDoc), newDoc.documentElement.outerHTML]);
+							blob = new Blob([new Uint8Array([ 0xEF, 0xBB, 0xBF ]), getDoctype(newDoc), newDoc.documentElement.outerHTML], {
+								type : "text/html"
+							});
 							zipWriter.add(name, new zip.BlobReader(blob), function() {
 								exportIndex++;
 								if (exportIndex == pageIds.length)
@@ -279,7 +281,9 @@ var storage = {};
 										tx.executeSql("delete from pages_contents where id = ?", [ id ], exportNextContent, exportNextContent);
 									}, exportNextContent);
 								};
-								fileWriter.write(new Blob([new Uint8Array([ 0xEF, 0xBB, 0xBF ]), content || ""]));
+								fileWriter.write(new Blob([new Uint8Array([ 0xEF, 0xBB, 0xBF ]), content || ""], {
+									type : "text/html"
+								}));
 							}, exportNextContent);
 						}, exportNextContent);
 					}, exportNextContent);
@@ -403,7 +407,9 @@ var storage = {};
 					fileWriter.onerror = function(e) {
 						storage.updatePage(id, content, true);
 					};
-					fileWriter.write(new Blob([new Uint8Array([ 0xEF, 0xBB, 0xBF ]), content]));
+					fileWriter.write(new Blob([new Uint8Array([ 0xEF, 0xBB, 0xBF ]), content], {
+						type : "text/html"
+					}));
 				});
 			}, function() {
 				storage.updatePage(id, content, true);
@@ -1013,7 +1019,9 @@ var storage = {};
 						fileEntry.createWriter(function(fileWriter) {
 							fileWriter.onerror = onFileError;
 							fileWriter.onwrite = finishUpdate;
-							fileWriter.write(new Blob([new Uint8Array([ 0xEF, 0xBB, 0xBF ]), content, ]));
+							fileWriter.write(new Blob([new Uint8Array([ 0xEF, 0xBB, 0xBF ]), content], {
+								type : "text/html"
+							}));
 						});
 					}, onFileError);
 				} else
