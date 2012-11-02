@@ -23,10 +23,10 @@
 
 	addEventListener("message", function(event) {
 		event.data.archiveId = archiveId;
-		chrome.extension.sendRequest(event.data);
+		chrome.extension.sendMessage(event.data);
 	}, false);
 
-	chrome.extension.sendRequest({
+	chrome.extension.sendMessage({
 		defaultStyle : true
 	}, function(style) {
 		parent.postMessage(JSON.stringify({

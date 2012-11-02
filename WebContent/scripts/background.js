@@ -75,10 +75,8 @@ function resetDatabase(callback) {
 
 function getArchiveURL(id, editMode, callback) {
 	function createObjectURL(content, title) {
-		var BOM = new ArrayBuffer(3), v = new Uint8Array(BOM), array;
-		v.set([ 0xEF, 0xBB, 0xBF ]);
-		array = [
-				BOM,
+		var array = [
+				new Uint8Array([ 0xEF, 0xBB, 0xBF ]),
 				content,
 				"<script class='scrapbook-editor'>history.replaceState({}, \"" + title.replace(/"/g, "'") + "\", \""
 						+ chrome.extension.getURL("pages/view.html") + "?" + id + "\");</script>",
@@ -182,7 +180,7 @@ function saveTabs(tabIds) {
 	tabIds.forEach(function(tabId) {
 		notifyTabProgress(tabId, 0, 0, 100);
 	});
-	chrome.extension.sendRequest(SINGLE_FILE_ID, {
+	chrome.extension.sendMessage(SINGLE_FILE_ID, {
 		tabIds : tabIds
 	}, function() {
 	});
@@ -418,7 +416,7 @@ chrome.omnibox.onInputEntered.addListener(function(text, suggestCallback) {
 	}
 });
 
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 	if (request.saveArchive)
 		storage.updatePage(request.archiveId, request.content);
 	if (request.defaultStyle) {
@@ -445,7 +443,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		});
 });
 
-chrome.extension.onRequestExternal.addListener(function(request, sender, sendResponse) {
+chrome.extension.onMessageExternal.addListener(function(request, sender, sendResponse) {
 	setTimeoutNoResponse();
 	if (request.processStart)
 		notifyTabProgress(request.tabId, 0, 0, 100);
