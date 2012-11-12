@@ -441,6 +441,7 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 		getArchiveURL(request.index, false, function(url) {
 			sendResponse(url);
 		});
+	return true;
 });
 
 chrome.extension.onMessageExternal.addListener(function(request, sender, sendResponse) {
