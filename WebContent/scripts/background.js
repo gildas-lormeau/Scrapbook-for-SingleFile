@@ -438,10 +438,6 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 		delete divStyle["-webkit-transform-origin"];
 		sendResponse(JSON.stringify(divStyle));
 	}
-	if (request.getArchiveURL)
-		getArchiveURL(request.index, false, function(url) {
-			sendResponse(url);
-		});
 	return true;
 });
 

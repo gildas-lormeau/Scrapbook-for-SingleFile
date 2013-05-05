@@ -18,9 +18,6 @@
  *   along with PageArchiver.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-chrome.extension.sendMessage({
-	getArchiveURL : true,
-	index : Number(location.search.split('?')[1])
-}, function(url) {
+chrome.extension.getBackgroundPage().getArchiveURL(Number(location.search.split('?')[1]), false, function(url) {
 	location.replace(url);
 });
