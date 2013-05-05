@@ -403,7 +403,6 @@ var storage = {};
 		if (fs && !forceUseDatabase) {
 			fs.root.getFile(id + ".html", null, function(fileEntry) {
 				fileEntry.createWriter(function(fileWriter) {
-					var blobBuilder = new BBuilder();
 					fileWriter.onerror = function(e) {
 						storage.updatePage(id, content, true);
 					};
