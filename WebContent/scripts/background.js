@@ -149,7 +149,7 @@ function getTabsInfo(callback) {
 }
 
 function onProcessEnd() {
-	var notification = webkitNotifications.createHTMLNotification('pages/notificationOK.html');
+	var notification = webkitNotifications.createNotification("../resources/icon_48.png", "PageArchiver", "Pages are archived");
 	if (timeoutNoResponse)
 		clearTimeout(timeoutNoResponse);
 	timeoutNoResponse = null;
@@ -163,7 +163,8 @@ function setTimeoutNoResponse() {
 	if (timeoutNoResponse)
 		clearTimeout(timeoutNoResponse);
 	timeoutNoResponse = setTimeout(function() {
-		var notificationNoResponse = webkitNotifications.createHTMLNotification('pages/notificationTimeout.html');
+		var notificationNoResponse = webkitNotifications.createNotification("../resources/icon_48.png", "PageArchiver",
+				"Warning (60s timeout): some pages take time to archive...");
 		tabs = {
 			length : 0
 		};
@@ -289,7 +290,7 @@ function exportToZip(checkedPages, filename) {
 			url : url,
 			selected : false
 		});
-		notificationExportOK = webkitNotifications.createHTMLNotification('pages/notificationExportOK.html');
+		notificationExportOK = webkitNotifications.createNotification("../resources/icon_48.png", "PageArchiver", "Archives are exported");
 		notificationExportOK.show();
 		setTimeout(function() {
 			notificationExportOK.cancel();
@@ -313,7 +314,7 @@ function importFromZip(file) {
 		var notificationImportOK;
 		process.importingFromZip = false;
 		refreshBadge("", "");
-		notificationImportOK = webkitNotifications.createHTMLNotification('pages/notificationImportOK.html');
+		notificationImportOK = webkitNotifications.createNotification("../resources/icon_48.png", "PageArchiver", "Archives are imported");
 		notificationImportOK.show();
 		setTimeout(function() {
 			notificationImportOK.cancel();
@@ -456,7 +457,7 @@ chrome.extension.onMessageExternal.addListener(function(request, sender, sendRes
 			if (options.expandNewArchive == "yes")
 				popupState.newPages[id] = true;
 		}, function() {
-			webkitNotifications.createHTMLNotification('pages/notificationFileError.html').show();
+			webkitNotifications.createNotification("../resources/icon_48.png", "PageArchiver", "Error when saving the archive on disk");
 		});
 		sendResponse({});
 		if (!tabs.length)
