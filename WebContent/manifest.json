@@ -26,12 +26,7 @@
     "keyword" : "pa"
   },
   "web_accessible_resources": [
-    "pages/notificationExportOK.html",
-    "pages/notificationFileError.html",
-    "pages/notificationImportOK.html",
-    "pages/notificationOK.html",
-    "pages/notificationTimeout.html",
-    "pages/notification.css",
+    "resources/icon_48.png",
     "pages/proxy-page.css",
     "scripts/color-picker.js",
     "scripts/proxy-page.js"
